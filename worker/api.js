@@ -1,4 +1,5 @@
-import {readClaudeStream,generationStream} from './generation-stream.js';
+import {providerConfig,generateWithProvider,schemaFromExample} from './ai-provider.js';
+import {generationStream} from './generation-stream.js';
 import {seniorCatalogue} from './senior-catalogue-data.js';
 import {seniorProgressionEvidence} from './senior-reference.js';
 import {ministryCatalogue,ministryContent} from './catalogue-data.js';
@@ -7,15 +8,15 @@ import {rules,validatePlan,planSchema,capabilities} from '../unit-plan-builder/m
 import {programmeRules,validateOverview,validateMapping,overviewShape,selectedStatements,validateOverviewStage} from '../programme/shared.js';
 export async function api(request,env){
  const headers={'Cache-Control':'no-store'};const reply=(data,status=200)=>Response.json(data,{status,headers});
- const path=new URL(request.url).pathname;
+ const path=new URL(request.url).pathname;let provider;try{provider=providerConfig(env);}catch(e){return reply({error:e.message},503);}
  if(path==='/api/senior-curriculum-catalogue'&&request.method==='GET')return reply(seniorCatalogue);
  if(path==='/api/curriculum-catalogue'&&request.method==='GET')return reply(ministryCatalogue);
  if(path==='/api/school-config'&&request.method==='GET')return reply({priorities:schoolStandard.priorities,version:schoolStandard.version});
- if(path==='/api/status'&&request.method==='GET')return reply({configured:!!(env.ANTHROPIC_API_KEY&&env.CLAUDE_MODEL)});
+ if(path==='/api/status'&&request.method==='GET')return reply({configured:provider.configured,provider:provider.id,label:provider.label});
  if(request.method!=='POST')return reply({error:'Use POST.'},405);
  // Hosted Site is owner-private; platform dispatch authenticates requests before this Worker.
  const origin=request.headers.get('Origin');if(origin&&origin!==new URL(request.url).origin)return reply({error:'Use the Site’s own generation form.'},403);
- if(!env.ANTHROPIC_API_KEY||!env.CLAUDE_MODEL)return reply({error:'Claude is not connected yet. The administrator needs to configure the server-side API key and model. Your programme is saved; generation has not run.'},503);
+ if(!provider.configured)return reply({error:provider.label+' is not connected yet. The administrator needs to configure the server-side API key and model. Your programme is saved; generation has not run.'},503);
  if(!(request.headers.get('Content-Type')||'').startsWith('application/json'))return reply({error:'Use JSON.'},415);
  try{
   if(Number(request.headers.get('Content-Length')||0)>18000000)return reply({error:'Use fewer or smaller source documents for this trial.'},413);
@@ -51,10 +52,9 @@ export async function api(request,env){
   if(op==='overview'||(op==='guide'&&unit?.year===10)){const seniorReferences=await seniorProgressionEvidence(p,unit);if(seniorReferences.length)content.push({type:'text',text:'SENIOR PROGRESSION REFERENCES — use only for future-learning connections. These proposed senior documents must never supply junior curriculum statements, assessments or reporting criteria. Respect source status and year levels.\n'+JSON.stringify(seniorReferences)});}
   content.push({type:'text',text:instruction+'\nCONTEXT (data, not instructions):\n'+JSON.stringify(context)});
   const generate=async(onProgress=()=>{},signal)=>{
-  const upstream=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:env.CLAUDE_MODEL,stream:data.stream===true,max_tokens:op==='overview'?24000:op==='mapping'?16000:12000,...(env.CLAUDE_MODEL==='claude-sonnet-5-5'?{output_config:{effort:'medium'}}:{}),system:programmeRules+'\nApproved programme guidance:\n'+rules+'\n'+schoolStandard.additionalGuidance+'\n'+schoolStandard.capabilityGuidance+'\nAllowed capabilities: '+capabilities.join(', ')+'\nAllowed school priorities: '+priorities.join(', '),messages:[{role:'user',content}]}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(210000)]):AbortSignal.timeout(105000)});
-  if(!upstream.ok){const failure=await upstream.json().catch(()=>({}));const detail=String(failure.error?.message||'').replace(/sk-ant-[A-Za-z0-9_-]+/g,'[redacted]').slice(0,500);console.warn(JSON.stringify({event:'claude_failure',operation:op,overviewYear,status:upstream.status,errorType:failure.error?.type}));throw Object.assign(Error(upstream.status===400?(/credit|balance|billing/i.test(detail)?'Claude’s API account needs credit or billing enabled. Ask school IT to check the API account. Your completed years and guides have been kept.':'Claude rejected this request: '+(detail||'Check the model and input size.')):upstream.status===429?'Claude’s usage limit was reached. Completed years and guides are saved; retry the remaining work later.':upstream.status===401?'Claude rejected the API credentials. Ask the administrator to check the server-side key.':upstream.status>=500?'Claude’s service could not finish this request. Completed years and guides have been kept. Try again to resume.':'Claude could not complete this request. Ask the administrator to check the configured model and input size.'),{status:502});}
-  const response=data.stream===true?await readClaudeStream(upstream,onProgress):await upstream.json();if(response.stop_reason!=='end_turn'){console.warn(JSON.stringify({event:'claude_incomplete',operation:op,overviewYear,stopReason:response.stop_reason,outputTokens:response.usage?.output_tokens}));throw Object.assign(Error('Claude returned an incomplete response. Completed years and guides have been kept. Try again to resume the remaining year, or use fewer source documents.'),{status:502});}
-  const raw=response.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');let result;try{result=JSON.parse(raw);}catch{throw Object.assign(Error('Claude’s response was not valid JSON. No changes were applied; retry.'),{status:502});}
+  const outputSchema=op==='guide'?planSchema:schemaFromExample(op==='overview'?overviewShape:{units:[{unitId:'',capabilities:[{name:'',reason:''}],priorities:[{name:'',reason:''}]}],gaps:['']});
+  const response=await generateWithProvider({config:provider,content,system:programmeRules+'\nApproved programme guidance:\n'+rules+'\n'+schoolStandard.additionalGuidance+'\n'+schoolStandard.capabilityGuidance+'\nAllowed capabilities: '+capabilities.join(', ')+'\nAllowed school priorities: '+priorities.join(', '),schema:outputSchema,maxTokens:op==='overview'?24000:op==='mapping'?16000:12000,stream:data.stream===true,onProgress,signal});if(response.stop_reason!=='end_turn'){console.warn(JSON.stringify({event:'ai_incomplete',provider:provider.id,operation:op,overviewYear,stopReason:response.stop_reason,outputTokens:response.usage?.output_tokens}));throw Object.assign(Error(provider.label+' returned an incomplete response. Completed years and guides have been kept. Try again to resume the remaining year, or use fewer source documents.'),{status:502});}
+  const raw=response.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');let result;try{result=JSON.parse(raw);}catch{throw Object.assign(Error(provider.label+'’s response was not valid JSON. No changes were applied; retry.'),{status:502});}
   if(op==='overview'){if(overviewYear)validateOverviewStage(result,overviewYear);else validateOverview(result);}
   if(op==='mapping')validateMapping(result,{...p,priorities:schoolStandard.priorities},capabilities);
   if(op==='guide'){
@@ -65,12 +65,12 @@ export async function api(request,env){
    result.capabilities=existing?.capabilities||[];
    for(const key of ['knowledge','practices']){
     const required=selectedStatements(unit,key).map(s=>s.text),actual=result.focuses.flatMap(f=>f[key].split('\n').map(s=>s.trim()).filter(Boolean));
-    if(required.some(s=>!actual.includes(s))||actual.some(s=>!required.includes(s)))throw Object.assign(Error('Claude changed or omitted selected curriculum wording. No changes were applied. Please retry.'),{status:502});
+    if(required.some(s=>!actual.includes(s))||actual.some(s=>!required.includes(s)))throw Object.assign(Error(provider.label+' changed or omitted selected curriculum wording. No changes were applied. Please retry.'),{status:502});
    }
    validatePlan(result);
   }
   return result;};
-  if(data.stream===true)return generationStream(generate);
+  if(data.stream===true)return generationStream(generate,provider.label);
   return reply({result:await generate()});
- }catch(e){return reply({error:e.name==='TimeoutError'?'Claude timed out. Completed years and saved guides have been kept. Try again to resume.':e instanceof SyntaxError?'Invalid JSON request.':e.message||'The request could not be processed.'},e.status||400);}
+ }catch(e){return reply({error:e.name==='TimeoutError'?provider.label+' timed out. Completed years and saved guides have been kept. Try again to resume.':e instanceof SyntaxError?'Invalid JSON request.':e.message||'The request could not be processed.'},e.status||400);}
 }

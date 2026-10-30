@@ -16,14 +16,22 @@ export async function readClaudeStream(response,onProgress=()=>{}){
  return {stop_reason:stopReason,usage,content:[...blocks].sort((a,b)=>a[0]-b[0]).map(([,text])=>({type:'text',text}))};
 }
 
-export function generationStream(generate){
+export async function readGeminiStream(response,onProgress=()=>{}){
+ const reader=response.body.getReader(),decoder=new TextDecoder();let pending='',text='',finishReason,usage={};
+ function event(packet){const raw=packet.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trimStart()).join('\n');if(!raw)return;const data=JSON.parse(raw);if(data.error)throw Error('Gemini interrupted generation. Completed years and guides have been kept. Try again after checking the API quota.');if(data.promptFeedback?.blockReason)throw Error('Gemini could not generate from these inputs. Your saved work has been kept.');const candidate=data.candidates?.[0];for(const part of candidate?.content?.parts||[])if(!part.thought&&typeof part.text==='string'){text+=part.text;onProgress();}if(candidate?.finishReason)finishReason=candidate.finishReason;if(data.usageMetadata)usage=data.usageMetadata;}
+ try{while(true){const {value,done}=await reader.read();if(done)break;pending+=decoder.decode(value,{stream:true});let boundary;while((boundary=/\r?\n\r?\n/.exec(pending))){event(pending.slice(0,boundary.index));pending=pending.slice(boundary.index+boundary[0].length);}}pending+=decoder.decode();if(pending.trim())event(pending);}finally{reader.releaseLock();}
+ if(!finishReason)throw Error('Gemini’s response ended unexpectedly. Completed years and guides have been kept. Try again to resume.');
+ return {stop_reason:finishReason==='STOP'?'end_turn':finishReason,content:[{type:'text',text}],usage};
+}
+
+export function generationStream(generate,label='Claude'){
  const encoder=new TextEncoder(),abort=new AbortController();let active=true,timer;
  const stream=new ReadableStream({
   start(controller){
    const send=data=>{if(active)controller.enqueue(encoder.encode(JSON.stringify(data)+'\n'));};
    send({type:'started'});timer=setInterval(()=>send({type:'heartbeat'}),10000);
    let lastProgress=0;const progress=()=>{if(Date.now()-lastProgress>1500){lastProgress=Date.now();send({type:'progress'});}};
-   Promise.resolve().then(()=>generate(progress,abort.signal)).then(result=>send({type:'result',result})).catch(e=>send({type:'error',error:e.name==='TimeoutError'?'Claude took too long on this year. Completed years and guides have been kept. Try again to resume.':e.message||'Generation could not finish. Your saved work has been kept.'})).finally(()=>{clearInterval(timer);if(active){active=false;controller.close();}});
+   Promise.resolve().then(()=>generate(progress,abort.signal)).then(result=>send({type:'result',result})).catch(e=>send({type:'error',error:e.name==='TimeoutError'?label+' took too long on this year. Completed years and guides have been kept. Try again to resume.':e.message||'Generation could not finish. Your saved work has been kept.'})).finally(()=>{clearInterval(timer);if(active){active=false;controller.close();}});
   },
   cancel(){active=false;clearInterval(timer);abort.abort();}
  });

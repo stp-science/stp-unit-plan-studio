@@ -8,12 +8,12 @@ export async function generationRequest(body,{signal,timeoutMs=225000,fetcher=fe
   onAbort=()=>{controller.abort();reject(signal?.reason||new DOMException('Cancelled','AbortError'));};
   if(signal?.aborted)return onAbort();
   signal?.addEventListener('abort',onAbort,{once:true});
-  timer=setTimeout(()=>{controller.abort();reject(new DOMException('Claude took too long. Completed years and saved guides have been kept. Try again to resume.','TimeoutError'));},timeoutMs);
+  timer=setTimeout(()=>{controller.abort();reject(new DOMException('AI generation took too long. Completed years and saved guides have been kept. Try again to resume.','TimeoutError'));},timeoutMs);
  });
  try{return await Promise.race([aborted,(async()=>{
   const res=await fetcher('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,stream:true}),signal:controller.signal});
   let data;if((res.headers.get('Content-Type')||'').includes('application/x-ndjson')){const reader=res.body.getReader(),decoder=new TextDecoder();let pending='';const consume=line=>{if(!line.trim())return;const item=JSON.parse(line);if(item.type==='error')throw Error(item.error);if(item.type==='result')data=item;};try{while(true){const {value,done}=await reader.read();if(done)break;pending+=decoder.decode(value,{stream:true});let end;while((end=pending.indexOf('\n'))>=0){consume(pending.slice(0,end));pending=pending.slice(end+1);}}pending+=decoder.decode();if(pending.trim())consume(pending);}finally{reader.releaseLock();}if(!data)throw Error('The generation connection ended early. Completed years and guides have been kept. Try again to resume.');}else{const text=await res.text();try{data=JSON.parse(text);}catch{throw Error('The generation service did not return a complete response. Completed years and saved guides have been kept. Try again to resume.');}}
-  if(!res.ok)throw Error(data.error||'Claude could not finish. Your saved work has been kept.');
+  if(!res.ok)throw Error(data.error||'AI generation could not finish. Your saved work has been kept.');
   if(controller.signal.aborted)throw signal?.reason||new DOMException('Cancelled','AbortError');
   return data.result;
  })()]);}finally{clearTimeout(timer);signal?.removeEventListener('abort',onAbort);}

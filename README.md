@@ -31,9 +31,9 @@ npm run dev
 
 The build packages the server and assets into `dist/server/index.js`. These generated files are retained here to preserve the deployed snapshot. See `PROGRAMME-TRIAL.md` for the trial flows, limits and detailed setup.
 
-## Claude configuration
+## AI provider configuration
 
-Set `ANTHROPIC_API_KEY` as a secret in the hosting service's runtime settings and set `CLAUDE_MODEL` to a supported model ID available to the school's API account. Redeploy after changing runtime settings.
+The programme workspace supports Gemini and Claude. Set `AI_PROVIDER=gemini`, `GEMINI_MODEL=gemini-3.8-flash` and a secret `GEMINI_API_KEY` to trial Gemini. Set `AI_PROVIDER=claude` to use the retained Claude settings. No automatic fallback runs between providers. See [AI-PROVIDERS.md](AI-PROVIDERS.md) for setup, free-quota and data-term details. Redeploy after changing runtime settings.
 
 Never put a real API key in this repository, the browser code, an attachment or a chat message. `.env.example` contains names only. The live trial's key and model are configured only in the hosting service, outside GitHub.
 
