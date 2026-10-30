@@ -1,0 +1,3397 @@
+{
+  "documentId": "science-august-2026",
+  "title": "The New Zealand Curriculum — Science Years 0–10",
+  "version": "August 2026 (published 12th August 2026)",
+  "publisher": "Ministry of Education",
+  "ministryUrl": "https://newzealandcurriculum.tahurangi.education.govt.nz/nzc---science-phases-1-4-years-0-10/5637290855.p",
+  "mirrorUrl": "https://www.bayscience.nz/post/curriculum-implementation-timeline-science-putaiao",
+  "sha256": "04d83b1b5eb46ead6c4aa306e59673c1659d40491be216124053a58f96e9ce15",
+  "license": "Crown copyright. Text reused under CC BY-NC 4.0, with attribution to the Ministry of Education.",
+  "licenseUrl": "https://newzealandcurriculum.tahurangi.education.govt.nz/copyright",
+  "retrieved": "2026-10-23",
+  "units": [
+    {
+      "id": "science-y7-particle-model-and-states-of-matter",
+      "title": "Particle model and states of matter",
+      "year": 7,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P19-K01",
+          "text": "All matter is made of sub-microscopic particles.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K02",
+          "text": "In solids and liquids, particles are held close together by attractive forces. In gases they are far apart with only weak attractions.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K03",
+          "text": "Particles are held close together by attractive forces.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K04",
+          "text": "Most matter exists as solids, liquids, and gases.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K05",
+          "text": "The particle model explains the properties of each state based on particle arrangement, spacing, and movement.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K06",
+          "text": "Changes of state occur when thermal energy is added to or removed from a substance.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K07",
+          "text": "Changes of state include melting, freezing, evaporation, condensation, sublimation, and deposition.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K08",
+          "text": "When substances are heated, particles move faster and can overcome attractive forces.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K09",
+          "text": "Materials typically expand when thermal energy increases and contract when thermal energy decreases.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K10",
+          "text": "Most materials are denser as solids than as liquids (e.g. wax, iron).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K11",
+          "text": "Water expands when it freezes because its particles form a fixed arrangement with gaps that keep them farther apart than in liquid water, so solid water is less dense than liquid water.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K12",
+          "text": "Reversible physical changes affect how particles are arranged and the distance between each particle, but do not alter the size, shape, or type of the particles themselves.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K13",
+          "text": "Mass is conserved during changes of state.",
+          "page": 19
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P19-P01",
+          "category": "Investigate by",
+          "text": "Planning and conducting an experiment to test how thermal energy impacts on changes of state.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-P02",
+          "category": "Communicate by",
+          "text": "Using models and representations of particles to explain the changes of state observed in the investigation.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-P03",
+          "category": "Apply by",
+          "text": "Identifying everyday situations where changes of state can lead to problems (e.g. water bottle in the freezer, icy roads, condensation on windows).",
+          "page": 19
+        }
+      ],
+      "pages": [
+        19
+      ]
+    },
+    {
+      "id": "science-y8-mixtures",
+      "title": "Mixtures",
+      "year": 8,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P19-K01",
+          "text": "Mixtures are physical combinations of two or more substances that are not chemically joined together and retain their individual chemical properties.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K02",
+          "text": "Mixtures can be made of the same or different states of matter.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K03",
+          "text": "Mixtures can be separated (e.g. particle size or density) by settling and decanting, sieving, filtration, or evaporation.",
+          "page": 19
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P19-P01",
+          "category": "Investigate by",
+          "text": "Planning and conducting a method to separate a mixture.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P02",
+          "category": "Investigate by",
+          "text": "Systematically making solutions of various concentrations and observing differences (e.g. colour, viscosity, opacity).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P03",
+          "category": "Investigate by",
+          "text": "Using chromatography to separate substances within a mixture (e.g. coloured ink, plant pigments).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P04",
+          "category": "Evaluate by",
+          "text": "Analysing how effective a method was at achieving its intended outcome (e.g. separating a mixture).",
+          "page": 19
+        }
+      ],
+      "pages": [
+        19
+      ]
+    },
+    {
+      "id": "science-y8-concentration-and-solubility",
+      "title": "Concentration and solubility",
+      "year": 8,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P19-K04",
+          "text": "Solutions are mixtures formed when a soluble substance (solute) dissolves in a solvent (e.g. salt and water).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K05",
+          "text": "Concentration is the amount of a solute present in a certain volume of solvent.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K06",
+          "text": "A saturated solution contains the maximum amount of solute that can dissolve at a given temperature; excess solute remains as a solid.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K07",
+          "text": "Suspensions are mixtures in which insoluble solid particles are dispersed in a liquid (e.g. flour or sand in water).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K08",
+          "text": "Chromatography separates substances in a mixture based on differences in solubility and on affinity for the stationary phase.",
+          "page": 19
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P19-P01",
+          "category": "Investigate by",
+          "text": "Planning and conducting a method to separate a mixture.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P02",
+          "category": "Investigate by",
+          "text": "Systematically making solutions of various concentrations and observing differences (e.g. colour, viscosity, opacity).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P03",
+          "category": "Investigate by",
+          "text": "Using chromatography to separate substances within a mixture (e.g. coloured ink, plant pigments).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P04",
+          "category": "Evaluate by",
+          "text": "Analysing how effective a method was at achieving its intended outcome (e.g. separating a mixture).",
+          "page": 19
+        }
+      ],
+      "pages": [
+        19
+      ]
+    },
+    {
+      "id": "science-y7-material-properties-and-thermal-energy",
+      "title": "Material properties and thermal energy",
+      "year": 7,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P19-K14",
+          "text": "Kinetic energy is the energy associated with motion.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K15",
+          "text": "Temperature is a measure of the average kinetic energy of the particles in a substance.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K16",
+          "text": "Thermal energy is the energy associated with the motion and interactions of particles.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K17",
+          "text": "Thermal energy is transferred by conduction, convection, and radiation.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K18",
+          "text": "Conduction is the transfer of thermal energy through a material by interactions between particles, without the material itself moving.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K19",
+          "text": "Thermal conductivity measures how effectively a substance transfers thermal energy by conduction.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-K20",
+          "text": "Insulating materials have low thermal conductivity.",
+          "page": 19
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P19-P04",
+          "category": "Investigate by",
+          "text": "Designing and conducting a fair test to determine the thermal conductivity in different materials for a specific application (e.g. insulation).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P19-P05",
+          "category": "Apply by",
+          "text": "Making decisions on which materials to use for insulation based on thermal conductivity (e.g. food, shelter, clothing).",
+          "page": 19
+        }
+      ],
+      "pages": [
+        19
+      ]
+    },
+    {
+      "id": "science-y8-behaviour-of-light",
+      "title": "Behaviour of light",
+      "year": 8,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P19-K09",
+          "text": "Everything we see is either a light source or reflected light. For an object to be visible, light must travel from a light source to the object, to the eyes. This occurs when light travels from a source directly to the eyes or when it reflects off objects and then reaches the eyes.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K10",
+          "text": "Ibn al-Haytham contested Plato’s understanding of behaviour of light.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K11",
+          "text": "When an object appears to be reflected (e.g. in a mirror or water), light has travelled from a light source to the object, then to the reflective surface, then to the eyes.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-K12",
+          "text": "Refraction of light occurs when light changes direction as it passes from one medium to another (e.g. from air into water).",
+          "page": 19
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P19-P05",
+          "category": "Investigate by",
+          "text": "Designing and carrying out simple investigations to explore how light travels and changes direction through reflection and refraction by changing conditions and observing the effects (e.g. using mirrors or changing the angle as light passes between water and air).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P19-P06",
+          "category": "Communicate by",
+          "text": "Drawing the path of light as it interacts with different surfaces and materials using scientific conventions.",
+          "page": 19
+        }
+      ],
+      "pages": [
+        19
+      ]
+    },
+    {
+      "id": "science-y7-speed",
+      "title": "Speed",
+      "year": 7,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P19-K21",
+          "text": "Speed describes how fast an object moves.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K01",
+          "text": "Speed is defined as the distance travelled per unit of time.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K02",
+          "text": "Speed is calculated by dividing distance by time.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K03",
+          "text": "Speed is reported using units such as metres per second (m/s) or kilometres per hour (km/h).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K04",
+          "text": "Speed can remain constant, or it can change.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K05",
+          "text": "Motion can be compared using measured speeds.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K06",
+          "text": "Kinetic energy is associated with motion.",
+          "page": 20
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P19-P06",
+          "category": "Investigate by",
+          "text": "Measuring distance and time values from everyday phenomena (e.g. walking, falling objects).",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y7-P20-P01",
+          "category": "",
+          "text": "Calculating the speed of moving objects.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-P02",
+          "category": "Evaluate by",
+          "text": "Critiquing the accuracy and reliability of how distance and time are measured (e.g. repeated tests calculating average, using a clock or a stopwatch).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-P03",
+          "category": "Communicate by",
+          "text": "Representing motion using graphs.",
+          "page": 20
+        }
+      ],
+      "pages": [
+        19,
+        20
+      ]
+    },
+    {
+      "id": "science-y8-balanced-and-unbalanced-forces",
+      "title": "Balanced and unbalanced forces",
+      "year": 8,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P19-K13",
+          "text": "Forces acting on an object are balanced when they cancel each other, meaning the net force on an object is zero.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K01",
+          "text": "When forces are balanced, an object’s motion does not change.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K02",
+          "text": "Forces acting on an object are unbalanced when they do not cancel.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K03",
+          "text": "When an unbalanced force acts on an object, the object’s motion changes.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K04",
+          "text": "A change in motion may be a change in speed, a change in direction, or both.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K05",
+          "text": "Objects with greater mass require larger unbalanced forces to produce the same change in motion as objects with smaller mass.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K06",
+          "text": "A seesaw is a type of lever with forces acting on both sides of a pivot.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K07",
+          "text": "A seesaw is balanced when the turning effects of the forces on each side cancel.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K08",
+          "text": "The turning effect depends on both the size of the force and the distance from the pivot (e.g. a small push far from the pivot can balance a larger push close to it).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K09",
+          "text": "A seesaw becomes unbalanced when one side produces a greater turning effect than the other (e.g. a heavier person sitting farther from the pivot).",
+          "page": 20
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P19-P07",
+          "category": "Investigate by",
+          "text": "Using free body diagrams to predict the motion of an object.",
+          "page": 19
+        },
+        {
+          "id": "SCI-2026-Y8-P20-P01",
+          "category": "",
+          "text": "Designing a fair test to analyse how an unbalanced force affects the motion of an object (e.g. mass and distance from pivot on a seesaw).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-P02",
+          "category": "",
+          "text": "Gathering data from a fair test in a systematic way (e.g. table, tally chart).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-P03",
+          "category": "Apply by",
+          "text": "Identifying how unbalanced forces change the motion of objects in everyday activities (e.g. kicking a ball causes it to speed up or change direction).",
+          "page": 20
+        }
+      ],
+      "pages": [
+        19,
+        20
+      ]
+    },
+    {
+      "id": "science-y7-the-earth-moon-sun-system",
+      "title": "The Earth, Moon, Sun system",
+      "year": 7,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P20-K07",
+          "text": "The Moon is a roughly spherical natural satellite that orbits Earth.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K08",
+          "text": "The Moon goes through a complete cycle of phases approximately every 29.5 days.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K09",
+          "text": "The Moon appears to change shape when viewed from Earth’s surface because different portions of its sunlit surface are visible from Earth as it orbits.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K10",
+          "text": "The lunar cycle is a repeating pattern that includes phases such as new Moon, full Moon, and quarter Moon.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K11",
+          "text": "The Moon rises and sets at different times each day because of its orbital motion.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K12",
+          "text": "The observed shape and position of the Moon during a lunar cycle can be used to measure and predict monthly time patterns (e.g. a week as the interval between quarter phases).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K13",
+          "text": "Maramataka is the Māori lunar calendar that uses observations of the Moon’s phases and key stars to divide the year into days and months.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K14",
+          "text": "Maramataka uses environmental changes and Moon phases to guide daily practices and seasonal activities for specific regions within New Zealand.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K15",
+          "text": "A lunar eclipse occurs when the Moon passes directly into Earth’s shadow.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-K16",
+          "text": "A solar eclipse occurs when the Moon passes directly between the Earth and the Sun.",
+          "page": 20
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P20-P04",
+          "category": "Investigate by",
+          "text": "Using pattern seeking to gather (e.g. observation, provided data) and analyse lunar cycle data (e.g. time of rise and set, phases, position in sky) over many months.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-P05",
+          "category": "Communicate by",
+          "text": "Using models to explain changes in appearance of the Moon through the lunar cycle.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y7-P20-P06",
+          "category": "Apply by",
+          "text": "Using Maramataka, or other lunar calendars, to predict an appropriate time to carry out an important task in your local area. (e.g. fishing, planting crops, eeling).",
+          "page": 20
+        }
+      ],
+      "pages": [
+        20
+      ]
+    },
+    {
+      "id": "science-y8-the-surface-of-the-earth",
+      "title": "The surface of the Earth",
+      "year": 8,
+      "phase": 3,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P20-K10",
+          "text": "The geosphere is the solid physical part of the Earth, encompassing all rocks, minerals, soil and landforms. It extends from the Earth’s surface to the core.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K11",
+          "text": "The Earth’s interior is made up of four main layers, inner-core, outer-core, mantle, and crust.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K12",
+          "text": "The crust is made up of minerals and rocks.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K13",
+          "text": "Minerals are natural materials with repeating patterns that give them unique shapes and properties (e.g. shiny crystals, hard surfaces).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K14",
+          "text": "Rocks are composed of one or more minerals combined. The types and arrangements of the minerals give rocks their different properties, including colour, texture, structure (e.g. the presence and composition of crystals or layering within the rock), and hardness.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K15",
+          "text": "There are three main types of rock: sedimentary, igneous, and metamorphic.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K16",
+          "text": "The rock cycle describes how igneous, sedimentary and metamorphic rocks are formed and continuously change from one type to another over time through Earth’s geological processes.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K17",
+          "text": "Fossils form when organisms are buried in sediment and, over long time periods, minerals replace the organic material.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K18",
+          "text": "Soils are composed of decaying organisms, living organisms (including fungi, plants, and animals), rock particles, air, and water.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-K19",
+          "text": "Earth materials are used by humans based on their properties (e.g. iron is strong and dense; aluminium is strong and less dense; salts and mica have specific uses).",
+          "page": 20
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P20-P04",
+          "category": "Investigate by",
+          "text": "Classifying and comparing Earth materials (e.g. soils and rocks) based on their observable features and physical properties (e.g. grain size, hardness, crystals, fossils).",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-P05",
+          "category": "Communicate by",
+          "text": "Using models and representations to show the changing nature of rocks over time.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-P06",
+          "category": "Communicate by",
+          "text": "Making connections between the presence of fossils to Earth’s past.",
+          "page": 20
+        },
+        {
+          "id": "SCI-2026-Y8-P20-P07",
+          "category": "Apply by",
+          "text": "Explaining the relationship between the properties of minerals and rocks, and their uses by humans (e.g. pounamu, hāngī rocks, limestone for farming use and landscaping).",
+          "page": 20
+        }
+      ],
+      "pages": [
+        20
+      ]
+    },
+    {
+      "id": "science-y7-survival-adaptations",
+      "title": "Survival Adaptations",
+      "year": 7,
+      "phase": 3,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P21-K01",
+          "text": "Organisms have adaptations for obtaining resources (e.g. beaks for feeding, roots for accessing water), avoiding hazards (e.g. camouflage, spines, defensive behaviours), and reproducing in their environment (e.g. attracting mates, dispersing seeds, caring for offspring).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K02",
+          "text": "An adaptation can be structural (physical features), behavioural (actions), or physiological (internal processes).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K03",
+          "text": "Adaptations are suited to environments (e.g. webbed feet allow aquatic birds to swim or paddle).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K04",
+          "text": "Organisms of the same species can differ in adaptations because individuals show variation in their traits.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K05",
+          "text": "Some variations may make an individual better suited to its environment than others.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K06",
+          "text": "An adaptation does not guarantee survival, but it can increase the likelihood of surviving and reproducing.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K07",
+          "text": "Environmental conditions influence how effective an adaptation is (e.g. camouflage that works well in one habitat may be less effective in another).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K08",
+          "text": "Jean-Baptiste Lamarck proposed that traits acquired during an organism's lifetime could be inherited by offspring, an idea later contested.",
+          "page": 21
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P21-P01",
+          "category": "Investigate by",
+          "text": "Observing and comparing adaptations in organisms from different environments (e.g. beak shapes, leaf structures, penguin huddling, or body coverings).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-P02",
+          "category": "Evaluate by",
+          "text": "Comparing the advantages and limitations of different adaptations in different environmental conditions.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-P03",
+          "category": "Communicate by",
+          "text": "Constructing and labelling a model, diagram, or representation that shows how an adaptation is suited to an environment.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-P04",
+          "category": "Communicate by",
+          "text": "Using evidence to explain how particular adaptations increase survival and reproductive success in specific environments.",
+          "page": 21
+        }
+      ],
+      "pages": [
+        21
+      ]
+    },
+    {
+      "id": "science-y8-evolution",
+      "title": "Evolution",
+      "year": 8,
+      "phase": 3,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P21-K01",
+          "text": "Fossils provide evidence that organisms have appeared in many different forms throughout Earth's history, with some similar to organisms alive today (e.g. crocodiles), while others belong to extinct groups that no longer exist (e.g. trilobites).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K02",
+          "text": "Evidence (e.g. fossils, shared traits, DNA evidence) supports the theory that populations and species have changed over time.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K03",
+          "text": "Individuals within a species show variation in their traits (e.g. differences in male wētā head and jaw size).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K04",
+          "text": "Some variation is heritable, meaning it can be passed from parents to offspring.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K05",
+          "text": "Features of the environment that affect survival or reproduction are called selection pressures (e.g. limited food).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K06",
+          "text": "Natural selection is a process in which heritable differences between individuals influence their chances of surviving and reproducing in the presence of selection pressures (e.g. cold extremes, sun exposure).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K07",
+          "text": "Contemporaries Charles Darwin and Alfred Russel Wallace presented their theories on natural selection together.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K08",
+          "text": "Over many generations, individuals with traits that increase survival or reproduction are more likely to leave offspring, causing those inherited traits to become more common in a population (e.g. moth camouflage increasing in frequency).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K09",
+          "text": "Evolution describes these changes in traits within populations over generations, not within individuals.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K10",
+          "text": "Over long periods, trait changes accumulate, resulting in new species forming from a shared ancestor (e.g. kākā, kea, and kākāpō becoming different kinds of parrots).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K11",
+          "text": "Some species are unable to survive environmental change and become extinct (e.g. moa).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K12",
+          "text": "Evidence collected to date supports the theory that all living organisms are related through common ancestry (e.g. shared features among vertebrates).",
+          "page": 21
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P21-P01",
+          "category": "Evaluate by",
+          "text": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-P02",
+          "category": "Communicate by",
+          "text": "Interpreting a set of fossil images to infer an organism's structure and likely environment.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-P03",
+          "category": "Apply by",
+          "text": "Examining the role of environmental change on extinction of species (e.g. habitat destruction, change in temperature).",
+          "page": 21
+        }
+      ],
+      "pages": [
+        21
+      ]
+    },
+    {
+      "id": "science-y7-cells",
+      "title": "Cells",
+      "year": 7,
+      "phase": 3,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P21-K09",
+          "text": "Major advances in biology resulted from the invention of the microscope and first observations of cells by Robert Hooke. This was further developed by Antonie van Leeuwenhoek and other scientists.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K10",
+          "text": "Cells are the fundamental unit of organisms and contain structures (organelles) that carry out functions.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-K11",
+          "text": "Cells of multicellular organisms can be specialised for different functions (e.g. movement, or storage).",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P22-K01",
+          "text": "Multicellular organisms are organised from cells to tissues to organs to systems.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y7-P22-K02",
+          "text": "Microorganisms are single-celled organisms and include bacteria, as well as types of fungi and algae.",
+          "page": 22
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P21-P05",
+          "category": "Investigate by",
+          "text": "Finding patterns in cell structures and shapes.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y7-P21-P06",
+          "category": "Communicate by",
+          "text": "Labelling diagrams or models of different types of cells.",
+          "page": 21
+        }
+      ],
+      "pages": [
+        21,
+        22
+      ]
+    },
+    {
+      "id": "science-y8-reproduction-and-development",
+      "title": "Reproduction and development",
+      "year": 8,
+      "phase": 3,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P21-K13",
+          "text": "All living organisms reproduce.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K14",
+          "text": "Sexual reproduction involves two parents; it produces offspring that exhibit a mix of both parents’ traits.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K15",
+          "text": "Asexual reproduction involves a single parent and produces offspring that are genetically identical to the parent.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-K16",
+          "text": "Animals reproduce sexually through sperm and egg formation, then fertilisation.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K01",
+          "text": "Reproduction in mammals involves gamete formation (ovum and sperm), fertilisation, and development through the zygote, embryo, and foetus stages before birth.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K02",
+          "text": "Puberty occurs when organisms develop reproductive ability (see Year 8 Health and Physical Education: Puberty).",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K03",
+          "text": "The menstrual cycle in females involves hormones that control ovulation and the growth and shedding of the uterine lining. In humans, the uterine lining is shed cyclically if fertilisation does not occur (menstruation).",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K04",
+          "text": "Sperm production in males is regulated by hormones.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K05",
+          "text": "A hormone is a chemical substance carried by the blood that alters the activity of specific target cells or tissues.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K06",
+          "text": "Flowering plants reproduce through pollination, fertilisation, seed formation, seed dispersal, and germination.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K07",
+          "text": "Most fungi reproduce by forming spores that disperse and germinate to form new fungi (e.g. moulds produce spores directly, and mushrooms produce spores from visible structures).",
+          "page": 22
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P21-P04",
+          "category": "Communicate by",
+          "text": "Organising information (e.g. table, flow chart) to identify similarities and differences of reproduction processes of flowering plants, animals, and fungi.",
+          "page": 21
+        },
+        {
+          "id": "SCI-2026-Y8-P21-P05",
+          "category": "Communicate by",
+          "text": "Organising information to find similarities and differences.",
+          "page": 21
+        }
+      ],
+      "pages": [
+        21,
+        22
+      ]
+    },
+    {
+      "id": "science-y7-organisms-in-an-ecosystem",
+      "title": "Organisms in an ecosystem",
+      "year": 7,
+      "phase": 3,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y7-P22-K03",
+          "text": "A population is a group of the same type of organism living in the same place at the same time.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y7-P22-K04",
+          "text": "A community is made up of many different populations of organisms that live in the same place and interact with each other.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y7-P22-K05",
+          "text": "An ecosystem is a community of organisms interacting with the biotic (e.g. other living organisms) and abiotic (e.g. water, land, air) components of their environment.",
+          "page": 22
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y7-P22-P01",
+          "category": "Investigate by",
+          "text": "Using pattern seeking from a number of food webs to analyse the abundance of different organism roles.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y7-P22-P02",
+          "category": "Apply by",
+          "text": "Identifying interdependence between species within a local ecosystem (e.g. food webs, plants needing pollinators, animals needing food and shelter).",
+          "page": 22
+        }
+      ],
+      "pages": [
+        22
+      ]
+    },
+    {
+      "id": "science-y8-relationships-in-an-ecosystem",
+      "title": "Relationships in an ecosystem",
+      "year": 8,
+      "phase": 3,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y8-P22-K08",
+          "text": "Organisms in an ecosystem are interdependent and have roles that cycle matter and transfer energy through the system, which include the following categories: a producer makes glucose (a carbohydrate) through photosynthesis a consumer is an organism that obtains energy and nutrients by feeding on producers or other consumers a decomposer breaks down dead organisms and waste materials, releasing nutrients back into the ecosystem.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K09",
+          "text": "There are a range of ways to describe relationships between organisms in an ecosystem, which include the following categories: a predator is an organism that hunts and eats other organisms prey are organisms that are hunted and eaten by predators in mutualism, when two organisms benefit from helping each other (e.g. bees and flowers) in parasitism, when one organism benefits while the other is harmed (e.g. fleas on a dog).",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-K10",
+          "text": "Soils are composed of decaying organic matter, living organisms (including fungi, plants, animals), rock particles, air, and water, and support nutrient cycling within ecosystems.",
+          "page": 22
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y8-P22-P01",
+          "category": "Investigate by",
+          "text": "Measuring the abiotic conditions of an ecosystem using appropriate methods (e.g. quadrats, transects), and measure environmental variables such as light intensity, temperature, and soil composition.",
+          "page": 22
+        },
+        {
+          "id": "SCI-2026-Y8-P22-P02",
+          "category": "Investigate by",
+          "text": "Using recorded data on organisms and environmental features to recognise patterns and changes in ecosystems over time (e.g. invertebrates found in leaf litter compared with exposed ground; sandhoppers and marram grass distribution in sand dune environments).",
+          "page": 22
+        }
+      ],
+      "pages": [
+        22
+      ]
+    },
+    {
+      "id": "science-y9-the-periodic-table",
+      "title": "The periodic table",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P24-K01",
+          "text": "The periodic table, developed by Dmitri Mendeleev and other scientists in the late 1800s, organises elements in a way that allowed the properties of undiscovered elements to be predicted.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K02",
+          "text": "An element is a substance made of one type of atom and is identified by a name and chemical symbol (e.g. argon, Ar).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K03",
+          "text": "An atom is the smallest unit of matter that retains the chemical properties of an element.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K04",
+          "text": "There are 118 known elements, including 94 that occur naturally.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K05",
+          "text": "Elements are arranged by atomic number into groups (columns) and periods (rows).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K06",
+          "text": "Elements are classified as metals (left and centre of the periodic table) and non-metals (right of the table).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K07",
+          "text": "Metals generally conduct thermal energy and electric charge, while non-metals generally do not.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K08",
+          "text": "Elements in the same group have similar properties, such as the alkali metals (Group 1), alkaline earth metals (Group 2), halogens (Group 17), and noble gases (Group 18).",
+          "page": 24
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P24-P01",
+          "category": "",
+          "text": "Use periodic table position to predict properties of a chosen element, then check the prediction against data.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P02",
+          "category": "",
+          "text": "Use pattern seeking to find relationships between structures of atoms and position on the periodic table.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P03",
+          "category": "",
+          "text": "Use standard symbols, and scientific conventions to represent atomic structure.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P04",
+          "category": "",
+          "text": "Analyse the strengths and limitations of different models of current atomic theory (e.g. digital simulation, human scale model).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P05",
+          "category": "",
+          "text": "Examine how atomic theory has developed through scientific exploration, discovery, evidence consolidation, and contestation.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P06",
+          "category": "",
+          "text": "Discuss the difficulties and implications of some elements being in short supply due to human practices.",
+          "page": 24
+        }
+      ],
+      "pages": [
+        24
+      ]
+    },
+    {
+      "id": "science-y9-atomic-theory",
+      "title": "Atomic theory",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P24-K09",
+          "text": "Atomic theory has been developed by a number of scientists, refined through scientific consensus, and is represented using evidence-based models.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K10",
+          "text": "Ernest Rutherford discovered that most of the mass of an atom was contained in a small, positively charged core.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K11",
+          "text": "The Bohr model describes an atom as a positively charged nucleus containing protons and neutrons, surrounded by electrons arranged in energy levels (shells).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K12",
+          "text": "Protons have a positive charge, electrons have a negative charge, and neutrons have no charge.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K13",
+          "text": "The atomic number is the number of protons in the nucleus and identifies the element on the periodic table.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K14",
+          "text": "In a neutrally charged atom, the number of electrons equals the number of protons.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K15",
+          "text": "The mass number is the total number of protons and neutrons in the nucleus.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K16",
+          "text": "Protons and neutrons have approximately the same mass, whereas electrons have negligible mass.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K17",
+          "text": "Atoms in the first three rows/periods of the periodic table have their electrons arranged in successive shells of 2, 8, 8 (matching the number of elements in each row).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K18",
+          "text": "The outermost shell of electrons is called the valence shell, and it is these electrons that are involved in chemical bonding between atoms.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-K19",
+          "text": "Atoms react by transferring or sharing electrons to achieve a full valence shell and a more stable state.",
+          "page": 24
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P24-P01",
+          "category": "",
+          "text": "Use periodic table position to predict properties of a chosen element, then check the prediction against data.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P02",
+          "category": "",
+          "text": "Use pattern seeking to find relationships between structures of atoms and position on the periodic table.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P03",
+          "category": "",
+          "text": "Use standard symbols, and scientific conventions to represent atomic structure.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P04",
+          "category": "",
+          "text": "Analyse the strengths and limitations of different models of current atomic theory (e.g. digital simulation, human scale model).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P05",
+          "category": "",
+          "text": "Examine how atomic theory has developed through scientific exploration, discovery, evidence consolidation, and contestation.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y9-P24-P06",
+          "category": "",
+          "text": "Discuss the difficulties and implications of some elements being in short supply due to human practices.",
+          "page": 24
+        }
+      ],
+      "pages": [
+        24
+      ]
+    },
+    {
+      "id": "science-y10-chemical-bonding",
+      "title": "Chemical bonding",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P24-K01",
+          "text": "Compounds are substances formed when atoms of different elements are chemically bonded.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K02",
+          "text": "Molecules are groups of two or more atoms bonded together, either as elements (e.g. H , N ) or compounds (e.g. SO , H SO ). ₂ ₂ ₂",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K03",
+          "text": "Chemical formulas show the types and numbers of atoms in a ₂ ₄ substance (e.g. Ar, O , H O, CO ).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K04",
+          "text": "When electrons are transferred between atoms, metals form ₂ ₂ ₂ positive ions (cations) and non-metals form negative ions (anions).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K05",
+          "text": "Oppositely charged ions attract to form ionic bonds.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K06",
+          "text": "Some ions are polyatomic, consisting of two or more atoms acting as a single charged unit (e.g. CO ² , NO ).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K07",
+          "text": "Ionic compounds consist of cations and anions combined in ₃⁻ ₃⁻ ratios that result in an overall neutral charge (e.g. NaCl, Al2O3).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K08",
+          "text": "Non-metal atoms can gain stable full shells of valence electrons by sharing electrons to form covalent bonds.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K09",
+          "text": "Covalent compounds consist of molecules rather than ions, and their molecular formulas show the actual number of each type of atom in a molecule (e.g. H O, CO",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K10",
+          "text": "Ionic compounds are named using the names of their positive ₂ ₂). and negative ions (e.g. sodium chloride, magnesium oxide).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K11",
+          "text": "Molecular compounds may use prefixes to distinguish the number of atoms present (e.g. carbon monoxide, carbon dioxide).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K12",
+          "text": "Word equations can represent chemical reactions (e.g. sodium hydroxide + hydrochloric acid → sodium chloride + water).",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K13",
+          "text": "Chemical equations use formulas to represent reactants and products.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K14",
+          "text": "Balanced chemical equations represent reactions and show that atoms are conserved during the reaction.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K15",
+          "text": "No atoms are gained or lost during a chemical reaction; the total mass of the products and reactants are equal.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-K16",
+          "text": "Alan MacDiarmid applied the knowledge of chemical bonding in his discoveries about plastics and their application to electronics.",
+          "page": 24
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P24-P01",
+          "category": "",
+          "text": "Use modelling to examine the difference between elements and compounds.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-P02",
+          "category": "",
+          "text": "Test claims that mass is constant in a reaction.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-P03",
+          "category": "",
+          "text": "Write chemical word and symbol equations using correct conventions.",
+          "page": 24
+        },
+        {
+          "id": "SCI-2026-Y10-P24-P04",
+          "category": "",
+          "text": "Represent substances and chemical reactions using accepted chemical conventions.",
+          "page": 24
+        }
+      ],
+      "pages": [
+        24
+      ]
+    },
+    {
+      "id": "science-y9-acids-and-bases",
+      "title": "Acids and bases",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P25-K01",
+          "text": "Acids and bases are groups of substances with opposite properties.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K02",
+          "text": "Acids may taste sour and can be corrosive, while bases may taste bitter, feel slippery, and can also be corrosive.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K03",
+          "text": "Common acids include hydrochloric, sulfuric, and nitric acid, while common bases include metal oxides, hydroxides, carbonates, bicarbonates, and ammonia.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K04",
+          "text": "Bases that dissolve in water are called alkalis.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K05",
+          "text": "pH measures how acidic or alkaline a solution is: below 7 is acidic, 7 is neutral, above 7 is alkaline; lower pH means more acidic.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K06",
+          "text": "Indicators are used to identify acidity or alkalinity (e.g. litmus, universal indicator), with a universal indicator showing a colour spectrum across pH values.",
+          "page": 25
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P25-P01",
+          "category": "",
+          "text": "Select the most appropriate way to determine pH through using indicators.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P02",
+          "category": "",
+          "text": "Use indicators to determine pH (e.g. from natural substances) and distinguish acidic, neutral, and alkaline solutions.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P03",
+          "category": "",
+          "text": "Connect the pH of a variety of acids and bases and their common uses.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P04",
+          "category": "",
+          "text": "Use standardised tests to identify a common substance.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P05",
+          "category": "",
+          "text": "Use evidence to draw conclusions about substances based on their properties.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P06",
+          "category": "",
+          "text": "Select appropriate safety procedures when handling corrosive substances in school, home, and workplaces.",
+          "page": 25
+        }
+      ],
+      "pages": [
+        25
+      ]
+    },
+    {
+      "id": "science-y9-identification-tests-for-common-substances",
+      "title": "Identification tests for common substances",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P25-K07",
+          "text": "Hydrogen is a colourless and odourless gas that is identified using the pop test.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K08",
+          "text": "Oxygen is a colourless and odourless gas that is identified using the glowing splint test.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K09",
+          "text": "Carbon dioxide is a colourless and odourless gas that is identified using the limewater (calcium hydroxide solution) test.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-K10",
+          "text": "Liquid water is identified using the cobalt chloride paper test.",
+          "page": 25
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P25-P01",
+          "category": "",
+          "text": "Select the most appropriate way to determine pH through using indicators.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P02",
+          "category": "",
+          "text": "Use indicators to determine pH (e.g. from natural substances) and distinguish acidic, neutral, and alkaline solutions.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P03",
+          "category": "",
+          "text": "Connect the pH of a variety of acids and bases and their common uses.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P04",
+          "category": "",
+          "text": "Use standardised tests to identify a common substance.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P05",
+          "category": "",
+          "text": "Use evidence to draw conclusions about substances based on their properties.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y9-P25-P06",
+          "category": "",
+          "text": "Select appropriate safety procedures when handling corrosive substances in school, home, and workplaces.",
+          "page": 25
+        }
+      ],
+      "pages": [
+        25
+      ]
+    },
+    {
+      "id": "science-y10-combination-reactions",
+      "title": "Combination reactions",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P25-K01",
+          "text": "Combination reactions occur when two or more substances react to form a single product.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K02",
+          "text": "Reactions between: metals and non-metals typically form ionic compounds non-metals typically form covalent compounds.",
+          "page": 25
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P25-P01",
+          "category": "",
+          "text": "Plan and conduct controlled testing for combination, combustion, decomposition and neutralisation reaction types.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P02",
+          "category": "",
+          "text": "Critique how well a method was followed and list reasons for changes.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P03",
+          "category": "",
+          "text": "Represent that atoms are conserved during the reaction through balanced chemical equations.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P04",
+          "category": "",
+          "text": "Write chemical word and symbol equations using correct conventions.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P05",
+          "category": "",
+          "text": "Identify reaction products using observations, indicators, and chemical tests.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P06",
+          "category": "",
+          "text": "Predict reaction products and classify reaction types using patterns in reactants.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P07",
+          "category": "",
+          "text": "Identify examples of reaction types in everyday examples.",
+          "page": 25
+        }
+      ],
+      "pages": [
+        25
+      ]
+    },
+    {
+      "id": "science-y10-combustion",
+      "title": "Combustion",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P25-K03",
+          "text": "Combustion reactions occur when a hydrocarbon (e.g. methane) reacts with oxygen, with the reaction transferring energy to the surroundings as thermal energy and often as light.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K04",
+          "text": "Products of complete combustion are carbon dioxide and water.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K05",
+          "text": "Products of incomplete combustion are water and a mixture of carbon (soot), carbon monoxide, and carbon dioxide.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K06",
+          "text": "Materials other than fuels, such as metals, can undergo combustion reactions.",
+          "page": 25
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P25-P01",
+          "category": "",
+          "text": "Plan and conduct controlled testing for combination, combustion, decomposition and neutralisation reaction types.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P02",
+          "category": "",
+          "text": "Critique how well a method was followed and list reasons for changes.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P03",
+          "category": "",
+          "text": "Represent that atoms are conserved during the reaction through balanced chemical equations.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P04",
+          "category": "",
+          "text": "Write chemical word and symbol equations using correct conventions.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P05",
+          "category": "",
+          "text": "Identify reaction products using observations, indicators, and chemical tests.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P06",
+          "category": "",
+          "text": "Predict reaction products and classify reaction types using patterns in reactants.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P07",
+          "category": "",
+          "text": "Identify examples of reaction types in everyday examples.",
+          "page": 25
+        }
+      ],
+      "pages": [
+        25
+      ]
+    },
+    {
+      "id": "science-y10-decomposition-reactions",
+      "title": "Decomposition reactions",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P25-K07",
+          "text": "Decomposition reactions occur when a compound breaks down into two or more simpler substances.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K08",
+          "text": "Thermal decomposition occurs when heat causes a compound to decompose (e.g. metal carbonates generally decompose into a metal oxide and carbon dioxide).",
+          "page": 25
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P25-P01",
+          "category": "",
+          "text": "Plan and conduct controlled testing for combination, combustion, decomposition and neutralisation reaction types.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P02",
+          "category": "",
+          "text": "Critique how well a method was followed and list reasons for changes.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P03",
+          "category": "",
+          "text": "Represent that atoms are conserved during the reaction through balanced chemical equations.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P04",
+          "category": "",
+          "text": "Write chemical word and symbol equations using correct conventions.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P05",
+          "category": "",
+          "text": "Identify reaction products using observations, indicators, and chemical tests.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P06",
+          "category": "",
+          "text": "Predict reaction products and classify reaction types using patterns in reactants.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P07",
+          "category": "",
+          "text": "Identify examples of reaction types in everyday examples.",
+          "page": 25
+        }
+      ],
+      "pages": [
+        25
+      ]
+    },
+    {
+      "id": "science-y10-neutralisation",
+      "title": "Neutralisation",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P25-K09",
+          "text": "Neutralisation reactions occur when an acid reacts with a base to form water and an ionic salt.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K10",
+          "text": "Metal oxides or hydroxides react with acids to form an ionic salt and water.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-K11",
+          "text": "Metal carbonates react with acids to produce an ionic salt, water, and carbon dioxide.",
+          "page": 25
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P25-P01",
+          "category": "",
+          "text": "Plan and conduct controlled testing for combination, combustion, decomposition and neutralisation reaction types.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P02",
+          "category": "",
+          "text": "Critique how well a method was followed and list reasons for changes.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P03",
+          "category": "",
+          "text": "Represent that atoms are conserved during the reaction through balanced chemical equations.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P04",
+          "category": "",
+          "text": "Write chemical word and symbol equations using correct conventions.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P05",
+          "category": "",
+          "text": "Identify reaction products using observations, indicators, and chemical tests.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P06",
+          "category": "",
+          "text": "Predict reaction products and classify reaction types using patterns in reactants.",
+          "page": 25
+        },
+        {
+          "id": "SCI-2026-Y10-P25-P07",
+          "category": "",
+          "text": "Identify examples of reaction types in everyday examples.",
+          "page": 25
+        }
+      ],
+      "pages": [
+        25
+      ]
+    },
+    {
+      "id": "science-y9-electric-charge-and-energy-transfer-in-circuits",
+      "title": "Electric charge and energy transfer in circuits",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P26-K01",
+          "text": "Electric charge is a property of matter that causes attraction or repulsion between objects and can accumulate on surfaces (static electricity) or move through materials.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K02",
+          "text": "Electric current is the rate at which electric charge moves through a conductor, measured in amperes (A).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K03",
+          "text": "Voltage is the difference in electric potential between two points in a circuit that results in the movement of electric charge, measured in volts (V). Alessandro Volta demonstrated that electricity could be produced continuously to generate current.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K04",
+          "text": "Resistance is a property of a material or component in a circuit that limits the movement of electric charge, measured in ohms (Ω).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K05",
+          "text": "Electric circuits provide a continuous path that allows charge to move through components.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K06",
+          "text": "Series circuits have a single continuous path for current, where total resistance increases with additional, and a single break stops all current.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K07",
+          "text": "Parallel circuits have multiple paths for current, where voltage is the same across branches and branch currents combine to form total current. A break in one path does not stop current in others.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K08",
+          "text": "Conductors (e.g. metals) allow the movement of electric charge.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K09",
+          "text": "Insulators (e.g. plastic) restrict the movement of electric charge.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K10",
+          "text": "Resistors are circuit components that have increased resistance.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K11",
+          "text": "Electric fields are regions of space around charged objects where a force acts on other charged objects.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K12",
+          "text": "Multiple methods are used to generate electricity (e.g. turbines, solar panels). expected at this level.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K13",
+          "text": "Energy is a conserved, quantifiable property of a system that is expressed using a number and a unit (joules) and is calculated from other measurable quantities (e.g. force and distance when calculating work, mass and velocity when calculating kinetic energy) rather than directly measured.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K14",
+          "text": "Energy is transferred between components in a circuit as electric charge moves and interacts with those components.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K15",
+          "text": "In circuits, energy transfers are not fully efficient, as some energy is converted to thermal energy and lost out of the system.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K16",
+          "text": "Energy transfers in circuits can be represented using diagrams that show the quantities of energy transferred.",
+          "page": 26
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P26-P01",
+          "category": "",
+          "text": "Construct and test series and parallel circuits to observe current flow and circuit function.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P02",
+          "category": "",
+          "text": "Measure current and voltage in different parts of a circuit using appropriate instruments.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P03",
+          "category": "",
+          "text": "Predict and test how adding or removing components affects current in series and parallel circuits.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P04",
+          "category": "",
+          "text": "Test and classify materials as conductors or insulators using simple circuits.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P05",
+          "category": "",
+          "text": "Investigate how resistance changes current using different components (e.g. resistors, wire length).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P06",
+          "category": "",
+          "text": "Use appropriate scientific conventions when reporting about electricity.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P07",
+          "category": "",
+          "text": "Research methods and implications of electricity generation (e.g. turbines, solar panels) and evaluate their relevance to New Zealand.",
+          "page": 26
+        }
+      ],
+      "pages": [
+        26
+      ],
+      "notes": [
+        "Note: In-depth understanding of electromagnetic induction is not"
+      ]
+    },
+    {
+      "id": "science-y10-waves-and-energy-transfer-through-waves",
+      "title": "Waves and energy transfer through waves",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P26-K01",
+          "text": "An oscillation is a repeated back-and-forth motion about a fixed position.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K02",
+          "text": "Waves are oscillations that transfer energy through matter or fields without transferring matter overall.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K03",
+          "text": "When waves are absorbed by a material, the transferred energy can increase the motion of its particles and raise thermal energy.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K04",
+          "text": "Frequency describes how often oscillations occur and is measured in hertz (Hz).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K05",
+          "text": "Wavelength describes the distance between repeating points in a wave.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K06",
+          "text": "Amplitude describes the size of the oscillation.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K07",
+          "text": "Mechanical waves transfer energy through oscillations of particles in a material and require a medium to travel (e.g. air, liquids, solids).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K08",
+          "text": "Transverse waves involve oscillations perpendicular to the direction of travel.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K09",
+          "text": "Longitudinal waves involve oscillations parallel to the direction of travel.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K10",
+          "text": "Sound is a longitudinal mechanical wave produced by vibrations of matter.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K11",
+          "text": "Sound frequency determines pitch, and amplitude determines volume, with volume measured in decibels (dB).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K12",
+          "text": "Sound travels fastest in stiff materials; it is generally fastest in solids, slower in liquids, and slowest in gases.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K13",
+          "text": "Electromagnetic waves transfer energy through oscillations in electric and magnetic fields and do not require a medium.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K14",
+          "text": "The electromagnetic spectrum includes all electromagnetic radiation, organised by wavelength and frequency from radio waves to gamma rays.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K15",
+          "text": "All electromagnetic waves travel at the same speed in a vacuum.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K16",
+          "text": "Light is a transverse electromagnetic wave.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K17",
+          "text": "Light may be absorbed, reflected, transmitted, or scattered and can be refracted when passing between different media.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K18",
+          "text": "The wavelength and frequency of light determine colour; white light contains all visible wavelengths, and perceived colour depends on the wavelengths reflected or transmitted by a material.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K19",
+          "text": "Sir Paul Callaghan used electromagnetic radiation and magnetic fields to study the properties of materials that have made advancements in medicine techniques (e.g. MRI).",
+          "page": 26
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P26-P01",
+          "category": "",
+          "text": "Investigate interactions between waves and matter using observable evidence from practical experimentation: mechanical waves (e.g. coiled springs and ripple tanks) sound experiments (e.g. tuning forks, vibrations, transmission through materials) light experiments (e.g. reflection, refraction, transmission through materials).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-P02",
+          "category": "",
+          "text": "Analyse the best models and representations for different types of waves (e.g. coiled springs, dominoes, diagrams).",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-P03",
+          "category": "",
+          "text": "Organise electromagnetic waves based on their use by humans.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-P04",
+          "category": "",
+          "text": "Analyse validity of information (including accuracy and bias) in public communication about energy transfer through waves (e.g. microwaves are harmful).",
+          "page": 26
+        }
+      ],
+      "pages": [
+        26
+      ]
+    },
+    {
+      "id": "science-y9-motion-and-forces",
+      "title": "Motion and forces",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P26-K17",
+          "text": "Force is measured in newtons (N), named for Isaac Newton who developed laws of motion.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-K18",
+          "text": "Net force is the overall force acting on an object after all individual forces and their directions are combined.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K01",
+          "text": "When the net force acting on an object is zero, the object remains at rest or continues moving at constant speed in a straight line.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K02",
+          "text": "When the net force acting on an object is not zero, the object’s motion changes.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K03",
+          "text": "An unbalanced force causes a change in an object’s motion over time (e.g. a trolley speeds up when it is pushed).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K04",
+          "text": "Larger unbalanced forces cause larger changes in motion over the same time (e.g. a trolley pushed harder speeds up more quickly).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K05",
+          "text": "A position–time (x-t) graph shows how an object’s position changes over time, which includes the following features: a straight line on an x-t graph shows constant speed a steeper straight line on an x-t graph shows a higher speed than a less steep line a curved line on an x-t graph shows that an object’s speed is changing (e.g. acceleration) a horizontal line on an x-t graph shows that an object is stationary.",
+          "page": 27
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P26-P08",
+          "category": "",
+          "text": "Define the independent, dependent, and controlled variables for a motion experiment.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P09",
+          "category": "",
+          "text": "Use position–time graphs to represent motion.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P26-P10",
+          "category": "",
+          "text": "Predict and test factors impacting the reliability of results.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P01",
+          "category": "",
+          "text": "Calculate net force using free-body diagrams.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P02",
+          "category": "",
+          "text": "Calculate pressure, force applied and surface area.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P03",
+          "category": "",
+          "text": "Justify the relationship between the use of an everyday object and the ratio of the contact area and force (e.g. a single ski vs two skis, tractor tyre width).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P04",
+          "category": "",
+          "text": "Examine accuracy of measurements and list ways this could be improved.",
+          "page": 27
+        }
+      ],
+      "pages": [
+        26,
+        27
+      ]
+    },
+    {
+      "id": "science-y10-forces-and-acceleration",
+      "title": "Forces and acceleration",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P26-K20",
+          "text": "Acceleration is the rate at which an object's velocity (its speed or direction) changes.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-K21",
+          "text": "For the same mass, a larger net force produces a larger acceleration.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K01",
+          "text": "For the same net force, an object with greater mass accelerates less than an object with smaller mass.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K02",
+          "text": "The relationship between force, mass, and acceleration is given by the equation F = ma.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K03",
+          "text": "Objects resist changes in motion. This resistance is called inertia and depends on the object’s mass.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K04",
+          "text": "Forces occur in pairs called action–reaction force pairs.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K05",
+          "text": "In every interaction between two objects, each object exerts a force on the other that is equal in size and opposite in direction.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K06",
+          "text": "Action–reaction force pairs act on different objects.",
+          "page": 27
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P26-P05",
+          "category": "",
+          "text": "Calculate force, mass, and acceleration.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P26-P06",
+          "category": "",
+          "text": "Use Newton’s laws to predict and explain changes in an object’s motion.",
+          "page": 26
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P01",
+          "category": "",
+          "text": "Design and conduct a fair test to investigate air resistance or buoyancy, controlling variables and measuring the effect on a dependent variable.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P02",
+          "category": "",
+          "text": "Draw conclusions from the data in an investigation and explain the effects of air resistance or buoyancy using force models.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P03",
+          "category": "",
+          "text": "Analyse accuracy and reliability of a method (e.g. suitability of equipment, repetition, accuracy of measurement).",
+          "page": 27
+        }
+      ],
+      "pages": [
+        26,
+        27
+      ]
+    },
+    {
+      "id": "science-y9-pressure",
+      "title": "Pressure",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P27-K06",
+          "text": "Pressure is the force acting perpendicular to a surface divided by the area over which the force acts.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K07",
+          "text": "For the same force, a smaller contact area produces greater pressure, and a larger area produces lower pressure (e.g. axe blade vs hammer face).",
+          "page": 27
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P27-P01",
+          "category": "",
+          "text": "Calculate net force using free-body diagrams.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P02",
+          "category": "",
+          "text": "Calculate pressure, force applied and surface area.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P03",
+          "category": "",
+          "text": "Justify the relationship between the use of an everyday object and the ratio of the contact area and force (e.g. a single ski vs two skis, tractor tyre width).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P04",
+          "category": "",
+          "text": "Examine accuracy of measurements and list ways this could be improved.",
+          "page": 27
+        }
+      ],
+      "pages": [
+        27
+      ]
+    },
+    {
+      "id": "science-y10-pressure-in-fluids",
+      "title": "Pressure in fluids",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P27-K07",
+          "text": "In solids, liquids, and gases, pressure acts on surfaces and within the material itself (e.g. atmospheric pressure is exerted by the weight of the air in Earth’s atmosphere).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K08",
+          "text": "Pressure in liquids and gases acts in all directions (e.g. water pushes outward on the walls of a glass).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K09",
+          "text": "Pressure in liquids increases with depth (e.g. a diver experiences greater pressure deeper underwater).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K10",
+          "text": "Pressure can be used to transfer or multiply forces in enclosed fluids (e.g. hydraulic brakes).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K11",
+          "text": "Mechanical advantage is the increase in force produced by a system compared to the force applied, allowing a smaller input force to move a larger load.",
+          "page": 27
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P27-P01",
+          "category": "",
+          "text": "Design and conduct a fair test to investigate air resistance or buoyancy, controlling variables and measuring the effect on a dependent variable.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P02",
+          "category": "",
+          "text": "Draw conclusions from the data in an investigation and explain the effects of air resistance or buoyancy using force models.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P03",
+          "category": "",
+          "text": "Analyse accuracy and reliability of a method (e.g. suitability of equipment, repetition, accuracy of measurement).",
+          "page": 27
+        }
+      ],
+      "pages": [
+        27
+      ]
+    },
+    {
+      "id": "science-y10-buoyancy",
+      "title": "Buoyancy",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P27-K12",
+          "text": "Buoyancy is the upward force exerted on an object by a fluid when the object is partially or fully immersed.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K13",
+          "text": "An object floats when the buoyant force equals its weight.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K14",
+          "text": "An object sinks when the buoyant force is less than its weight.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K15",
+          "text": "For objects that displace the same volume of fluid, denser fluids exert a greater buoyant force.",
+          "page": 27
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P27-P01",
+          "category": "",
+          "text": "Design and conduct a fair test to investigate air resistance or buoyancy, controlling variables and measuring the effect on a dependent variable.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P02",
+          "category": "",
+          "text": "Draw conclusions from the data in an investigation and explain the effects of air resistance or buoyancy using force models.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P03",
+          "category": "",
+          "text": "Analyse accuracy and reliability of a method (e.g. suitability of equipment, repetition, accuracy of measurement).",
+          "page": 27
+        }
+      ],
+      "pages": [
+        27
+      ]
+    },
+    {
+      "id": "science-y9-the-solar-system",
+      "title": "The Solar System",
+      "year": 9,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P27-K08",
+          "text": "The Solar System is part of the Milky Way galaxy, which is one of billions of galaxies in the universe.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K09",
+          "text": "A star is a massive object that emits light.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K10",
+          "text": "A planet is a large object that orbits a star and reflects light emitted by the star.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K11",
+          "text": "The Sun is a star, and Earth is a planet that orbits the Sun.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K12",
+          "text": "A moon is a roughly spherical natural satellite that orbits a planet.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K13",
+          "text": "The Moon is visible because it reflects sunlight. It can be observed during both daytime and night-time.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K14",
+          "text": "The Solar System consists of the Sun and all objects gravitationally bound to it, including planets, moons, asteroids, and comets.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-K15",
+          "text": "An astronomical unit (AU) is the average distance from Earth to the Sun, which is used to measure distances within the Solar System.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K01",
+          "text": "Asteroids are small rocky bodies, mainly found in the asteroid belt between Mars and Jupiter.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K02",
+          "text": "Comets are icy bodies that orbit the Sun and may develop a coma and tail when close to the Sun.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K03",
+          "text": "A meteor occurs when matter from space enters Earth's atmosphere and heats up; if part of it reaches Earth's surface, it is called a meteorite, which can provide evidence about the formation of the Solar System.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K04",
+          "text": "There are different categories of planets based on their internal structure.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K05",
+          "text": "The planets in order from the Sun are the four rocky planets: Mercury, Venus, Earth, Mars, followed by the gas giants: Jupiter, Saturn, and the ice giants: Uranus, and Neptune.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K06",
+          "text": "Dwarf planets are roughly spherical objects that orbit the Sun and yet are not massive enough to have cleared their orbital path.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K07",
+          "text": "The amount of solar radiation received by a planet is determined by the distance from the Sun.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K08",
+          "text": "Humans have learned about space over time with improvements in technology and consensus in understanding (e.g. basic visual observation, telescopes, autonomous and human operated space exploration).",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K09",
+          "text": "Technological advances have allowed humans to determine conditions and surfaces of other objects within the Solar System by analysing emitted electromagnetic radiation.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y9-P28-K10",
+          "text": "Landing on the surface of objects in the Solar System has allowed us to see more detail of the surface and collect samples.",
+          "page": 28
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P27-P05",
+          "category": "",
+          "text": "Use pattern seeking (e.g. size, distance from the Sun, motion). to explain why objects in the Solar System are grouped into their different categories (e.g. planet, dwarf planet, asteroid).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P06",
+          "category": "",
+          "text": "Model objects in the Solar System to scale in terms of distance, size, timing of movement.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P07",
+          "category": "",
+          "text": "Analyse the strengths and limitations of models to explain relationships within the Solar System.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P08",
+          "category": "",
+          "text": "Discuss how different technologies have advanced our understanding of the Solar System.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y9-P27-P09",
+          "category": "",
+          "text": "Use appropriate units and scales to describe distances in the Solar System.",
+          "page": 27
+        }
+      ],
+      "pages": [
+        27,
+        28
+      ]
+    },
+    {
+      "id": "science-y10-the-water-cycle",
+      "title": "The water cycle",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P27-K16",
+          "text": "Water moves through the spheres of the Earth system: atmosphere, geosphere, hydrosphere, biosphere.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K17",
+          "text": "Water cycles through the Earth system via evaporation, condensation, precipitation, freezing, and melting.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K18",
+          "text": "Changes of state influence weather patterns, including cloud formation, humidity, temperature, and precipitation.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K19",
+          "text": "The atmosphere is a layer of gases surrounding Earth, mainly nitrogen, oxygen, argon, carbon dioxide, and water vapour.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K20",
+          "text": "The Sun transfers thermal energy to Earth’s surface, warming air, land, and water, with this effect decreasing as latitude increases (e.g. highest at the equator, 0°).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K21",
+          "text": "Thermal energy from the Sun causes water to evaporate from rivers, lakes, oceans, soil, and organisms.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-K22",
+          "text": "When water vapour in the air cools, it condenses into liquid droplets and forms visible clouds.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K01",
+          "text": "Precipitation (rain, snow, sleet, and hail) occurs when liquid water or ice becomes too heavy to remain in the air causing it to fall to Earth.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K02",
+          "text": "The amount of water on the Earth is finite, cycling through short (e.g. transpiration) and long-term (e.g. glaciers) loops.",
+          "page": 28
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P27-P04",
+          "category": "",
+          "text": "Select data from secondary sources to examine how water storage (e.g. in glaciers, groundwater, and the atmosphere) disrupt the movement of water through the water cycle.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P05",
+          "category": "",
+          "text": "Model processes of the dynamic nature of the water cycle.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P06",
+          "category": "",
+          "text": "Interpret maps and data of earthquakes and volcano locations to identify patterns at tectonic plate boundaries (e.g. Pacific Ring of Fire).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P07",
+          "category": "",
+          "text": "Model plate tectonic boundaries.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P08",
+          "category": "",
+          "text": "Examine how tectonic plate theory have developed through scientific exploration, discovery, evidence consolidation and contestation.",
+          "page": 27
+        }
+      ],
+      "pages": [
+        27,
+        28
+      ]
+    },
+    {
+      "id": "science-y10-plate-tectonics",
+      "title": "Plate tectonics",
+      "year": 10,
+      "phase": 4,
+      "strand": "Physical Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P28-K03",
+          "text": "Earth’s lithosphere (crust and rigid upper mantle) is divided into tectonic plates.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K04",
+          "text": "Alfred Wegener proposed the theory of continental drift. Later scientists developed this into the theory of plate tectonics.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K05",
+          "text": "Thermal energy from Earth’s interior drives convection currents in the mantle, causing tectonic plates to move.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K06",
+          "text": "Tectonic plates typically move only a few centimetres per year, but over millions of years this movement produces major changes to Earth’s surface.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K07",
+          "text": "Most geological activity and landform formation occurs at: convergent boundaries, where two tectonic plates collide divergent boundaries, where tectonic plates move apart transform boundaries, where tectonic plates slide past each other.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K08",
+          "text": "Earthquakes occur along all tectonic plate boundaries due to the build-up and release of stress.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K09",
+          "text": "Volcanoes form at convergent and divergent boundaries, and at hotspots and intraplate locations.",
+          "page": 28
+        },
+        {
+          "id": "SCI-2026-Y10-P28-K10",
+          "text": "Changes in Earth systems occur over very long timescales and include both gradual processes and sudden events.",
+          "page": 28
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P27-P04",
+          "category": "",
+          "text": "Select data from secondary sources to examine how water storage (e.g. in glaciers, groundwater, and the atmosphere) disrupt the movement of water through the water cycle.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P05",
+          "category": "",
+          "text": "Model processes of the dynamic nature of the water cycle.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P06",
+          "category": "",
+          "text": "Interpret maps and data of earthquakes and volcano locations to identify patterns at tectonic plate boundaries (e.g. Pacific Ring of Fire).",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P07",
+          "category": "",
+          "text": "Model plate tectonic boundaries.",
+          "page": 27
+        },
+        {
+          "id": "SCI-2026-Y10-P27-P08",
+          "category": "",
+          "text": "Examine how tectonic plate theory have developed through scientific exploration, discovery, evidence consolidation and contestation.",
+          "page": 27
+        }
+      ],
+      "pages": [
+        28
+      ],
+      "notes": [
+        "(See Year 8 Social Sciences: Natural Hazards in New Zealand)"
+      ],
+      "practiceScopeNote": "Practices are shared across the Year 10 Earth and Space section; select those relevant to this unit."
+    },
+    {
+      "id": "science-y9-cell-structure-and-function",
+      "title": "Cell structure and function",
+      "year": 9,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P29-K01",
+          "text": "Organelles are structures inside cells that have specialised functions.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K02",
+          "text": "Cells are classified as prokaryotic if their genetic material is not enclosed within a nucleus, and as eukaryotic if their genetic material is enclosed within a nucleus.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K03",
+          "text": "Prokaryotes are single-celled organisms (e.g. bacteria) that contain: genetic material that controls cell activities a cell membrane that controls what enters and leaves the cell cytoplasm where many chemical reactions occur.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K04",
+          "text": "Eukaryotes are single-celled or multicellular organisms (e.g. animals, plants, fungi) whose cells have organelles including: a nucleus containing genetic material (DNA), which provides instructions for how the cell is structured and functions a cell membrane that controls what enters and leaves the cell cytoplasm where many chemical reactions occur mitochondria that break down glucose (sugar) via cellular respiration.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K05",
+          "text": "Animal cells are eukaryotic cells with a cell membrane and cytoplasm that carry out specialised functions.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K06",
+          "text": "Plant cells are eukaryotic cells that also have: a cell wall that provides strength and shape chloroplasts that use sunlight to make glucose through photosynthesis the vacuole that is a fluid-filled space that stores water and nutrients; it is large in plant cells and smaller in animal cells.",
+          "page": 29
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P29-P01",
+          "category": "",
+          "text": "Use visual data (e.g. images gained by microscopes) to compare the size, scale and structures of cells.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P02",
+          "category": "",
+          "text": "Discuss how the use of technology has contributed to our understanding of cell organisation.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P03",
+          "category": "",
+          "text": "Analyse data and identify patterns in the spread of infectious diseases.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P04",
+          "category": "",
+          "text": "Compare disease prevention strategies, including hygiene, quarantine, and vaccination, using evidence of effectiveness from scientific research.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P05",
+          "category": "",
+          "text": "Analyse validity of information, including accuracy and bias, in public communication about infectious disease.",
+          "page": 29
+        }
+      ],
+      "pages": [
+        29
+      ]
+    },
+    {
+      "id": "science-y9-disease-and-immunity",
+      "title": "Disease and immunity",
+      "year": 9,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P29-K07",
+          "text": "Pathogens (bacteria, viruses, protists, fungi) cause infectious diseases, spreading via bodily fluids, contaminated items, or airborne particles like influenza and myrtle rust. Infectious disease can be managed through hygiene, quarantine, and other preventive measures.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K08",
+          "text": "Non-infectious diseases are not caused by pathogens and do not spread between individuals.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K09",
+          "text": "The human body has non-specific defence systems against pathogens, including physical barriers (skin, hair, cilia), chemical defences (tears, saliva, stomach acid), and the microbiome.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K10",
+          "text": "The immune system protects the body from disease using white blood cells that recognise and respond to pathogens, including specialised white blood cells that produce antibodies.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K11",
+          "text": "Vaccines prevent disease by stimulating the immune system to produce a protective response without causing illness.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-K12",
+          "text": "Louis Pasteur and Robert Koch established germ theory, the theory that micro-organisms cause disease. Pasteur later extended vaccination to other diseases.",
+          "page": 29
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P29-P01",
+          "category": "",
+          "text": "Use visual data (e.g. images gained by microscopes) to compare the size, scale and structures of cells.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P02",
+          "category": "",
+          "text": "Discuss how the use of technology has contributed to our understanding of cell organisation.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P03",
+          "category": "",
+          "text": "Analyse data and identify patterns in the spread of infectious diseases.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P04",
+          "category": "",
+          "text": "Compare disease prevention strategies, including hygiene, quarantine, and vaccination, using evidence of effectiveness from scientific research.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y9-P29-P05",
+          "category": "",
+          "text": "Analyse validity of information, including accuracy and bias, in public communication about infectious disease.",
+          "page": 29
+        }
+      ],
+      "pages": [
+        29
+      ]
+    },
+    {
+      "id": "science-y10-determining-organism-traits",
+      "title": "Determining organism traits",
+      "year": 10,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P29-K01",
+          "text": "A phenotype is the set of observable characteristics of an organism, which result from the interaction between its genome and the environment.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K02",
+          "text": "DNA is a molecule containing the genetic information used to control the development and functioning of an organism and is shaped as a double helix.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K03",
+          "text": "Rosalind Franklin’s discoveries about DNA were built on by Maurice Wilkins, and the team of James Watson and Francis Crick.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K04",
+          "text": "DNA is organised into structures called chromosomes, which are located in the nucleus.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K05",
+          "text": "A gene is a section of DNA that contains instructions for making a protein or part of a protein (e.g. insulin).",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K06",
+          "text": "Proteins are large molecules made by cells. They help build body structures and carry out specific tasks in cells, such as carrying substances, speeding up chemical reactions, and protecting against disease (e.g. hormones, enzymes, antibodies).",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K07",
+          "text": "Proteins determine an organism’s traits (e.g. keratin in hair, nails, feathers).",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K08",
+          "text": "Some traits are influenced by a single gene, but most traits are influenced by many genes.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K09",
+          "text": "When a gene is active, its protein is made, and when inactive, the protein is not made.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K10",
+          "text": "Traits are also influenced by the environment, which include the following examples: in humans, height is influenced by nutrition and genes in reptiles like tuatara, sex is determined by nest temperature.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K11",
+          "text": "Variation refers to differences in traits among individuals in a population.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-K12",
+          "text": "When traits are observed or measured, some are recorded as distinct categories with limited options (e.g. blood type, flower colour), while others are recorded across a continuous range of values (e.g. height).",
+          "page": 29
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P29-P01",
+          "category": "",
+          "text": "Analyse variation in a population by classifying data into continuous (e.g. length or heights) or discrete traits (e.g. blood type).",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-P02",
+          "category": "",
+          "text": "Construct annotated diagrams or models that explain the structural relationship between DNA, genes, and chromosomes.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-P03",
+          "category": "",
+          "text": "Compare different models and representations of DNA structure to evaluate their strengths and limitations.",
+          "page": 29
+        },
+        {
+          "id": "SCI-2026-Y10-P29-P04",
+          "category": "",
+          "text": "Examine how current understanding of DNA has developed through scientific exploration, discovery, evidence consolidation, and contestation.",
+          "page": 29
+        }
+      ],
+      "pages": [
+        29
+      ]
+    },
+    {
+      "id": "science-y9-diffusion",
+      "title": "Diffusion",
+      "year": 9,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P30-K01",
+          "text": "Diffusion is the movement of particles from an area of higher concentration to an area of lower concentration.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-K02",
+          "text": "Diffusion is vital to body system processes such as respiration.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-K03",
+          "text": "Oxygen and carbon dioxide particles move into and out of cells by diffusion.",
+          "page": 30
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P30-P01",
+          "category": "",
+          "text": "Formulate testable questions that could determine requirements of diffusion, photosynthesis, or respiration.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P02",
+          "category": "",
+          "text": "Systematically observe and record the effects of diffusion, photosynthesis, or respiration (e.g. starch tests, light vs dark comparisons, jelly babies in water).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P03",
+          "category": "",
+          "text": "Use diagrams or flow charts to model diffusion, photosynthesis, and cellular respiration, showing the movement of oxygen, carbon dioxide, and glucose.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P04",
+          "category": "",
+          "text": "Interpret findings to explain requirements of diffusion, photosynthesis, or respiration.",
+          "page": 30
+        }
+      ],
+      "pages": [
+        30
+      ]
+    },
+    {
+      "id": "science-y9-photosynthesis",
+      "title": "Photosynthesis",
+      "year": 9,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P30-K04",
+          "text": "Photosynthesis is the process by which plants, algae, and some bacteria use light, water, and carbon dioxide to make glucose and release oxygen.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-K05",
+          "text": "Glucose produced in photosynthesis is used in respiration, stored as starch, or used to build material like cellulose.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-K06",
+          "text": "Leaves are adapted for photosynthesis by being thin and containing chloroplasts that capture light.",
+          "page": 30
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P30-P01",
+          "category": "",
+          "text": "Formulate testable questions that could determine requirements of diffusion, photosynthesis, or respiration.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P02",
+          "category": "",
+          "text": "Systematically observe and record the effects of diffusion, photosynthesis, or respiration (e.g. starch tests, light vs dark comparisons, jelly babies in water).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P03",
+          "category": "",
+          "text": "Use diagrams or flow charts to model diffusion, photosynthesis, and cellular respiration, showing the movement of oxygen, carbon dioxide, and glucose.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P04",
+          "category": "",
+          "text": "Interpret findings to explain requirements of diffusion, photosynthesis, or respiration.",
+          "page": 30
+        }
+      ],
+      "pages": [
+        30
+      ]
+    },
+    {
+      "id": "science-y9-cellular-respiration-aerobic",
+      "title": "Cellular respiration (aerobic)",
+      "year": 9,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P30-K07",
+          "text": "Respiration occurs when glucose is broken down using oxygen to release chemical energy, which is used by cells for life processes.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-K08",
+          "text": "Carbon dioxide and water are produced as waste during respiration.",
+          "page": 30
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P30-P01",
+          "category": "",
+          "text": "Formulate testable questions that could determine requirements of diffusion, photosynthesis, or respiration.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P02",
+          "category": "",
+          "text": "Systematically observe and record the effects of diffusion, photosynthesis, or respiration (e.g. starch tests, light vs dark comparisons, jelly babies in water).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P03",
+          "category": "",
+          "text": "Use diagrams or flow charts to model diffusion, photosynthesis, and cellular respiration, showing the movement of oxygen, carbon dioxide, and glucose.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y9-P30-P04",
+          "category": "",
+          "text": "Interpret findings to explain requirements of diffusion, photosynthesis, or respiration.",
+          "page": 30
+        }
+      ],
+      "pages": [
+        30
+      ]
+    },
+    {
+      "id": "science-y10-nervous-control",
+      "title": "Nervous control",
+      "year": 10,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P30-K01",
+          "text": "The central nervous system consists of the brain and spinal cord.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K02",
+          "text": "The brain contains billions of interconnected neurons that receive, process and transmit information, and is organised into the following three main regions: the cerebrum, which is involved in conscious thought and voluntary actions the cerebellum, which coordinates movement and balance the brainstem, which controls many automatic functions (e.g. breathing, heart rate).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K03",
+          "text": "The peripheral nervous system consists of nerves outside the brain and spinal cord.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K04",
+          "text": "Nervous control produces both voluntary actions and automatic responses (e.g. heartbeat, reflexes).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K05",
+          "text": "Receptors (e.g. eyes) detect stimuli as changes in the environment.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K06",
+          "text": "Sensory neurons are nerve cells that transmit information from receptors to the brain and spinal cord.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K07",
+          "text": "The brain and spinal cord process information and coordinate responses.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K08",
+          "text": "Motor neurons are nerve cells that transmit signals from the central nervous system to effectors.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K09",
+          "text": "Effectors (e.g. muscles or glands) produce a response.",
+          "page": 30
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P30-P01",
+          "category": "",
+          "text": "Design and conduct safe, ethically suitable scientific experiments of reaction times in voluntary actions (e.g. catching a falling object) or thermoregulation (e.g. skin temperature change with exercise).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-P02",
+          "category": "",
+          "text": "Analyse factors affecting the reliability of data collected from human subjects.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-P03",
+          "category": "",
+          "text": "Show how the components of the thermoregulation feedback loop work together to continually respond to temperature changes (e.g. diagram, flow chart).",
+          "page": 30
+        }
+      ],
+      "pages": [
+        30
+      ]
+    },
+    {
+      "id": "science-y10-thermoregulation",
+      "title": "Thermoregulation",
+      "year": 10,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P30-K10",
+          "text": "Body temperature in mammals is regulated through thermoregulation.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K11",
+          "text": "Temperature receptors in the skin and the brain detect changes in body temperature.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K12",
+          "text": "The brain coordinates responses through the nervous system to maintain a stable internal body temperature.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K13",
+          "text": "Sweating and vasodilation decrease body temperature by increasing thermal energy loss.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K14",
+          "text": "Shivering and vasoconstriction increase body temperature by reducing thermal energy loss and generating thermal energy.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-K15",
+          "text": "Thermoregulation maintains body temperature within a narrow range and is an example of homeostasis.",
+          "page": 30
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P30-P01",
+          "category": "",
+          "text": "Design and conduct safe, ethically suitable scientific experiments of reaction times in voluntary actions (e.g. catching a falling object) or thermoregulation (e.g. skin temperature change with exercise).",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-P02",
+          "category": "",
+          "text": "Analyse factors affecting the reliability of data collected from human subjects.",
+          "page": 30
+        },
+        {
+          "id": "SCI-2026-Y10-P30-P03",
+          "category": "",
+          "text": "Show how the components of the thermoregulation feedback loop work together to continually respond to temperature changes (e.g. diagram, flow chart).",
+          "page": 30
+        }
+      ],
+      "pages": [
+        30
+      ]
+    },
+    {
+      "id": "science-y9-ecosystem-conditions",
+      "title": "Ecosystem conditions",
+      "year": 9,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y9-P31-K01",
+          "text": "Ecosystems include biotic factors (living or recently living organisms) and abiotic factors (air, water, temperature, light, minerals).",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y9-P31-K02",
+          "text": "Environments with different physical conditions (e.g. variation in rainfall, temperature, plant cover) support different organisms.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y9-P31-K03",
+          "text": "Similar organisms are often found in environments with similar physical conditions (e.g. mosses in damp, shaded areas; cacti in hot, dry environments; grass species in open, high-light environments; worms in moist, organic-rich soil).",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y9-P31-K04",
+          "text": "Indigenous knowledge systems, including mātauranga Māori, are based on long-term observation of environmental patterns.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y9-P31-K05",
+          "text": "Ngā tohu te taiao (signs of the natural world) can be used to notice seasonal changes and indicators of ecosystem health.",
+          "page": 31
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y9-P31-P01",
+          "category": "",
+          "text": "Investigate and analyse the abiotic conditions of an ecosystem using appropriate sampling techniques (e.g. quadrats and transects), measuring environmental variables such as light intensity, temperature, soil composition, and evaluating how these factors influence the distribution and abundance of organisms within the ecosystem.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y9-P31-P02",
+          "category": "",
+          "text": "Use recorded data on organisms and environmental features to recognise patterns and changes in ecosystems over time (e.g. invertebrates found in leaf litter compared with exposed ground; sandhoppers and marram grass distribution in sand dune environments).",
+          "page": 31
+        }
+      ],
+      "pages": [
+        31
+      ]
+    },
+    {
+      "id": "science-y10-ecosystems-and-water",
+      "title": "Ecosystems and water",
+      "year": 10,
+      "phase": 4,
+      "strand": "Biological Science",
+      "knowledge": [
+        {
+          "id": "SCI-2026-Y10-P31-K01",
+          "text": "Ecosystems depend on the continuous movement of materials, including water and nutrients, between organisms and the physical environment.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K02",
+          "text": "The availability of freshwater influences the distribution, behaviour, and survival of organisms within ecosystems.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K03",
+          "text": "Soil stores water and dissolved nutrients, supporting plant growth and influencing ecosystem productivity.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K04",
+          "text": "Plants absorb water through roots and use it in photosynthesis, growth, and transport of materials within the organism.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K05",
+          "text": "Transpiration from plants contributes water vapour to the atmosphere and can influence local humidity and weather patterns.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K06",
+          "text": "Different ecosystems show different patterns of water availability (e.g. wetlands, forests, grasslands), which support different types of organisms.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K07",
+          "text": "Microorganisms in soil and water recycle nutrients by breaking down dead organisms and waste materials.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K08",
+          "text": "Decomposition returns matter to the environment, making nutrients available for reuse by plants and other organisms.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K09",
+          "text": "Disruption to water availability (e.g. drought, drainage, pollution) can reduce ecosystem stability and biodiversity.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K10",
+          "text": "Forests, wetlands, and soils help regulate water movement by slowing runoff, increasing infiltration, and reducing erosion.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-K11",
+          "text": "Humans can support ecosystem regeneration through conservation, restoration, and long-term management of resources.",
+          "page": 31
+        }
+      ],
+      "practices": [
+        {
+          "id": "SCI-2026-Y10-P31-P01",
+          "category": "",
+          "text": "Observe how water availability affects habitat structure and composition in a local ecosystem (e.g. wet vs dry areas) using data and ngā tohu te taiao (signs of the natural world) to describe and predict changes.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-P02",
+          "category": "",
+          "text": "Use representations of data (e.g. diagrams, graphs, tables) to connect the movement of water through other components of the ecosystem.",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-P03",
+          "category": "",
+          "text": "Describe how human activities have positively or negatively impacted ecosystems in local or global contexts (e.g. kina barrens, coral reefs, rainforests, predator free sanctuaries).",
+          "page": 31
+        },
+        {
+          "id": "SCI-2026-Y10-P31-P04",
+          "category": "",
+          "text": "Give examples of humans protecting ecosystems and upholding principles of kaitiakitanga.",
+          "page": 31
+        }
+      ],
+      "pages": [
+        31
+      ]
+    }
+  ]
+}

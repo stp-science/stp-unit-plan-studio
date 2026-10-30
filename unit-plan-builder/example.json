@@ -1,0 +1,103 @@
+{
+  "title": "Evolution",
+  "duration": "12 lessons of 50 minutes",
+  "whakatauki": "",
+  "subject": "Science",
+  "year": "Year 8",
+  "phase": "Phase 3",
+  "purpose": "Evolution helps students make sense of the diversity of living things and their shared history. It provides a way to evaluate evidence about changes in life and understand why environmental change can threaten species and influence conservation decisions.",
+  "prior": "Year 7 Ecosystem Interactions: survival adaptations, organism → population → community → ecosystem, and organism roles provide the basis for explaining selection pressures and differential survival. Year 7 Rocks & Minerals: fossils and the rock cycle provide evidence of life and environments in the past.",
+  "future": "The later Determining Organism Traits unit connects heritable variation with DNA, genes, chromosomes and environmental influences on phenotype. Year 9 Ecosystems develops organism distribution, abiotic variables and ecological evidence, building on the relationship between organisms and their environments.",
+  "knowledgeSummary": "Fossils, shared traits and DNA provide evidence for evolution and common ancestry. Individuals vary, some variation is inherited, and selection pressures affect survival and reproduction. Natural selection changes the frequency of inherited traits in populations over generations. Over longer times, lineages can form new species or become extinct.",
+  "practicesSummary": "Analyse evidence from evolutionary contexts to show how theories develop over time. Interpret a set of fossil images to infer an organism's structure and likely environment. Examine the role of environmental change on extinction of species.",
+  "resources": "",
+  "assessment": "",
+  "descriptors": "",
+  "reporting": "",
+  "capabilities": [
+    "Thinkers",
+    "Communicators"
+  ],
+  "focuses": [
+    {
+      "title": "Fossils as evidence",
+      "knowledge": "Fossils provide evidence that organisms have appeared in many different forms throughout Earth's history, with some similar to organisms alive today (e.g. crocodiles), while others belong to extinct groups that no longer exist (e.g. trilobites).",
+      "practices": "Interpreting a set of fossil images to infer an organism's structure and likely environment.",
+      "objectives": "Infer an organism’s structure and likely environment from fossil features.",
+      "priorities": "Capabilities — Thinkers: distinguish claims from evidence. Communicators: explain a scientific claim and respond to a partner’s question.",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: fossil; extinct; sediment.",
+      "misconceptions": "Fossils are always bones, and all fossil organisms are extinct.",
+      "checks": "Mini whiteboards: label an observation and an inference from a fossil image. Exit ticket: infer a structure and likely environment from an unfamiliar fossil."
+    },
+    {
+      "title": "Comparing evidence for change",
+      "knowledge": "Evidence (e.g. fossils, shared traits, DNA evidence) supports the theory that populations and species have changed over time.",
+      "practices": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.\nInterpreting a set of fossil images to infer an organism's structure and likely environment.",
+      "objectives": "Explain how fossil, shared-trait and DNA evidence supports change in populations and species.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: fossil record; shared trait; DNA.",
+      "misconceptions": "One piece of evidence proves every detail of evolutionary history.",
+      "checks": "Targeted questioning: connect a fossil, shared-trait or DNA comparison to a claim about change. Exit ticket: explain why independent lines of evidence strengthen an explanation."
+    },
+    {
+      "title": "Variation and inheritance",
+      "knowledge": "Individuals within a species show variation in their traits (e.g. differences in male wētā head and jaw size).\nSome variation is heritable, meaning it can be passed from parents to offspring.",
+      "practices": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.",
+      "objectives": "Distinguish variation among individuals from variation that can be passed to offspring.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: trait; variation; heritable.",
+      "misconceptions": "Every difference between individuals can be inherited by their offspring.",
+      "checks": "Mini whiteboards: classify inherited and acquired variation. Hinge question: identify which difference could be passed to offspring."
+    },
+    {
+      "title": "Selection pressures",
+      "knowledge": "Features of the environment that affect survival or reproduction are called selection pressures (e.g. limited food).",
+      "practices": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.",
+      "objectives": "Identify a selection pressure and explain how it affects survival or reproduction.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: selection pressure; survival; reproduction.",
+      "misconceptions": "A selection pressure causes an individual to develop the trait it needs.",
+      "checks": "Scenario hinge question: identify the selection pressure and predict which existing variation affects survival or reproduction."
+    },
+    {
+      "title": "Natural selection and its explanation",
+      "knowledge": "Natural selection is a process in which heritable differences between individuals influence their chances of surviving and reproducing in the presence of selection pressures (e.g. cold extremes, sun exposure).\nContemporaries Charles Darwin and Alfred Russel Wallace presented their theories on natural selection together.",
+      "practices": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.",
+      "objectives": "Explain how heritable differences affect survival and reproduction under a selection pressure; describe Darwin and Wallace’s contribution.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: natural selection; heritable variation; selection pressure.",
+      "misconceptions": "Natural selection is a conscious choice made by an organism.",
+      "checks": "Targeted questioning: sequence heritable variation, selection pressure and differential reproduction. Mini whiteboards: distinguish natural selection from a change caused by need."
+    },
+    {
+      "title": "Population change over generations",
+      "knowledge": "Over many generations, individuals with traits that increase survival or reproduction are more likely to leave offspring, causing those inherited traits to become more common in a population (e.g. moth camouflage increasing in frequency).\nEvolution describes these changes in traits within populations over generations, not within individuals.",
+      "practices": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.",
+      "objectives": "Explain why favourable inherited traits may become more common over generations and distinguish population evolution from individual change.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: trait frequency; population; generation; evolution.",
+      "misconceptions": "An individual evolves during its lifetime; all members of a population change at once.",
+      "checks": "Mini whiteboards: interpret trait counts across generations. Exit ticket: explain a population change using inheritance and differential reproduction."
+    },
+    {
+      "title": "Speciation and extinction",
+      "knowledge": "Over long periods, trait changes accumulate, resulting in new species forming from a shared ancestor (e.g. kākā, kea, and kākāpō becoming different kinds of parrots).\nSome species are unable to survive environmental change and become extinct (e.g. moa).",
+      "practices": "Examining the role of environmental change on extinction of species (e.g. habitat destruction, change in temperature).",
+      "objectives": "Explain how long-term divergence can produce new species and why some species become extinct.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: species; speciation; extinction.",
+      "misconceptions": "Every species will adapt quickly enough to survive environmental change.",
+      "checks": "Hinge question: distinguish divergence into new species from extinction. Exit ticket: use a named environmental change to explain why a species may become extinct."
+    },
+    {
+      "title": "Common ancestry",
+      "knowledge": "Evidence collected to date supports the theory that all living organisms are related through common ancestry (e.g. shared features among vertebrates).",
+      "practices": "Analysing evidence from evolutionary contexts (e.g. fossil records, trait variations, or environmental changes) to show how theories develop over time.",
+      "objectives": "Use shared features to support an explanation that living organisms are related through common ancestry.",
+      "priorities": "",
+      "vocabulary": "Tier 2: evidence; infer; compare; justify.\nTier 3: common ancestor; vertebrate; lineage.",
+      "misconceptions": "Humans evolved from the monkeys alive today rather than sharing earlier ancestors.",
+      "checks": "Annotated-diagram check: identify a shared ancestor on a branching diagram. Exit ticket: use a shared feature as evidence for relatedness without claiming one living species is the ancestor of another."
+    }
+  ]
+}

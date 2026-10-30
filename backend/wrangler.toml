@@ -1,0 +1,8 @@
+name = "stp-unit-plan-drafting"
+main = "worker.mjs"
+compatibility_date = "2026-10-23"
+
+[vars]
+ALLOWED_ORIGIN = "https://stp-science.github.io"
+# Set GEMINI_MODEL to a currently available structured-output model in your Google project.
+# Set GEMINI_API_KEY and ACCESS_TOKEN using `wrangler secret put`; never commit their values.

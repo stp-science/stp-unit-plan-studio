@@ -1,0 +1,11 @@
+{
+  "name": "stp-unit-plan-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-programme.mjs",
+    "test": "node scripts/test-curriculum.mjs && node scripts/test-programme.mjs && node scripts/test-catalogue.mjs && node scripts/test-senior-catalogue.mjs",
+    "validate": "node scripts/validate-artifact.mjs",
+    "dev": "node scripts/preview-programme.mjs"
+  }
+}
