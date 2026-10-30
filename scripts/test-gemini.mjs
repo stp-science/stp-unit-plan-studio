@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {api} from '../worker/api.js';
+import {api,overviewCatalogueEvidence} from '../worker/api.js';
+import {ministryContent} from '../worker/catalogue-data.js';
 import {generationRequest} from '../programme/generation.js';
 import {readGeminiStream} from '../worker/generation-stream.js';
 import {providerConfig} from '../worker/ai-provider.js';
@@ -38,3 +39,9 @@ res=await api(req({operation:'guide',programme:p,unitId:'unit'}),env);assert.equ
 await assert.rejects(readGeminiStream(sse([{candidates:[{content:{parts:[{text:'incomplete'}]}}]}])),/ended unexpectedly/);
 globalThis.fetch=originalFetch;
 console.log('Passed Gemini provider isolation, secure headers, PDF inputs, JSON schema, exact curriculum text, preserved teacher decisions, truncation, streaming and quota handling. No live provider called.');
+
+for(const [id,source] of Object.entries(ministryContent)){if(!source.pages)continue;const evidence=overviewCatalogueEvidence(source);for(const page of evidence.pages){const original=source.pages.find(p=>p.page===page.page);assert.equal(page.text.replace(/\s+/g,' ').trim(),original.text.replace(/\s+/g,' ').trim(),'Retained source wording must survive PDF whitespace compaction');}if(id==='science-aug-2026'){assert.deepEqual(evidence.pages.map(p=>p.page),[1,2,3,4,5,6,7,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);assert(JSON.stringify(evidence).length<JSON.stringify(source).length/2);}}
+const unmarked={pages:[{page:1,text:'Unmarked knowledge  with  layout spaces'}]};assert.equal(overviewCatalogueEvidence(unmarked).pages.length,1,'Unmarked sources must not be silently scoped out');
+globalThis.fetch=async(url,options)=>{body=JSON.parse(options.body);assert(body.contents[0].parts[0].text.length<100);return Response.json(responseFor({ok:true}));};
+res=await api(req({operation:'connection-check'}),env);assert.equal(res.status,200);assert.equal((await res.json()).result.ok,true);globalThis.fetch=originalFetch;
+console.log('Passed compact evidence wording/page preservation, phase scoping and isolated connection diagnostics.');
