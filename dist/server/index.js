@@ -21,7 +21,7 @@ async function generateWithProvider({config,content,system,schema,maxTokens,stre
   url='https://generativelanguage.googleapis.com/v1beta/models/'+config.model+':'+(stream?'streamGenerateContent?alt=sse':'generateContent');
   headers={'Content-Type':'application/json','x-goog-api-key':config.key};
   const parts=content.map(block=>block.type==='document'?{inlineData:{mimeType:'application/pdf',data:block.source.data}}:{text:block.text});
-  body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:maxTokens,...(schema?{responseJsonSchema:schema}:{})}};
+  body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:maxTokens}};
  }else{
   url='https://api.anthropic.com/v1/messages';
   headers={'Content-Type':'application/json','x-api-key':config.key,'anthropic-version':'2023-06-01'};
