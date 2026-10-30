@@ -47,3 +47,8 @@ assert.throws(()=>applyTermMapping({...mapped,units:[{...mapped.units[0],unitRef
 assert.throws(()=>applyTermMapping({...mapped,units:[]},7,1,trusted),/every planned unit/);
 assert.throws(()=>applyTermMapping({...mapped,units:[mapped.units[0],mapped.units[0]]},7,1,[trusted[0],{...trusted[0],id:'another'}]),/repeated/);
 console.log('Passed trusted topic metadata retention and numeric references with missing, duplicate and cross-term unit rejection.');
+
+const starts=[];const quick=async()=>{starts.push(Date.now());return Response.json({result:{ok:true}});};
+await generationRequest({}, {minIntervalMs:30,fetcher:quick});await generationRequest({}, {minIntervalMs:30,fetcher:quick});assert(starts[1]-starts[0]>=25,'Pacing must separate actual request starts');
+const pacingAbort=new AbortController();let unwantedCalls=0;const paused=generationRequest({}, {minIntervalMs:50,signal:pacingAbort.signal,fetcher:async()=>{unwantedCalls++;return Response.json({result:{ok:true}});}});pacingAbort.abort();await assert.rejects(paused,e=>e.name==='AbortError');assert.equal(unwantedCalls,0,'Cancelling a pause must not send a provider request');
+console.log('Passed request spacing and cancellation before a queued request starts.');

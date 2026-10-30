@@ -16,6 +16,25 @@ export function schemaFromExample(value){
  return {type:typeof value==='number'?(Number.isInteger(value)?'integer':'number'):'string'};
 }
 
+// Keep only non-sensitive quota fields. Never retain the provider's full error body.
+export function quotaDetails(failure,headers){
+ const details=Array.isArray(failure.error?.details)?failure.error.details:[];
+ const violations=details.flatMap(d=>Array.isArray(d.violations)?d.violations:[]);
+ const limits=violations.map(v=>{const name=String(v.quotaId||'').toLowerCase(),metric=String(v.quotaMetric||'').toLowerCase();const period=/perday|per_day|daily/.test(name)?'day':/perminute|per_minute/.test(name)?'minute':'unknown';return {period,resource:/input.*token/.test(metric+' '+name)?'input tokens':/token/.test(metric+' '+name)?'tokens':/request/.test(metric+' '+name)?'requests':'usage',...(Number.isFinite(Number(v.quotaValue))?{limit:Number(v.quotaValue)}:{})};});
+ const delay=details.find(d=>/RetryInfo$/.test(String(d['@type']||'')))?.retryDelay;
+ const numeric=typeof delay==='string'&&/^\d+(?:\.\d+)?s$/.test(delay)?Math.ceil(parseFloat(delay)):Number(headers?.get('retry-after'));
+ const retryAfterSeconds=Number.isFinite(numeric)&&numeric>0?Math.min(86400,numeric):undefined;
+ return {limits,...(retryAfterSeconds?{retryAfterSeconds}:{})};
+}
+export function quotaMessage(label,quota){
+ const daily=quota.limits.some(q=>q.period==='day'),minute=quota.limits.some(q=>q.period==='minute');
+ const resources=[...new Set(quota.limits.map(q=>q.resource))].join(' and ');
+ const reason=daily?'daily '+(resources||'usage')+' allowance':minute?'per-minute '+(resources||'usage')+' limit':'request or token quota';
+ const dashboard=label==='Gemini'?'Google AI Studio':label+'’s usage dashboard';
+ const next=daily?'Check the daily reset in '+dashboard+'; a short pause will not reset a daily allowance.':quota.retryAfterSeconds?`Wait at least ${quota.retryAfterSeconds} seconds before resuming; other limits may still apply.`:minute?'Pause before resuming the remaining work.':'Check the rate limits in '+dashboard+' to see which allowance was reached.';
+ return label+'’s '+reason+' was reached. '+next+' Completed steps and guides are saved.';
+}
+
 export async function generateWithProvider({config,content,system,schema,maxTokens,stream,onProgress,signal,thinkingLevel}){
  let url,headers,body;
  if(config.id==='gemini'){
@@ -33,9 +52,10 @@ export async function generateWithProvider({config,content,system,schema,maxToke
  if(!upstream.ok){
   const failure=await upstream.json().catch(()=>({}));
   const detail=String(failure.error?.message||'').replace(/sk-ant-[A-Za-z0-9_-]+|AIza[A-Za-z0-9_-]+|AQ\.[A-Za-z0-9._-]+/g,'[redacted]').slice(0,500);
-  console.warn(JSON.stringify({event:'ai_failure',provider:config.id,status:upstream.status,errorType:failure.error?.type||failure.error?.status}));
+  const quota=upstream.status===429?quotaDetails(failure,upstream.headers):undefined;
+  console.warn(JSON.stringify({event:'ai_failure',provider:config.id,status:upstream.status,errorType:failure.error?.type||failure.error?.status,...(quota?{quota}:{})}));
   let message;
-  if(upstream.status===429)message=config.label+'’s request or token quota was reached. Completed years and guides are saved; retry the remaining work after the quota resets.';
+  if(upstream.status===429)message=quotaMessage(config.label,quota);
   else if([401,403].includes(upstream.status))message=config.label+' rejected the API key or its permissions. Ask the administrator to check the server-side key and API access.';
   else if(upstream.status===524)message=config.label+' timed out before returning a complete response. Completed years and guides have been kept. Try again to resume.';
   else if(upstream.status>=500)message=config.label+'’s service could not finish this request. Completed years and guides have been kept. Try again to resume.';

@@ -3,7 +3,7 @@ import {api,overviewCatalogueEvidence} from '../worker/api.js';
 import {ministryContent} from '../worker/catalogue-data.js';
 import {generationRequest} from '../programme/generation.js';
 import {readGeminiStream} from '../worker/generation-stream.js';
-import {providerConfig} from '../worker/ai-provider.js';
+import {providerConfig,quotaDetails,quotaMessage} from '../worker/ai-provider.js';
 
 const env={AI_PROVIDER:'gemini',GEMINI_API_KEY:'fake-google-key',GEMINI_MODEL:'gemini-3.8-flash',ANTHROPIC_API_KEY:'unused-claude-key',CLAUDE_MODEL:'unused-model'};
 const knowledge='All matter is made up of sub-microscopic particles.';
@@ -45,3 +45,10 @@ const unmarked={pages:[{page:1,text:'Unmarked knowledge  with  layout spaces'}]}
 globalThis.fetch=async(url,options)=>{body=JSON.parse(options.body);assert(body.contents[0].parts[0].text.length<100);return Response.json(responseFor({ok:true}));};
 res=await api(req({operation:'connection-check'}),env);assert.equal(res.status,200);assert.equal((await res.json()).result.ok,true);globalThis.fetch=originalFetch;
 console.log('Passed compact evidence wording/page preservation, phase scoping and isolated connection diagnostics.');
+
+const minuteQuota=quotaDetails({error:{details:[{'@type':'type.googleapis.com/google.rpc.QuotaFailure',violations:[{quotaId:'GenerateContentInputTokensPerModelPerMinute-FreeTier',quotaMetric:'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count',quotaValue:'250000',quotaDimensions:{project:'must-not-be-retained'}}]},{'@type':'type.googleapis.com/google.rpc.RetryInfo',retryDelay:'42.5s'}]}},new Headers());
+assert.deepEqual(minuteQuota,{limits:[{period:'minute',resource:'input tokens',limit:250000}],retryAfterSeconds:43});assert.match(quotaMessage('Gemini',minuteQuota),/per-minute input tokens limit/);assert.match(quotaMessage('Gemini',minuteQuota),/43 seconds/);
+const dayQuota=quotaDetails({error:{details:[{violations:[{quotaId:'GenerateRequestsPerDayPerProjectPerModel-FreeTier',quotaMetric:'generate_content_free_tier_requests',quotaValue:'500'}]},{'@type':'type.googleapis.com/google.rpc.RetryInfo',retryDelay:'45s'}]}},new Headers());
+assert.match(quotaMessage('Gemini',dayQuota),/daily requests allowance/);assert(!quotaMessage('Gemini',dayQuota).includes('45 seconds'),'A short RetryInfo delay must not imply a daily quota reset');
+assert.equal(quotaDetails({},new Headers({'retry-after':'60'})).retryAfterSeconds,60);assert.match(quotaMessage('Gemini',quotaDetails({},new Headers())),/request or token quota/);assert(!quotaMessage('Claude',quotaDetails({},new Headers())).includes('Google'));
+console.log('Passed minute/day quota classification, safe diagnostic fields and retry guidance without automatic calls.');
