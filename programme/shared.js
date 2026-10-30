@@ -14,3 +14,21 @@ export function validateOverviewTerm(o,year,term,planned){
  if(o.units.length!==expected.length||o.units.some(u=>u.term!==term||!expected.some(e=>e.id===u.id&&e.title===u.title)))throw Error('AI changed the planned units or term. Your completed work is saved; retry this term.');
  return o;
 }
+
+export const termMappingShape={units:[{unitRef:1,knowledge:[{text:'Verbatim source statement',subject:'Learning area',source:'Ministry document, year/phase, page'}],practices:[{text:'Verbatim source practice',subject:'Learning area',source:'Ministry document, year/phase, page'}]}],warnings:['Unallocated curriculum or source uncertainty']};
+export function applyTermMapping(o,year,term,planned){
+ const expected=planned.filter(u=>u.year===year&&u.term===term);
+ if(!o||!Array.isArray(o.units)||!Array.isArray(o.warnings)||o.warnings.some(w=>typeof w!=='string')||!expected.length||o.units.length!==expected.length)throw Error('AI did not map every planned unit in this term. Completed work is saved; retry this term.');
+ const seen=new Set();const units=o.units.map(row=>{
+  const index=Number.isInteger(row.unitRef)?row.unitRef-1:expected.findIndex(u=>u.id===(row.unitId??row.id));
+  const unit=expected[index];if(!unit||seen.has(unit.id))throw Error('AI returned an unknown or repeated unit reference. Completed work is saved; retry this term.');seen.add(unit.id);
+  const result={...unit};
+  for(const key of ['knowledge','practices']){
+   if(!Array.isArray(row[key])||row[key].some(s=>!s||typeof s.text!=='string'||!s.text.trim()||typeof s.subject!=='string'||typeof s.source!=='string'))throw Error('AI returned an incomplete curriculum statement. Completed work is saved; retry this term.');
+   result[key]=row[key].map((s,i)=>({id:unit.id+'-'+key+'-'+i,text:s.text,subject:s.subject,source:s.source}));
+   result[key==='knowledge'?'selectedKnowledge':'selectedPractices']=result[key].map(s=>s.id);
+  }
+  return result;
+ });
+ return validateOverviewTerm({units:expected.map(u=>units.find(r=>r.id===u.id)),warnings:o.warnings},year,term,expected);
+}

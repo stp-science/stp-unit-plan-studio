@@ -38,3 +38,12 @@ assert(chunked.overviewDraft.terms[7][1]);assert(!chunked.overviewDraft.years[7]
 stepCalls=[];const complete=await stagedOverview({programme:chunked,termChunks:true,request:termRequest});assert.equal(stepCalls[0],'7:term:2');assert(!stepCalls.includes('7:outline:0'));assert(!stepCalls.includes('7:term:1'));assert.equal(complete.units.length,8);assert.equal(new Set(complete.units.map(u=>u.id)).size,8);assert.equal(complete.units[0].knowledge[0].text,'Exact supplied statement 7');
 const bad={...chunked,brief:'Changed inputs',overviewDraft:undefined};await assert.rejects(stagedOverview({programme:bad,termChunks:true,request:async(y,previous,step)=>{const r=await termRequest(y,previous,step);if(step.overviewStage==='term')r.units[0].title='Unexpected replacement';return r;}}),/changed the planned units/);
 console.log('Passed per-term failure recovery, unchanged-outline reuse, source wording retention and unit identity protection.');
+
+const {applyTermMapping}=await import('../programme/shared.js');
+const trusted=[{...stage(7).units[0],id:'fixed-a',title:'Thermal Energy',subject:'Science',duration:'8 lessons'},{...stage(7).units[0],id:'fixed-b',title:'Cells',term:2}];
+const mapped={units:[{unitRef:1,title:'THERMAL energy',term:4,year:9,knowledge:trusted[0].knowledge,practices:[]}],warnings:[]};
+const kept=applyTermMapping(mapped,7,1,trusted);assert.equal(kept.units[0].title,'Thermal Energy');assert.equal(kept.units[0].term,1);assert.equal(kept.units[0].year,7);assert.equal(kept.units[0].duration,'8 lessons');assert.equal(kept.units[0].knowledge[0].text,trusted[0].knowledge[0].text);assert.deepEqual(kept.units[0].selectedKnowledge,[kept.units[0].knowledge[0].id]);
+assert.throws(()=>applyTermMapping({...mapped,units:[{...mapped.units[0],unitRef:2}]},7,1,trusted),/unknown/);
+assert.throws(()=>applyTermMapping({...mapped,units:[]},7,1,trusted),/every planned unit/);
+assert.throws(()=>applyTermMapping({...mapped,units:[mapped.units[0],mapped.units[0]]},7,1,[trusted[0],{...trusted[0],id:'another'}]),/repeated/);
+console.log('Passed trusted topic metadata retention and numeric references with missing, duplicate and cross-term unit rejection.');

@@ -27,7 +27,7 @@ res=await api(req({operation:'overview',overviewYear:7,programme:{...p,sources:[
 
 assert.equal(body.generationConfig.thinkingConfig.thinkingLevel,'low');
 res=await api(req({operation:'overview',overviewYear:7,overviewStage:'outline',programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,200);assert.equal(body.generationConfig.maxOutputTokens,6000);assert(body.contents[0].parts.at(-1).text.includes('OUTLINE STEP OVERRIDE'));
-res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:1,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,200);assert.equal(body.generationConfig.maxOutputTokens,14000);assert(body.contents[0].parts.at(-1).text.includes('TERM DETAIL STEP OVERRIDE'));
+res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:1,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,200);assert.equal(body.generationConfig.maxOutputTokens,14000);assert(body.contents[0].parts.at(-1).text.includes('REQUESTED UNITS'));
 res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:2,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,400,'A term cannot overwrite units in another term');
 res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:9,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,400);
 
