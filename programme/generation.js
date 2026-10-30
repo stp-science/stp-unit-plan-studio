@@ -1,4 +1,4 @@
-import {validateOverview,validateOverviewStage} from './shared.js';
+import {validateOverview,validateOverviewStage,validateOverviewTerm} from './shared.js';
 
 // A wall-clock deadline also settles stalled fetch/body promises, rather than
 // depending on fetch to honour an abort signal or a background-tab active timer.
@@ -28,7 +28,8 @@ export async function overviewFingerprint(p){
  return json.length+':'+hashes.map(h=>(h>>>0).toString(16).padStart(8,'0')).join('');
 }
 
-export async function stagedOverview({programme,request,save=()=>{},onProgress=()=>{},signal}){
+export async function stagedOverview({programme,request,save=()=>{},onProgress=()=>{},signal,termChunks=false}){
+ if(termChunks)return stagedTermOverview({programme,request,save,onProgress,signal});
  const fingerprint=await overviewFingerprint(programme);
  if(programme.overviewDraft?.fingerprint!==fingerprint)programme.overviewDraft={fingerprint,years:{}};
  const draft=programme.overviewDraft;
@@ -47,4 +48,40 @@ export async function stagedOverview({programme,request,save=()=>{},onProgress=(
  const units=[7,8,9,10].flatMap(year=>draft.years[year].units);
  const warnings=[...new Set([7,8,9,10].flatMap(year=>(draft.years[year].warnings||[]).map(w=>'Year '+year+': '+w)))];
  return validateOverview({units,warnings});
+}
+
+// Outline first, then fill one term per request. Completed terms survive failures.
+async function stagedTermOverview({programme,request,save,onProgress,signal}){
+ const fingerprint=await overviewFingerprint(programme);
+ if(programme.overviewDraft?.fingerprint!==fingerprint)programme.overviewDraft={fingerprint,years:{}};
+ const draft=programme.overviewDraft;draft.outlines??={};draft.terms??={};
+ for(const year of [7,8,9,10]){
+  if(signal?.aborted)throw signal.reason;
+  if(draft.years[year]){validateOverviewStage(draft.years[year],year);continue;}
+  const previous=Object.values(draft.years).flatMap(s=>s.units);
+  if(!draft.outlines[year]){
+   onProgress(year,Object.keys(draft.years).length,{stage:'outline'});
+   const outline=validateOverviewStage(await request(year,previous,{overviewStage:'outline'}),year);
+   if(signal?.aborted)throw signal.reason;
+   draft.outlines[year]={...outline,units:outline.units.map(u=>({...u,id:'y'+year+'-'+u.id,knowledge:[],practices:[],selectedKnowledge:[],selectedPractices:[]}))};
+   await save();
+  }
+  const outline=draft.outlines[year];draft.terms[year]??={};
+  for(const term of [1,2,3,4]){
+   if(signal?.aborted)throw signal.reason;
+   const planned=outline.units.filter(u=>u.term===term);
+   if(!planned.length)continue;
+   if(draft.terms[year][term]){validateOverviewTerm(draft.terms[year][term],year,term,outline.units);continue;}
+   onProgress(year,Object.keys(draft.years).length,{stage:'term',term});
+   const completed=Object.values(draft.terms[year]).flatMap(s=>s.units);
+   const current=outline.units.map(u=>completed.find(c=>c.id===u.id)||u);
+   const result=validateOverviewTerm(await request(year,[...previous,...current],{overviewStage:'term',overviewTerm:term}),year,term,outline.units);
+   if(signal?.aborted)throw signal.reason;
+   draft.terms[year][term]=result;await save();
+  }
+  const units=outline.units.map(u=>draft.terms[year][u.term].units.find(c=>c.id===u.id));
+  const warnings=[...new Set([...outline.warnings,...Object.values(draft.terms[year]).flatMap(s=>s.warnings)])];
+  draft.years[year]=validateOverviewStage({units,warnings},year);await save();
+ }
+ return validateOverview({units:[7,8,9,10].flatMap(y=>draft.years[y].units),warnings:[...new Set([7,8,9,10].flatMap(y=>draft.years[y].warnings.map(w=>'Year '+y+': '+w)))]});
 }

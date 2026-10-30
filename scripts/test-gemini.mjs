@@ -24,6 +24,12 @@ globalThis.fetch=async()=>Response.json(responseFor(plan,'MAX_TOKENS'));res=awai
 const overview={units:[unit],warnings:[]};globalThis.fetch=async(url,options)=>{body=JSON.parse(options.body);return Response.json(responseFor(overview));};
 res=await api(req({operation:'overview',overviewYear:7,programme:{...p,sources:[{name:'Ministry.pdf',type:'pdf',data:'JVBERg=='}]}}),env);assert.equal(res.status,200);assert(body.contents[0].parts.some(part=>part.inlineData?.mimeType==='application/pdf'&&part.inlineData.data==='JVBERg=='));assert(body.contents[0].parts.at(-1).text.includes('return ONLY Year 7'));
 
+assert.equal(body.generationConfig.thinkingConfig.thinkingLevel,'low');
+res=await api(req({operation:'overview',overviewYear:7,overviewStage:'outline',programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,200);assert.equal(body.generationConfig.maxOutputTokens,6000);assert(body.contents[0].parts.at(-1).text.includes('OUTLINE STEP OVERRIDE'));
+res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:1,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,200);assert.equal(body.generationConfig.maxOutputTokens,14000);assert(body.contents[0].parts.at(-1).text.includes('TERM DETAIL STEP OVERRIDE'));
+res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:2,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,400,'A term cannot overwrite units in another term');
+res=await api(req({operation:'overview',overviewYear:7,overviewStage:'term',overviewTerm:9,programme:{...p,curriculumText:knowledge}}),env);assert.equal(res.status,400);
+
 const sse=chunks=>new Response(chunks.map(value=>'data: '+JSON.stringify(value)+'\n\n').join(''),{headers:{'Content-Type':'text/event-stream'}});
 globalThis.fetch=async(url,options)=>{assert(url.endsWith(':streamGenerateContent?alt=sse'));const text=JSON.stringify(plan);return sse([{candidates:[{content:{parts:[{thought:true,text:'Private reasoning'},{text:text.slice(0,37)}]}}]},{candidates:[{content:{parts:[{text:text.slice(37)}]},finishReason:'STOP'}]}]);};
 const result=await generationRequest({operation:'guide',programme:p,unitId:'unit'},{fetcher:async(path,options)=>api(new Request('https://trial.test'+path,{...options,headers:{...options.headers,Origin:'https://trial.test'}}),env)});assert.equal(result.assessment,'Teacher assessment');assert.equal(result.focuses[0].knowledge,knowledge);

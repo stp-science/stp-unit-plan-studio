@@ -28,3 +28,13 @@ assert.deepEqual(await generationRequest({}, {fetcher:async()=>generationStream(
 await assert.rejects(generationRequest({}, {fetcher:async()=>generationStream(async()=>{throw Error('Service interruption');})}),/Service interruption/);
 await assert.rejects(readClaudeStream(new Response('data: {"type":"message_stop"}\n\n')),/ended unexpectedly/);
 console.log('Passed streamed Unicode fragments, validated final results, streamed errors and incomplete-stream rejection.');
+
+const chunked={name:'Term checkpoint test',subjects:'Drama',units:[],guides:{},sources:[],overviewSources:[]};
+const outline=y=>({units:[1,2].map(term=>({...stage(y).units[0],id:'topic-'+term,title:'Topic '+term,term,knowledge:[],selectedKnowledge:[]})),warnings:[]});
+let stepCalls=[];
+const termRequest=async(y,previous,step)=>{stepCalls.push(y+':'+step.overviewStage+':'+(step.overviewTerm||0));if(step.overviewStage==='outline')return outline(y);return {units:previous.filter(u=>u.year===y&&u.term===step.overviewTerm).map(u=>({...u,knowledge:stage(y).units[0].knowledge,selectedKnowledge:['k']})),warnings:[]};};
+await assert.rejects(stagedOverview({programme:chunked,termChunks:true,request:async(y,previous,step)=>{if(y===7&&step.overviewTerm===2)throw Error('Term timeout');return termRequest(y,previous,step);}}),/Term timeout/);
+assert(chunked.overviewDraft.terms[7][1]);assert(!chunked.overviewDraft.years[7]);assert.equal(chunked.units.length,0);
+stepCalls=[];const complete=await stagedOverview({programme:chunked,termChunks:true,request:termRequest});assert.equal(stepCalls[0],'7:term:2');assert(!stepCalls.includes('7:outline:0'));assert(!stepCalls.includes('7:term:1'));assert.equal(complete.units.length,8);assert.equal(new Set(complete.units.map(u=>u.id)).size,8);assert.equal(complete.units[0].knowledge[0].text,'Exact supplied statement 7');
+const bad={...chunked,brief:'Changed inputs',overviewDraft:undefined};await assert.rejects(stagedOverview({programme:bad,termChunks:true,request:async(y,previous,step)=>{const r=await termRequest(y,previous,step);if(step.overviewStage==='term')r.units[0].title='Unexpected replacement';return r;}}),/changed the planned units/);
+console.log('Passed per-term failure recovery, unchanged-outline reuse, source wording retention and unit identity protection.');

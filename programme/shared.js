@@ -6,4 +6,11 @@ export const overviewShape={units:[{id:'unique-id',title:'Suggested unit title',
 export function validateMapping(m,programme,caps){if(!m||!Array.isArray(m.units)||m.units.length!==programme.units.length)throw Error('The mapping must cover every unit.');const seen=new Set(),priorities=programme.priorities.split('\n').map(s=>s.split(':')[0].trim()).filter(Boolean);for(const row of m.units){if(!programme.units.some(u=>u.id===row.unitId)||seen.has(row.unitId))throw Error('Invalid mapping unit.');seen.add(row.unitId);for(const [key,names] of [['capabilities',caps],['priorities',priorities]]){if(!Array.isArray(row[key])||row[key].some(x=>!names.includes(x.name)||typeof x.reason!=='string'||!x.reason.trim()))throw Error('Mapping requires approved names and content-specific reasons.');}}if(!Array.isArray(m.gaps))throw Error('Mapping must report gaps.');return m;}
 export function selectedStatements(unit,key){const selected=key==='knowledge'?unit.selectedKnowledge:unit.selectedPractices;return unit[key].filter(s=>selected.includes(s.id));}
 
-export function validateOverviewStage(o,year){if(![7,8,9,10].includes(year)||!o||!Array.isArray(o.units)||!Array.isArray(o.warnings)||o.warnings.some(w=>typeof w!=="string"))throw Error("Invalid year overview response.");if(o.units.length)validateOverview(o);else if(!o.warnings.length)throw Error("An empty year needs an explanation for department review.");if(o.units.some(u=>u.year!==year))throw Error("Claude returned a different year. Completed years have been kept; retry this year.");return o;}
+export function validateOverviewStage(o,year){if(![7,8,9,10].includes(year)||!o||!Array.isArray(o.units)||!Array.isArray(o.warnings)||o.warnings.some(w=>typeof w!=="string"))throw Error("Invalid year overview response.");if(o.units.length)validateOverview(o);else if(!o.warnings.length)throw Error("An empty year needs an explanation for department review.");if(o.units.some(u=>u.year!==year))throw Error("AI returned a different year. Completed years have been kept; retry this year.");return o;}
+
+export function validateOverviewTerm(o,year,term,planned){
+ validateOverviewStage(o,year);
+ const expected=planned.filter(u=>u.year===year&&u.term===term);
+ if(o.units.length!==expected.length||o.units.some(u=>u.term!==term||!expected.some(e=>e.id===u.id&&e.title===u.title)))throw Error('AI changed the planned units or term. Your completed work is saved; retry this term.');
+ return o;
+}
