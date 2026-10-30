@@ -16,13 +16,13 @@ export function schemaFromExample(value){
  return {type:typeof value==='number'?(Number.isInteger(value)?'integer':'number'):'string'};
 }
 
-export async function generateWithProvider({config,content,system,schema,maxTokens,stream,onProgress,signal}){
+export async function generateWithProvider({config,content,system,schema,maxTokens,stream,onProgress,signal,thinkingLevel}){
  let url,headers,body;
  if(config.id==='gemini'){
   url='https://generativelanguage.googleapis.com/v1beta/models/'+config.model+':'+(stream?'streamGenerateContent?alt=sse':'generateContent');
   headers={'Content-Type':'application/json','x-goog-api-key':config.key};
   const parts=content.map(block=>block.type==='document'?{inlineData:{mimeType:'application/pdf',data:block.source.data}}:{text:block.text});
-  body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:maxTokens}};
+  body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:maxTokens,...(thinkingLevel&&config.model==='gemini-3.8-flash'?{thinkingConfig:{thinkingLevel}}:{})}};
  }else{
   url='https://api.anthropic.com/v1/messages';
   headers={'Content-Type':'application/json','x-api-key':config.key,'anthropic-version':'2023-06-01'};
@@ -37,6 +37,7 @@ export async function generateWithProvider({config,content,system,schema,maxToke
   let message;
   if(upstream.status===429)message=config.label+'’s request or token quota was reached. Completed years and guides are saved; retry the remaining work after the quota resets.';
   else if([401,403].includes(upstream.status))message=config.label+' rejected the API key or its permissions. Ask the administrator to check the server-side key and API access.';
+  else if(upstream.status===524)message=config.label+' timed out before returning a complete response. Completed years and guides have been kept. Try again to resume.';
   else if(upstream.status>=500)message=config.label+'’s service could not finish this request. Completed years and guides have been kept. Try again to resume.';
   else if(/credit|balance|billing/i.test(detail))message=config.label+'’s API account needs credit or billing configuration. Ask school IT to check the account. Your saved work has been kept.';
   else message=config.label+' rejected this request: '+(detail||'Check the model and input size.');

@@ -7,3 +7,5 @@ body{font-size:16px}h2{font-size:25px}.programme-bar{display:flex;align-items:en
 .catalogue-source{padding:16px;background:white;border:1px solid var(--line);border-radius:7px;margin:14px 0}.catalogue-source .checkline{font-weight:700}.catalogue-source p{margin:8px 0}.catalogue-source a{font-size:14px}#catalogueSources details{margin:16px 0}#catalogueSources summary{cursor:pointer;font-weight:650}
 
 .task-progress{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:60;width:min(850px,calc(100% - 32px));display:flex;align-items:center;justify-content:space-between;gap:18px;background:white;border:2px solid var(--wine);border-radius:10px;padding:18px 22px;box-shadow:0 6px 28px #0003}.task-progress strong{display:block;font-size:15px}.task-progress p{font-size:13px;color:var(--muted);margin:8px 0 0}.task-progress button{flex-shrink:0;cursor:pointer}@media(max-width:600px){.task-progress{flex-direction:column;align-items:stretch;bottom:8px;padding:14px}}
+
+.task-progress[data-error]{background:#fff5f3;border-color:#a82536}.task-progress[data-error] strong{color:#861b2b}
