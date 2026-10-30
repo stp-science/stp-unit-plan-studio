@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {api} from '../worker/api.js';
-import {validateOverview,validateMapping} from '../programme/shared.js';
+import {validateOverview,validateMapping,validateOverviewStage} from '../programme/shared.js';
 import {readFile} from 'node:fs/promises';
 const cat=JSON.parse(await readFile('unit-plan-builder/science-curriculum.json','utf8'));
 const base=cat.units.find(u=>u.year===7);
@@ -22,5 +22,11 @@ let res=await api(req({operation:'guide',programme:p,unitId:'trial'}),env);asser
 p.guides.trial={plan:{...plan,assessment:'Teacher decision',resources:'Teacher link',capabilities:['Communicators'],descriptors:'Junior Assessment Framework',reporting:'Mid-Year Report',whakatauki:'Agreed wording'},confirmedPriorities:['Literacy']};
 res=await api(req({operation:'guide',programme:p,unitId:'trial'}),env);out=await res.json();assert.equal(out.result.assessment,'Teacher decision');assert.equal(out.result.resources,'Teacher link');assert.deepEqual(out.result.capabilities,['Communicators']);assert.equal(out.result.whakatauki,'Agreed wording');
 plan.focuses[0].knowledge='Invented official statement';res=await api(req({operation:'guide',programme:p,unitId:'trial'}),env);assert.equal(res.status,502);
+const yearOverview={units:[unit],warnings:[]};
+globalThis.fetch=async(url,options)=>{const body=JSON.parse(options.body);assert(body.messages[0].content.at(-1).text.includes('return ONLY Year 7'));assert.equal(body.max_tokens,24000);return Response.json({stop_reason:'end_turn',content:[{type:'text',text:JSON.stringify(yearOverview)}]});};
+res=await api(req({operation:'overview',programme:{...p,curriculumText:'Official source evidence'},overviewYear:7}),env);assert.equal(res.status,200);
+yearOverview.units=[{...unit,year:8}];res=await api(req({operation:'overview',programme:{...p,curriculumText:'Official source evidence'},overviewYear:7}),env);assert.equal(res.status,400);
+res=await api(req({operation:'overview',programme:p,overviewYear:11}),env);assert.equal(res.status,400);
+assert.deepEqual(validateOverviewStage({units:[],warnings:['Subject not taught at this year']},7).units,[]);
 globalThis.fetch=fetchOriginal;
 console.log('Passed programme validation, origin protection, missing-key handling, mocked Claude request, teacher-decision preservation and exact-statement checks. Live Claude not tested.');
