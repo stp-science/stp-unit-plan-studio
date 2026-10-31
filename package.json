@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-programme.mjs",
-    "test": "node scripts/test-curriculum.mjs && node scripts/test-programme.mjs && node scripts/test-catalogue.mjs && node scripts/test-senior-catalogue.mjs && node scripts/test-generation.mjs && node scripts/test-gemini.mjs",
+    "test": "node scripts/test-curriculum.mjs && node scripts/test-programme.mjs && node scripts/test-catalogue.mjs && node scripts/test-senior-catalogue.mjs && node scripts/test-generation.mjs && node scripts/test-gemini.mjs && node scripts/test-statement-library.mjs",
     "validate": "node scripts/validate-artifact.mjs",
     "dev": "node scripts/preview-programme.mjs"
   }
