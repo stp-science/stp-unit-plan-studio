@@ -25,7 +25,7 @@ export async function generationRequest(body,{signal,timeoutMs=225000,fetcher=fe
 }
 
 export async function overviewFingerprint(p){
- const {overviewDraft,guides,mapping,mappingStale,schoolStandardVersion,...inputs}=p;
+ const {overviewDraft,overviewReview,overviewApproval,guides,mapping,mappingStale,schoolStandardVersion,...inputs}=p;
  const json=JSON.stringify(inputs);
  // A change detector, not a security token. Works in HTTP previews too.
  const hashes=[2166136261,2246822519,3266489917,668265263],primes=[16777619,2246822519,3266489917,374761393];

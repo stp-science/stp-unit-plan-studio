@@ -1,3 +1,4 @@
+import {reviseOverview} from './overview-revision.js';
 import {statementLibraryVersion,storedOverviewShape,prepareStoredLibrary,storedLibraryRecords,compactLibraryRecords,assembleStoredOverview,referenceGuideSchema,insertGuideStatements} from './statement-library.js';
 import {providerConfig,generateWithProvider,schemaFromExample} from './ai-provider.js';
 import {generationStream} from './generation-stream.js';
@@ -33,6 +34,7 @@ export async function api(request,env){
   const text=await request.text();if(text.length>18000000)return reply({error:'Use fewer or smaller source documents for this trial.'},413);
   const data=JSON.parse(text);
   if(data.operation==='connection-check'){const start=Date.now();const response=await generateWithProvider({config:provider,content:[{type:'text',text:'Return exactly this JSON object: {"ok":true}'}],system:'Return valid JSON only.',maxTokens:512,stream:false,signal:AbortSignal.timeout(30000),thinkingLevel:'low'});const raw=response.content?.filter(b=>b.type==='text').map(b=>b.text).join('');if(response.stop_reason!=='end_turn'||JSON.parse(raw).ok!==true)throw Error('The small AI connection check did not return a valid response.');return reply({result:{ok:true,provider:provider.id,seconds:Math.round((Date.now()-start)/1000)}});}
+  if(data.operation==='revise-overview'){const run=(onProgress,signal)=>reviseOverview(data.programme,data.prompt,data.history,env,provider,{stream:data.stream===true,onProgress,signal});if(data.stream===true)return generationStream(run,provider.label);return reply({result:await run()});}
   if(data.operation==='prepare-library'){if(![7,8,9,10].includes(data.overviewYear)||!data.programme||typeof data.programme.subjects!=='string')throw Error('Choose a valid source preparation year.');if(data.stream===true)return generationStream((onProgress,signal)=>prepareStoredLibrary(data.programme,data.overviewYear,env,provider,{onProgress,signal,stream:true}),provider.label);return reply({result:await prepareStoredLibrary(data.programme,data.overviewYear,env,provider,{stream:false})});}
   const p=data.programme,op=data.operation,overviewYear=data.overviewYear;if(overviewYear!==undefined&&(op!=='overview'||![7,8,9,10].includes(overviewYear)))throw Error('Choose a valid overview year.');
   if(!p||!['overview','mapping','guide'].includes(op)||!Array.isArray(p.units)||!p.guides||typeof p.subjects!=='string')return reply({error:'Invalid programme request.'},400);
