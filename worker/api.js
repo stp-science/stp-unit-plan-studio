@@ -1,5 +1,5 @@
 import {reviseOverview} from './overview-revision.js';
-import {statementLibraryVersion,storedOverviewShape,prepareStoredLibrary,storedLibraryRecords,compactLibraryRecords,assembleStoredOverview,referenceGuideSchema,insertGuideStatements} from './statement-library.js';
+import {statementLibraryVersion,storedOverviewShape,librarySources,readStoredBank,prepareStoredLibrary,storedLibraryRecords,compactLibraryRecords,assembleStoredOverview,referenceGuideSchema,insertGuideStatements} from './statement-library.js';
 import {providerConfig,generateWithProvider,schemaFromExample} from './ai-provider.js';
 import {generationStream} from './generation-stream.js';
 import {seniorCatalogue} from './senior-catalogue-data.js';
@@ -23,6 +23,7 @@ export async function api(request,env){
  if(path==='/api/senior-curriculum-catalogue'&&request.method==='GET')return reply(seniorCatalogue);
  if(path==='/api/curriculum-catalogue'&&request.method==='GET')return reply(ministryCatalogue);
  if(path==='/api/school-config'&&request.method==='GET')return reply({priorities:schoolStandard.priorities,version:schoolStandard.version});
+ if(path==='/api/curriculum-library'&&request.method==='GET')try{const query=new URL(request.url).searchParams,id=query.get('source'),year=Number(query.get('year'));const doc=ministryCatalogue.documents.find(d=>d.id===id&&d.availableForCurriculum&&d.availableForAi);if(!doc||![7,8,9,10].includes(year))return reply({error:'Choose an available curriculum source and Year 7–10.'},400);const source=(await librarySources({catalogueIds:[id]}))[0],bank=await readStoredBank(source,year,env);return reply({ready:!!bank,source:id,requestedYear:year,...(bank||{})});}catch(e){return reply({error:e.message},503);}
  if(path==='/api/status'&&request.method==='GET')return reply({configured:provider.configured,provider:provider.id,label:provider.label});
  if(request.method!=='POST')return reply({error:'Use POST.'},405);
  // Hosted Site is owner-private; platform dispatch authenticates requests before this Worker.

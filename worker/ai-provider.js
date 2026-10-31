@@ -35,7 +35,7 @@ export function quotaMessage(label,quota){
  return label+'’s '+reason+' was reached. '+next+' Completed steps and guides are saved.';
 }
 
-export async function generateWithProvider({config,content,system,schema,maxTokens,stream,onProgress,signal,thinkingLevel}){
+export async function generateWithProvider({config,content,system,schema,maxTokens,stream,onProgress,signal,thinkingLevel,effort}){
  let url,headers,body;
  if(config.id==='gemini'){
   url='https://generativelanguage.googleapis.com/v1beta/models/'+config.model+':'+(stream?'streamGenerateContent?alt=sse':'generateContent');
@@ -45,7 +45,7 @@ export async function generateWithProvider({config,content,system,schema,maxToke
  }else{
   url='https://api.anthropic.com/v1/messages';
   headers={'Content-Type':'application/json','x-api-key':config.key,'anthropic-version':'2023-06-01'};
-  body={model:config.model,stream,max_tokens:maxTokens,...(config.model==='claude-sonnet-5-5'?{output_config:{effort:'medium'}}:{}),system,messages:[{role:'user',content}]};
+  body={model:config.model,stream,max_tokens:maxTokens,...(config.model==='claude-sonnet-5-5'?{output_config:{effort:effort||'medium'},...(effort==='low'?{thinking:{type:'between_tools'}}:{})}:{}),system,messages:[{role:'user',content}]};
  }
  // Provider selection is explicit. Never retry through a different account.
  const upstream=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(210000)]):AbortSignal.timeout(105000)});

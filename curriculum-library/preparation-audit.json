@@ -1,0 +1,1347 @@
+{
+  "method": "PDF table cell geometry",
+  "apiCalls": 0,
+  "sources": 11,
+  "banks": 29,
+  "records": 3510,
+  "pages": [
+    {
+      "source": "english-2025",
+      "page": 43,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 11
+    },
+    {
+      "source": "english-2025",
+      "page": 44,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 4
+    },
+    {
+      "source": "english-2025",
+      "page": 45,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 9
+    },
+    {
+      "source": "english-2025",
+      "page": 46,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 11
+    },
+    {
+      "source": "english-2025",
+      "page": 47,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 17
+    },
+    {
+      "source": "english-2025",
+      "page": 48,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 12
+    },
+    {
+      "source": "english-2025",
+      "page": 49,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 7
+    },
+    {
+      "source": "english-2025",
+      "page": 50,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 7
+    },
+    {
+      "source": "english-2025",
+      "page": 54,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 8
+    },
+    {
+      "source": "english-2025",
+      "page": 55,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 2
+    },
+    {
+      "source": "english-2025",
+      "page": 56,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 12
+    },
+    {
+      "source": "english-2025",
+      "page": 57,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 6
+    },
+    {
+      "source": "english-2025",
+      "page": 58,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "English",
+      "indexedCells": 6
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 20,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Health",
+      "indexedCells": 9
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 21,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Health",
+      "indexedCells": 4
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 22,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Physical Education",
+      "indexedCells": 4
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 23,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Physical Education",
+      "indexedCells": 4
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 25,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Health",
+      "indexedCells": 7
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 26,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Health",
+      "indexedCells": 4
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 27,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Health",
+      "indexedCells": 4
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 28,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Physical Education",
+      "indexedCells": 4
+    },
+    {
+      "source": "health-pe-2026",
+      "page": 29,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Physical Education",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 8,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 9,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 9
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 10,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 11,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 6
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 12,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 8
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 13,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 14,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 8
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 15,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 16,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 17,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 11
+    },
+    {
+      "source": "languages-chinese-mandarin-sep-2026",
+      "page": 18,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Chinese (Mandarin)",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 8,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "French",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 9,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "French",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 10,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "French",
+      "indexedCells": 3
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 11,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "French",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 12,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "French",
+      "indexedCells": 10
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 13,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "French",
+      "indexedCells": 9
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 14,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "French",
+      "indexedCells": 9
+    },
+    {
+      "source": "languages-french-sep-2026",
+      "page": 15,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "French",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 8,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Japanese",
+      "indexedCells": 0
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 9,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Japanese",
+      "indexedCells": 3
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 10,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Japanese",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 11,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Japanese",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 12,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Japanese",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 13,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Japanese",
+      "indexedCells": 3
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 14,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Japanese",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 15,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Japanese",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 16,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Japanese",
+      "indexedCells": 2
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 17,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Japanese",
+      "indexedCells": 0
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 18,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Japanese",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 19,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Japanese",
+      "indexedCells": 7
+    },
+    {
+      "source": "languages-japanese-sep-2026",
+      "page": 20,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Japanese",
+      "indexedCells": 7
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 8,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Spanish",
+      "indexedCells": 6
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 9,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Spanish",
+      "indexedCells": 9
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 10,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Spanish",
+      "indexedCells": 1
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 11,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Spanish",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 12,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Spanish",
+      "indexedCells": 12
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 13,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Spanish",
+      "indexedCells": 4
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 14,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Spanish",
+      "indexedCells": 7
+    },
+    {
+      "source": "languages-spanish-sep-2026",
+      "page": 15,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Spanish",
+      "indexedCells": 3
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 8,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Te Reo Māori",
+      "indexedCells": 3
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 9,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Te Reo Māori",
+      "indexedCells": 6
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 10,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Te Reo Māori",
+      "indexedCells": 18
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 11,
+      "years": [],
+      "stage": "Novice 1",
+      "subject": "Te Reo Māori",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 12,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Te Reo Māori",
+      "indexedCells": 6
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 13,
+      "years": [],
+      "stage": "Novice 2",
+      "subject": "Te Reo Māori",
+      "indexedCells": 13
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 14,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Te Reo Māori",
+      "indexedCells": 5
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 15,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Te Reo Māori",
+      "indexedCells": 19
+    },
+    {
+      "source": "languages-te-reo-maori-sep-2026",
+      "page": 16,
+      "years": [],
+      "stage": "Novice 3",
+      "subject": "Te Reo Māori",
+      "indexedCells": 10
+    },
+    {
+      "source": "maths-2025",
+      "page": 28,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 17
+    },
+    {
+      "source": "maths-2025",
+      "page": 29,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 8
+    },
+    {
+      "source": "maths-2025",
+      "page": 30,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 11
+    },
+    {
+      "source": "maths-2025",
+      "page": 31,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 10
+    },
+    {
+      "source": "maths-2025",
+      "page": 32,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 12
+    },
+    {
+      "source": "maths-2025",
+      "page": 33,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 6
+    },
+    {
+      "source": "maths-2025",
+      "page": 34,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 4
+    },
+    {
+      "source": "maths-2025",
+      "page": 37,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 13
+    },
+    {
+      "source": "maths-2025",
+      "page": 38,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 9
+    },
+    {
+      "source": "maths-2025",
+      "page": 38,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 4
+    },
+    {
+      "source": "maths-2025",
+      "page": 39,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 5
+    },
+    {
+      "source": "maths-2025",
+      "page": 39,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 2
+    },
+    {
+      "source": "maths-2025",
+      "page": 40,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 10
+    },
+    {
+      "source": "maths-2025",
+      "page": 41,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 7
+    },
+    {
+      "source": "maths-2025",
+      "page": 41,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 6
+    },
+    {
+      "source": "maths-2025",
+      "page": 42,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 8
+    },
+    {
+      "source": "maths-2025",
+      "page": 42,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Mathematics and Statistics",
+      "indexedCells": 2
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 30,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 8
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 31,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 1
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 32,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 8
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 33,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 11
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 34,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 4
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 35,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 4
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 36,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 2
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 37,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 12
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 38,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 4
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 40,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 6
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 41,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 3
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 42,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 8
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 43,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 4
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 44,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 8
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 45,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 2
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 46,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 2
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 47,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 1
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 48,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 6
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 49,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 7
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 50,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 3
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 51,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 10
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 52,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 4
+    },
+    {
+      "source": "social-sciences-2026",
+      "page": 53,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Social Sciences",
+      "indexedCells": 3
+    },
+    {
+      "source": "technology-2026",
+      "page": 13,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 14,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 15,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 16,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 17,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 19,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 3
+    },
+    {
+      "source": "technology-2026",
+      "page": 20,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 21,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 22,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 23,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "technology-2026",
+      "page": 24,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Technology",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 22,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Dance",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 23,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Drama",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 24,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Music",
+      "indexedCells": 7
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 25,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Music",
+      "indexedCells": 2
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 26,
+      "years": [
+        7,
+        8
+      ],
+      "stage": "",
+      "subject": "Visual Arts",
+      "indexedCells": 7
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 28,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Dance",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 29,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Dance",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 30,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Drama",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 31,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Drama",
+      "indexedCells": 4
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 32,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Music",
+      "indexedCells": 7
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 33,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Music",
+      "indexedCells": 2
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 34,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Music",
+      "indexedCells": 6
+    },
+    {
+      "source": "arts-sep-2026",
+      "page": 35,
+      "years": [
+        9,
+        10
+      ],
+      "stage": "",
+      "subject": "Visual Arts",
+      "indexedCells": 8
+    }
+  ]
+}
