@@ -112,11 +112,12 @@ function renderSelection(){
   ]){
    const group=el('fieldset',undefined,'curriculum-statement-group');
    const chosen=u[selection]||[];
-   const available=[],seen=new Set();
+   const available=[],seen=new Set(),seenText=new Set();
+   const keyFor=s=>(s.subject||u.subject).trim().toLowerCase()+'|'+s.text.trim().replace(/\s+/g,' ').toLowerCase();
    // Keep any manually entered or uploaded-overview statements even when the catalogue cannot locate them.
-   for(const s of u[key]||[]){if(!seen.has(s.id)){seen.add(s.id);available.push({...s,mapped:true});}}
+   for(const s of u[key]||[]){if(!seen.has(s.id)){seen.add(s.id);seenText.add(keyFor(s));available.push({...s,mapped:true});}}
    for(const s of records.filter(s=>s.kind===kind)){
-    if(!seen.has(s.id)){seen.add(s.id);available.push({...s,mapped:false});}
+    if(!seen.has(s.id)&&!seenText.has(keyFor(s))){seen.add(s.id);seenText.add(keyFor(s));available.push({...s,mapped:false});}
    }
    const visible=available.filter(s=>(!onlyMapped||s.mapped)&&(!query||(s.text+' '+s.subject+' '+s.source+' '+(s.section||'')).toLowerCase().includes(query)));
    displayedTotal+=visible.length;
@@ -220,6 +221,6 @@ fetch('/api/status').then(r=>r.json()).then(d=>{aiProvider=d.provider;$('connect
 
 fetch('/api/school-config').then(r=>{if(!r.ok)throw Error('School settings unavailable');return r.json();}).then(config=>{sharedPriorities=config.priorities;for(const q of db.programmes){if(q.schoolStandardVersion&&q.schoolStandardVersion!==config.version&&q.mapping)q.mappingStale=true;q.priorities=sharedPriorities;q.schoolStandardVersion=config.version;}renderMapping();renderGuide();}).catch(()=>{});
 
-fetch('/api/curriculum-catalogue').then(r=>{if(!r.ok)throw Error('Catalogue unavailable');return r.json();}).then(index=>{catalogueEntries=index.documents;for(const q of db.programmes){if(q.catalogueVersion!==index.version){if(q.mapping)q.mappingStale=true;if(!(q.catalogueIds||[]).length)q.catalogueIds=null;q.catalogueVersion=index.version;}}renderCatalogue();}).catch(()=>{$('catalogueSources').textContent='The catalogue could not be loaded. You can still upload a Ministry document below.';});
+fetch('/api/curriculum-catalogue').then(r=>{if(!r.ok)throw Error('Catalogue unavailable');return r.json();}).then(index=>{catalogueEntries=index.documents;for(const q of db.programmes){if(q.catalogueVersion!==index.version){if(q.mapping)q.mappingStale=true;if(!(q.catalogueIds||[]).length)q.catalogueIds=null;q.catalogueVersion=index.version;}}renderCatalogue();renderSelection();}).catch(()=>{$('catalogueSources').textContent='The catalogue could not be loaded. You can still upload a Ministry document below.';});
 
 fetch('/api/senior-curriculum-catalogue').then(r=>r.json()).then(index=>{seniorEntries=index.documents||[];renderCatalogue();}).catch(()=>{});
