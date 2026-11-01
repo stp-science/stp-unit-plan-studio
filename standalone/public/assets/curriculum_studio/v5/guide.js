@@ -211,8 +211,11 @@ function topicCard() {
   const pick = q => { if (!q) return []; const ex = yd.filter(d => names(d).some(n => n === q)); return ex.length ? ex : (q.length >= 4 ? yd.filter(d => names(d).some(n => n.includes(q))) : []); };
   const matches = pick(subj).length ? pick(subj) : pick(subjectAlias(subj));
   const shown = matches.length ? matches : yd;
-  if (matches.length && G.docId && !matches.some(d => d.id === G.docId)) { G.docId = ''; }
+  if (matches.length && G.docId && !matches.some(d => d.id === G.docId)) {
+    G.docId = ''; G.bankLoaded = false;
+  }
   if (matches.length === 1 && G.docId !== matches[0].id) {
+    if (G.docId) {G.statements={knowledge:[],practices:[]};G.selected={knowledge:[],practices:[]};G.bankLoaded=false;}
     G.docId = matches[0].id;
     const arts = ['Dance', 'Drama', 'Music', 'Visual Arts'].find(a => a.toLowerCase() === (subjectAlias(subj) || subj));
     if (matches[0].learningArea === 'The Arts' && arts) G.discipline = arts;
@@ -261,11 +264,18 @@ function topicCard() {
                   save(); renderMain();
                 }}),h('span', {},stage))),
             G.mapRef ? h('p', {class:'cg-mut'}, 'This plan is linked to your curriculum map; change the selected stages and statements on the map.') : null)
-        : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
+        : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; G.stages = []; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
       field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value; if (isLanguageSubject(G.subject)) { G.stages = noviceStages(G).length ? noviceStages(G) : ['Novice 1']; G.stage = G.stages[0]; G.year = 7; } else { G.stage = ''; G.stages = []; } save(); renderMain(); }}),
         h('datalist', {id: 'cg-subjects'}, subjectNames.map(n => h('option', {value: n})))), matches.length ? 'Showing the Ministry documents for ' + G.subject + '. Clear this to see every subject.' : subj ? 'No Ministry document matches “' + G.subject + '”, so all are shown. You can also paste your own curriculum text below.' : 'Shown on the unit plan. Pick one to filter the curriculum documents.'),
-      field('Curriculum document', (() => h('select', {onchange: e => { G.docId = e.target.value; const d = docs.find(x => x.id === G.docId); if (d && !G.subject.trim()) G.subject = d.subject; G.stages = d?.learningArea === 'Learning Languages' ? (noviceStages(G).length ? noviceStages(G) : ['Novice 1']) : []; G.stage = G.stages[0] || ''; if (G.stage) G.year = 7; G.discipline = ''; save(); renderMain(); }}, h('option', {value: ''}, 'Choose a document…'),
+      field('Curriculum document', (() => h('select', {onchange: e => {
+          if (G.docId !== e.target.value) {
+            G.statements = {knowledge:[], practices:[]};
+            G.selected = {knowledge:[], practices:[]};
+            G.bankLoaded = false;
+            if (G.plan) banner = {kind:'note',text:'The curriculum source changed. Your earlier draft is kept; find and select the new source statements before redrafting.'};
+          }
+          G.docId = e.target.value; const d = docs.find(x => x.id === G.docId); if (d && !G.subject.trim()) G.subject = d.subject; G.stages = d?.learningArea === 'Learning Languages' ? (noviceStages(G).length ? noviceStages(G) : ['Novice 1']) : []; G.stage = G.stages[0] || ''; if (G.stage) G.year = 7; G.discipline = ''; save(); renderMain(); }}, h('option', {value: ''}, 'Choose a document…'),
         ...areas.map(a => h('optgroup', {label: a}, ...shown.filter(d => d.learningArea === a).map(d => h('option', {value: d.id, selected: d.id === G.docId}, d.title))))))(), doc && doc.status ? doc.status : 'Official Ministry text, kept word for word.'),
       isArts ? field('Arts subject', h('select', {onchange: e => { G.discipline = e.target.value; save(); }}, h('option', {value: ''}, 'All'), ...['Dance', 'Drama', 'Music', 'Visual Arts'].map(s => h('option', {value: s, selected: s === G.discipline}, s)))) : null,
       ),
