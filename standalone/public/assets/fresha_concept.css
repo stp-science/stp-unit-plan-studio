@@ -1,0 +1,184 @@
+/* mis/assets/fresha_concept.css
+ * Shared by the *_fresha.php React concept pages only — not linked from any
+ * real MIS page. Holds the bits every concept page needs regardless of what
+ * it's showing: the accent tokens, the flat .btn/.card language, the rail +
+ * flyout + avatar-menu nav, and the layout shift that makes room for it.
+ * Page-specific content (dashboard cards, class list, etc.) stays in each
+ * page's own inline <style>.
+ */
+
+:root{--fh-accent:var(--violet);--fh-accent-soft:var(--violet-soft);--fh-accent-line:color-mix(in srgb, var(--violet) 38%, white);--fh-accent-dark:color-mix(in srgb, var(--violet) 80%, black)}
+
+.app-shell{display:block}
+.workspace{margin-left:232px;width:calc(100% - 232px);background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border)}
+
+.card{border:1px solid var(--border);box-shadow:none;overflow:hidden}
+.panel{box-shadow:none}
+.metric-card{box-shadow:none}
+.metric-icon.blue{background:var(--fh-accent-soft);color:var(--fh-accent)}
+.section-kicker{color:var(--fh-accent)}
+.text-link{color:var(--fh-accent)}
+
+.btn{min-height:36px;height:auto;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:var(--fs-sm,.8125rem);font-weight:700;line-height:1;text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;box-shadow:none;transition:background .13s ease,border-color .13s ease,color .13s ease}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{background:var(--surface-soft);border-color:var(--text-soft);color:var(--text);box-shadow:none;transform:none}
+.btn:focus-visible{outline:2px solid var(--fh-accent);outline-offset:2px}
+.btn:active{box-shadow:none;transform:none}
+.btn.primary{border-color:var(--fh-accent);background:var(--fh-accent);color:#fff;box-shadow:none}
+.btn.primary:hover{border-color:var(--fh-accent-dark);background:var(--fh-accent-dark);color:#fff;box-shadow:none}
+.btn.small{min-height:32px;padding:0 11px;border-radius:7px;font-size:var(--fs-xs,.6875rem)}
+.btn:disabled,.btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+
+/* Persistent labelled navigation: every destination is identifiable without
+   interpreting an icon or discovering a hover tooltip. */
+.frx-rail{position:fixed;inset:0 auto 0 0;z-index:60;width:232px;background:linear-gradient(180deg,var(--nav),var(--nav-deep));display:flex;flex-direction:column;align-items:stretch;padding:14px 10px 10px;gap:2px;overflow-y:auto;scrollbar-width:none}
+.frx-rail::-webkit-scrollbar{display:none}
+.frx-brand-row{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:11px;padding:0 8px 12px;margin-bottom:2px}
+.frx-brand{width:38px;height:38px;border-radius:10px;background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--nav);font-size:.82rem}
+.frx-brand-copy{min-width:0;color:#fff}.frx-brand-copy strong,.frx-brand-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frx-brand-copy strong{font-size:12px;line-height:1.25}.frx-brand-copy small{margin-top:2px;color:rgba(255,255,255,.5);font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.frx-item{appearance:none;border:none;background:transparent;width:100%;min-height:44px;border-radius:10px;color:rgba(255,255,255,.76);display:flex;align-items:center;justify-content:flex-start;gap:11px;padding:0 11px;cursor:pointer;position:relative;flex:0 0 auto;text-decoration:none;text-align:left;font:inherit}
+.frx-item svg{width:19px;height:19px;flex:0 0 19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.frx-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:650;line-height:1.2}
+.frx-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.frx-item.is-active,.frx-item.is-open{background:var(--fh-accent);color:#fff}
+.frx-badge{position:static;margin-left:auto;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#fff;color:var(--nav);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.frx-divider{width:calc(100% - 20px);height:1px;background:rgba(255,255,255,.14);margin:8px 10px}
+/* 2026-10-03: labelled rail sections (My teaching / Teaching & pupils / ...). */
+.frx-section{display:flex;flex-direction:column;gap:1px;flex:0 0 auto}
+.frx-section+.frx-section{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08)}
+.frx-section-title{padding:6px 11px 4px;color:rgba(255,255,255,.45);font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frx-section .frx-item{min-height:38px}
+.frx-chev{width:13px!important;height:13px!important;flex:0 0 13px!important;margin-left:auto;opacity:.45;transition:transform .15s,opacity .15s}
+.frx-item:hover .frx-chev,.frx-item.is-open .frx-chev{opacity:.9}
+.frx-item.is-open .frx-chev{transform:translateX(2px)}
+.frx-item.has-active:not(.is-open){background:rgba(255,255,255,.1);color:#fff}
+.frx-spacer{flex:1}
+.frx-avatar-btn{appearance:none;border:none;background:rgba(255,255,255,.12);width:100%;min-height:42px;border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:4px 8px;font:inherit;margin-top:4px;cursor:pointer;flex:0 0 auto}
+.frx-avatar-initials{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex:0 0 auto}.frx-avatar-label{font-size:12.5px;font-weight:650}
+.frx-tip{position:fixed;background:#181c28;color:#fff;font-size:.72rem;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(-4px);transition:opacity .1s,transform .1s;z-index:80}
+.frx-tip.show{opacity:1;transform:translateX(0)}
+.frx-flyout{position:fixed;top:0;bottom:0;left:232px;width:242px;background:var(--surface);border-right:1px solid var(--border);box-shadow:14px 0 34px rgba(7,27,58,.14);z-index:61;padding:16px 10px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateX(-8px);transition:opacity .14s ease,transform .14s ease}
+.frx-flyout.show{opacity:1;visibility:visible;transform:translateX(0)}
+.frx-flyout-title{padding:6px 10px 8px;font-size:11px;font-weight:700;color:var(--text)}
+.frx-flyout-title:not(:first-child){margin-top:6px;border-top:1px solid var(--border);padding-top:12px}
+.frx-flyout-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-soft);text-decoration:none;font-size:13px;font-weight:500}
+.frx-flyout-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.frx-flyout-item:hover{background:var(--surface-soft);color:var(--text)}
+.frx-flyout-item.is-active{background:var(--fh-accent-soft);color:var(--fh-accent);font-weight:700}
+.frx-menu{position:fixed;bottom:16px;left:240px;width:220px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:14px 0 34px rgba(7,27,58,.14);padding:8px;z-index:61;opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity .12s ease,transform .12s ease}
+.frx-menu.show{opacity:1;visibility:visible;transform:translateY(0)}
+.frx-menu-name{padding:6px 8px 8px;font-size:12px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border);margin-bottom:4px}
+.frx-menu-name small{display:block;font-weight:500;color:var(--text-soft);font-size:11px;margin-top:1px}
+.frx-menu a{display:block;padding:8px;border-radius:7px;color:var(--text-soft);text-decoration:none;font-size:12.5px;font-weight:600}
+.frx-menu a:hover{background:var(--surface-soft);color:var(--text)}
+
+/* React "reveal on mount" stagger, and the plain-<button> variant of a text-link */
+.frx-reveal{opacity:0;transform:translateY(8px);transition:opacity .32s ease,transform .32s ease}
+.frx-reveal.is-shown{opacity:1;transform:translateY(0)}
+@media (prefers-reduced-motion:reduce){.frx-reveal{opacity:1;transform:none;transition:none}}
+.frx-linkbtn{appearance:none;border:0;background:transparent;padding:0;margin:0;font:inherit;color:var(--fh-accent);font-weight:700;cursor:pointer;text-align:left}
+.frx-linkbtn:hover{text-decoration:underline}
+
+@media(max-width:900px){
+  .workspace{margin-left:208px;width:calc(100% - 208px)}
+  .frx-rail{width:208px;padding-inline:8px}
+  .frx-flyout{left:208px;width:min(78vw,260px)}
+  .frx-menu{left:216px}
+}
+
+/* Fresha-pill tab bar — a proxy over a page's own real [data-class-tab]
+   buttons (see class_tabbar_app.js); it never owns tab content itself */
+.frx-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;margin:0 0 18px;background:var(--surface-soft);border:1px solid var(--border);border-radius:11px;width:fit-content;max-width:100%;overflow-x:auto}
+.frx-tabs button{appearance:none;border:0;background:transparent;padding:8px 16px;border-radius:8px;font:inherit;font-size:.82rem;font-weight:700;color:var(--text-soft);cursor:pointer;white-space:nowrap;flex:0 0 auto}
+.frx-tabs button:hover{color:var(--text)}
+.frx-tabs button.active{background:var(--surface);color:var(--fh-accent);box-shadow:var(--shadow-sm)}
+
+/* The real nav.class-tabs stays in the DOM (its clicks are what
+   class_tabbar_app.js proxies to) but styles.css gives it an unconditional
+   display, which beats the [hidden] attribute — same class of bug as the
+   collapsed-<details> gotcha elsewhere in this app. Force it off. */
+nav.class-tabs[hidden]{display:none!important}
+
+
+/* frx-mobile-drawer — phones and small tablets (added 2026-10-09).
+   Before this the rail stayed on screen at every width, leaving ~170px for content on a phone.
+   At <=900px the rail becomes an off-canvas drawer opened by the page's hamburger
+   ([data-sidebar-toggle], wired in sidebar_app.js). Desktop is unchanged. */
+.frx-flyout-back{display:none}
+@media(max-width:900px){
+  .workspace{margin-left:0;width:100%}
+  .frx-rail{width:min(86vw,300px);padding-inline:10px;transform:translateX(-102%);visibility:hidden;
+    transition:transform .22s ease,visibility 0s linear .22s;z-index:70}
+  body.sidebar-open .frx-rail{transform:none;visibility:visible;transition:transform .22s ease,visibility 0s;box-shadow:0 0 44px rgba(7,27,58,.45)}
+  body.sidebar-open{overflow:hidden}
+  body.sidebar-open .sidebar-scrim{display:block;position:fixed;inset:0;z-index:65;background:rgba(9,23,48,.5)}
+  .frx-flyout{left:0;width:min(86vw,300px);z-index:72}
+  .frx-flyout-back{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 6px;padding:10px;border:0;border-radius:8px;background:var(--surface-soft);color:var(--text);font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .frx-flyout-item{padding:12px 10px}
+  .frx-menu{left:12px;bottom:76px;z-index:73}
+  .frx-item{min-height:44px}
+  .frx-tip{display:none!important}
+  .mobile-menu{display:grid!important}
+}
+@media(prefers-reduced-motion:reduce){.frx-rail{transition:none!important}}
+
+/* frx-a11y-muted: --muted (#8490a6) was 3.2:1 on white; this is 5.4:1 (WCAG AA needs 4.5:1 for small text). */
+:root{--muted:#5f6b84}
+
+
+/* pastoral-header-restored (2026-10-10): the sibling-page tab bar and period pill had NO styles since the pastoral pages
+   were rebuilt, so the tabs rendered as one run-on line of links. Shared by pastoral*.php. The header also scrolls away
+   (not sticky) so it no longer eats a fifth of the screen above the page's own jump bar. */
+body[data-page="pastoral"] .topbar{position:static}
+body[data-page="pastoral"] .pastoral-tabs{display:flex;gap:4px;margin-top:14px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+body[data-page="pastoral"] .pastoral-tabs::-webkit-scrollbar{display:none}
+body[data-page="pastoral"] .pastoral-tabs a{position:relative;flex:none;white-space:nowrap;padding:10px 14px 13px;border-radius:8px 8px 0 0;font-size:.84rem;font-weight:600;color:var(--text-soft);text-decoration:none}
+body[data-page="pastoral"] .pastoral-tabs a:hover{background:var(--surface-soft);color:var(--text)}
+body[data-page="pastoral"] .pastoral-tabs a:focus-visible{outline:2px solid var(--fh-accent);outline-offset:-2px}
+body[data-page="pastoral"] .pastoral-tabs a.active{color:var(--fh-accent-dark);background:var(--fh-accent-soft)}
+body[data-page="pastoral"] .pastoral-tabs a.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:3px;border-radius:999px 999px 0 0;background:var(--fh-accent)}
+body[data-page="pastoral"] .pastoral-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+body[data-page="pastoral"] .pastoral-period-pill{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface-soft);padding:7px 14px;font-size:.8rem;font-weight:700;color:var(--text-soft);white-space:nowrap}
+body[data-page="pastoral"] .page-title>p{margin:4px 0 0;color:var(--text-soft);font-size:.9rem}
+
+/* pastoral-header-fit (2026-10-10): at 900-1300px the title block shared a row with the period pill and the tab bar was
+   squeezed to ~290px so most sibling-page tabs were hidden behind a hidden scroll. Let the tabs wrap instead. */
+@media(min-width:761px){
+  body[data-page="pastoral"] .topbar{flex-wrap:wrap;align-items:flex-start;gap:8px 16px}
+  body[data-page="pastoral"] .topbar-left{flex:1 1 560px;min-width:0}
+  body[data-page="pastoral"] .page-title{min-width:0}
+  body[data-page="pastoral"] .pastoral-tabs{flex-wrap:wrap;overflow:visible}
+}
+
+/* pastoral-panel-padding (2026-10-10): the big pastoral panels (article.panel) had NO padding at all, so titles, tables and
+   cards sat hard against the card border, with a 22px corner radius cutting into the content. Give them room. The metric
+   tiles (.psx-metric / .csx-metric) keep their own padding. */
+body[data-page="pastoral"] .panel:not(.psx-metric):not(.csx-metric):not(.pastoral-metric):not(.tdx-metric){padding:20px 22px;border-radius:14px}
+body[data-page="pastoral"] .psx-card-head,body[data-page="pastoral"] .csx-card-head{margin-top:0}
+@media(max-width:760px){body[data-page="pastoral"] .panel:not(.psx-metric):not(.csx-metric):not(.pastoral-metric):not(.tdx-metric){padding:16px 14px}}
+
+/* pastoral-metrics-restored (2026-10-10): the summary tiles (.pastoral-metric) and the "Live database view" refresh line on
+   Year group analysis / Comparison / Trends had lost their CSS, so tiles rendered as one run-on line per tile, stacked full width. */
+body[data-page="pastoral"] .pastoral-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+@media(min-width:1700px){body[data-page="pastoral"] .pastoral-metrics{grid-template-columns:repeat(6,minmax(0,1fr))}}
+body[data-page="pastoral"] .pastoral-metric{display:flex;gap:14px;align-items:center;min-height:96px;padding:16px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--border)}
+body[data-page="pastoral"] .pastoral-metric svg{width:20px;height:20px;stroke-width:2;fill:none}
+body[data-page="pastoral"] .pm-icon{flex:0 0 auto;width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+body[data-page="pastoral"] .pm-blue{background:#eaf1ff;color:#2563eb}
+body[data-page="pastoral"] .pm-red{background:#fff0f0;color:#dc2626}
+body[data-page="pastoral"] .pm-green{background:#eafaf3;color:#15803d}
+body[data-page="pastoral"] .pm-purple{background:#f2edff;color:#6d28d9}
+body[data-page="pastoral"] .pm-orange{background:#fff4e8;color:#c2570c}
+body[data-page="pastoral"] .pastoral-metric span{display:block;color:var(--text-soft);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+body[data-page="pastoral"] .pastoral-metric strong{display:block;font-size:1.4rem;line-height:1.1;margin:3px 0;color:var(--text)}
+body[data-page="pastoral"] .pastoral-metric small{display:block;color:var(--text-soft);font-size:.78rem}
+body[data-page="pastoral"] .metric-sign-positive{color:#15803d!important}
+body[data-page="pastoral"] .metric-sign-negative{color:#dc2626!important}
+body[data-page="pastoral"] .yg-refresh{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:0 0 12px;color:var(--text-soft);font-size:.84rem}
+body[data-page="pastoral"] .yg-refresh svg{width:16px;height:16px;fill:none;stroke:var(--fh-accent);stroke-width:2;flex:none}
+@media(max-width:760px){body[data-page="pastoral"] .pastoral-metrics{grid-template-columns:1fr 1fr}body[data-page="pastoral"] .pastoral-metric{flex-direction:column;align-items:flex-start;min-height:0}}
+@media(max-width:420px){body[data-page="pastoral"] .pastoral-metrics{grid-template-columns:1fr}}
+
+/* ygx-sr-def */
+body[data-page="pastoral"] .psx-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
