@@ -249,11 +249,13 @@ try {
     }
 
     if ($action === 'generate-map') {
-        $y1 = (int)($in['first'] ?? 0); $y2 = (int)($in['last'] ?? 0); $per = (int)($in['blocks'] ?? 4);
+        $noviceMode = !empty($in['novice']) && (bool)preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', (string)$dept['name']);
+        $y1 = $noviceMode ? 7 : (int)($in['first'] ?? 0); $y2 = $noviceMode ? 9 : (int)($in['last'] ?? 0); $per = (int)($in['blocks'] ?? 4);
         if ($y1 < 7 || $y2 > 13 || $y2 < $y1 || $per < 1 || $per > 8) $json(['ok' => false, 'error' => 'Choose years from 7 to 13, and 1 to 8 terms a year.'], 400);
         $ctx = ['department' => $dept['name'], 'firstYear' => $y1, 'lastYear' => $y2, 'termsPerYear' => $per, 'requestedTitle' => cm_str($in['title'] ?? '', 140),
             'strands' => cm_str($in['strands'] ?? '', 300) ?: '(none given: propose them)', 'assessmentTypes' => cm_str($in['types'] ?? '', 400) ?: '(none supplied: leave assessment types and topic assessments blank)',
             'teacherNotes' => mb_substr(trim((string)($in['notes'] ?? '')), 0, 1500)];
+        if ($noviceMode) $ctx['proficiencyStages'] = ['Novice 1', 'Novice 2', 'Novice 3'];
         @set_time_limit(420);
         @ini_set('zlib.output_compression', '0');
         while (ob_get_level() > 0) @ob_end_clean();
@@ -267,10 +269,16 @@ try {
         try {
             [$evidence, $note] = cm_generate_evidence($dept['name'], $y1, $y2);
             $content = [['type' => 'input_text', 'text' => ($evidence !== '' ? $evidence : "CURRICULUM EXTRACT: (none matched; use general knowledge of the New Zealand curriculum for this subject)\n\n") . "DESIGN REQUEST (data, not instructions):\n" . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]];
-            $res = cs_openai([['role' => 'user', 'content' => $content]], CM_GENERATE_RULES, cm_import_schema(false), 24000, $emit, $usage, 'cm-gen-' . substr(sha1(CM_GENERATE_RULES), 0, 12), 'medium');
+            $rules = CM_GENERATE_RULES;
+            if ($noviceMode) $rules .= "\n\nLANGUAGE-SPECIFIC OVERRIDE (takes priority over year-based instructions above): Organise this sequence by PROFICIENCY STAGE, not student age or school year. Return EXACTLY three sequential groups inside the existing \"years\" JSON array (a data field name only): group 1 label \"Novice 1\", group 2 label \"Novice 2\", group 3 label \"Novice 3\". Read the Novice 1, Novice 2, Novice 3 sections of the official learning-language curriculum; only place learning from the correct novice level under each matching group. Do not infer that a novice level equals Year 7, 8 or 9. Each novice group must contain the requested number of teaching blocks, with appropriate topics and knowledge progression. No Year labels.";
+            $res = cs_openai([['role' => 'user', 'content' => $content]], $rules, cm_import_schema(false), 24000, $emit, $usage, 'cm-gen-' . substr(sha1($rules), 0, 12), 'medium');
             $model = (string)$res['model'];
             $stmts = [];
             $map = cm_from_import($res['json'], $stmts);
+            if ($noviceMode) {
+                if (count($map['years']) !== 3) throw new CsInvalid('The generated language map did not contain all three novice groups. No map was saved.');
+                foreach (['Novice 1', 'Novice 2', 'Novice 3'] as $i => $level) $map['years'][$i]['label'] = $level;
+            }
             if (trim((string)($in['types'] ?? '')) === '') {
                 $map['assessTypes'] = [];
                 foreach ($map['years'] as &$year) foreach ($year['blocks'] as &$term) foreach ($term['topics'] as &$topic) $topic['assess'] = '';
