@@ -304,7 +304,7 @@ function guideView() {
     h('div', {class: 'cg-lessonbar'}, field('Anticipated number of lessons', totalIn), field('Anticipated duration of unit', durIn),
       h('small', {}, 'The AI suggests lessons for each learning focus and this total is added up from them. Change any focus below and the total updates, or change the total here and the focuses are adjusted to fit.')),
     field('Purpose – why this is worth learning', area(p.purpose, v => set('purpose', v), 3)),
-    h('div', {class: 'cg-grid'}, field('Connections to prior learning', area(p.prior, v => set('prior', v), 3)), field('Connections to future learning', area(p.future, v => set('future', v), 3)),
+    h('div', {class: 'cg-grid'}, field('Connections to prior learning', area(p.prior, v => set('prior', v), 3), 'Year — Topic: what students already know and how this unit builds on it.'), field('Connections to future learning', area(p.future, v => set('future', v), 3), 'Year — Topic: what students will learn later and how this unit prepares them.'),
       field('Knowledge summary', area(p.knowledgeSummary, v => set('knowledgeSummary', v), 3)), field('Practices summary', area(p.practicesSummary, v => set('practicesSummary', v), 3))),
     h('div', {class: 'cg-tickbox', style: 'margin-top:14px'}, h('b', {}, 'Capabilities this unit develops'), h('small', {style: 'display:block;color:var(--mut);margin:2px 0 6px'}, 'Suggested from the unit. Adjust as needed.'), tick('capabilities', capabilities)));
 
