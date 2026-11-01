@@ -181,3 +181,8 @@ details.cg-more[open] summary::before{content:'– '}
 .cg-stephead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .cg-stephead .cg-stepper{flex:1 1 360px;margin-bottom:0}
 .cg-backin{flex:none}
+
+/* Complete Ministry year-level statement selection */
+.cg-bank-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0}
+.cg-bank-search{min-width:260px;flex:1 1 330px;max-width:100%;border:1px solid #c9c9c9;border-radius:8px;padding:11px 14px;font:inherit}
+.cg-bank-controls .cg-ghost{flex:0 1 auto}
