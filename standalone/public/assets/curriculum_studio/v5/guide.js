@@ -222,7 +222,7 @@ function topicCard() {
   const isArts = doc && doc.learningArea === 'The Arts';
   const isLanguage = (doc && doc.learningArea === 'Learning Languages') || isLanguageSubject(G.subject);
   const found = hasStatements(G);
-  const ready = G.topic.trim() && (G.docId || G.pasted.trim());
+  const ready = G.topic.trim() && (G.docId || G.pasted.trim()) && (!isLanguage || NOVICE.includes(G.stage));
   const go = G.mapRef
     ? h('button', {class: 'cg-btn lg', type: 'button', onclick: async e => {
       e.target.disabled = true; e.target.textContent = 'Reading the curriculum map…';
@@ -234,14 +234,14 @@ function topicCard() {
       renderMain(true); window.scrollTo({top: 0, behavior: 'smooth'});
     }}, 'Use the statements from the curriculum map  →')
     : h('button', {class: 'cg-btn lg', type: 'button', disabled: !ready, onclick: find}, found ? 'Find statements again  →' : 'Find curriculum statements  →');
-  const sync = () => { go.disabled = !(G.topic.trim() && (G.docId || G.pasted.trim())); };
+  const sync = () => { go.disabled = !(G.topic.trim() && (G.docId || G.pasted.trim()) && (!isLanguage || NOVICE.includes(G.stage))); };
   return h('section', {class: 'cg-card'},
     h('h2', {}, 'What are you teaching?'), h('p', {class: 'lead'}, 'Start with the unit. We will find the matching Ministry statements next.'),
     h('input', {class: 'cg-topic', type: 'text', value: G.topic, placeholder: 'e.g. Forces and motion', 'aria-label': 'Unit', oninput: e => { G.topic = e.target.value; save(); sync(); }}),
     h('div', {style: 'margin-top:20px'}, h('span', {class: 'cg-f'}, h('span', {style: 'display:block;font-weight:620;font-size:13px;margin-bottom:6px'}, isLanguage ? 'Language proficiency stage' : 'Year group')),
       isLanguage
-        ? h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Language proficiency stage'}, NOVICE.map(stage => h('button', {type:'button', class: (G.stage || 'Novice 1') === stage ? 'on' : '', 'aria-pressed': (G.stage || 'Novice 1') === stage ? 'true' : 'false',
-            onclick: () => { G.stage = stage; G.year = 7; G.statements = {knowledge:[], practices:[]}; G.selected = {knowledge:[], practices:[]}; G.bankLoaded = false; save(); renderMain(); }}, stage)))
+        ? h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Language proficiency stage'}, NOVICE.map(stage => h('button', {type:'button', class: G.stage === stage ? 'on' : '', 'aria-pressed': G.stage === stage ? 'true' : 'false',
+            onclick: () => { if (G.stage !== stage) { G.stage = stage; G.year = 7; G.statements = {knowledge:[], practices:[]}; G.selected = {knowledge:[], practices:[]}; G.bankLoaded = false; if (G.plan) banner = {kind:'note',text:'You changed the novice stage. Your earlier draft is kept; find the statements and redraft the unit so it uses the new stage.'}; save(); } renderMain(); }}, stage)))
         : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
       field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value; if (isLanguageSubject(G.subject)) { G.stage = G.stage || 'Novice 1'; G.year = 7; } else G.stage = ''; save(); renderMain(); }}),
