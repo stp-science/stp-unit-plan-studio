@@ -35,6 +35,7 @@ const subjectAlias = name => { const n = String(name || '').trim().toLowerCase()
 
 let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, saveTimer = 0, saveState = 'saved', closed = new Set(), toastTimer = 0;
 let statementFilter = '';
+let mapSavePromise = Promise.resolve();
 let root, listEl, mainEl, toastEl;
 
 const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
@@ -232,9 +233,13 @@ function topicCard() {
     ? h('button', {class: 'cg-btn lg', type: 'button', onclick: async e => {
       e.target.disabled = true; e.target.textContent = 'Reading the curriculum map…';
       await pullMapStatements(G);
+      if (lastPull.ok && noviceStages(G).length && G.docId) {
+        try { await expandNoviceStatements(G); }
+        catch (error) { banner = {kind:'note',text:'The map statements are kept, but not all novice levels loaded: '+error.message}; }
+      }
       if (!lastPull.ok) banner = {kind: 'err', text: lastPull.error + ' Your unit plan is unchanged.', retry: () => { renderMain(true); document.querySelector('.cg-card .cg-btn.lg')?.click(); }};
       else if (!lastPull.onMap) banner = {kind: 'err', text: 'This unit plan was linked to a unit that is no longer on the curriculum map. Open the unit on the map and choose “Open unit plan” again.'};
-      else if (hasStatements(G)) { view = 'outline'; banner = null; }
+      else if (hasStatements(G)) { view = 'outline'; if (G.bankLoaded) banner = null; }
       else banner = {kind: 'note', text: lastPull.total ? 'This unit has ' + lastPull.total + ' statement' + (lastPull.total === 1 ? '' : 's') + ' on the map, but none are ticked. Open the unit on the map and tick the ones it teaches.' : 'No statements have been added to this unit on the curriculum map yet. Open the unit on the map and tick the statements it teaches (or use Match all units).'};
       renderMain(true); window.scrollTo({top: 0, behavior: 'smooth'});
     }}, 'Use the statements from the curriculum map  →')
@@ -248,7 +253,7 @@ function topicCard() {
         ? h('div', {class:'cg-novice-picker', role:'group', 'aria-label':'Novice levels — select any combination'},
             h('p', {class:'cg-mut'}, 'Tick all novice levels taught in this unit. Statements from every selected level will be available on the next screen.'),
             ...NOVICE.map(stage => h('label', {class:'cg-novice-option' + (noviceStages(G).includes(stage) ? ' on' : '')},
-              h('input', {type:'checkbox', checked:noviceStages(G).includes(stage), disabled:!!G.mapRef,
+              h('input', {type:'checkbox', checked:noviceStages(G).includes(stage), disabled:false,
                 onchange:e => {
                   const chosen = noviceStages(G);
                   const next = e.target.checked ? [...chosen,stage] : chosen.filter(s=>s!==stage);
@@ -257,13 +262,15 @@ function topicCard() {
                   G.year = 7;
                   // Earlier drafted plans remain saved; the statement picker is refreshed
                   // to prevent old-level statements accidentally crossing stages.
-                  G.statements = {knowledge:[], practices:[]};
-                  G.selected = {knowledge:[], practices:[]};
+                  if (!G.mapRef) {
+                    G.statements = {knowledge:[], practices:[]};
+                    G.selected = {knowledge:[], practices:[]};
+                  }
                   G.bankLoaded = false;
                   if (G.plan) banner = {kind:'note',text:'Your earlier draft is kept. Find statements again and redraft to use the updated novice levels.'};
                   save(); renderMain();
                 }}),h('span', {},stage))),
-            G.mapRef ? h('p', {class:'cg-mut'}, 'This plan is linked to your curriculum map; change the selected stages and statements on the map.') : null)
+            G.mapRef ? h('p', {class:'cg-mut'}, 'Your original map statements stay selected. On the next screen, add statements from these levels; new ticks are saved back to the curriculum map.') : null)
         : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; G.stages = []; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
       field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value; if (isLanguageSubject(G.subject)) { G.stages = noviceStages(G).length ? noviceStages(G) : ['Novice 1']; G.stage = G.stages[0]; G.year = 7; } else { G.stage = ''; G.stages = []; } save(); renderMain(); }}),
@@ -295,16 +302,28 @@ function outlineCard() {
     const list = G.statements[key]; if (!list.length) return null;
     const setAll = on => { G.selected[key] = on ? list.map(s => s.id) : []; save(); renderMain(); };
     const fromMap = !!G.mapRef;
-    return h('div', {}, h('div', {class: 'cg-colhead'}, h('h3', {}, title + ' ', h('span', {class: 'cg-chip'}, fromMap ? String(list.length) : G.selected[key].length + '/' + list.length)),
+    const editable = !fromMap || noviceStages(G).length > 0;
+    return h('div', {}, h('div', {class: 'cg-colhead'}, h('h3', {}, title + ' ', h('span', {class: 'cg-chip'}, fromMap && !editable ? String(list.length) : G.selected[key].length + '/' + list.length)),
       fromMap ? null : h('div', {}, h('button', {type: 'button', onclick: () => setAll(true)}, 'All'), h('button', {type: 'button', onclick: () => setAll(false)}, 'None'))),
       ...list.map(s => { const on = G.selected[key].includes(s.id); const show = !statementFilter || (s.text + ' ' + s.source + ' ' + (s.subject || '')).toLowerCase().includes(statementFilter);
-        return h('label', {class: 'cg-stmt' + (on ? ' on' : ''), style: show ? '' : 'display:none'}, h('input', {type: 'checkbox', checked: on, disabled: fromMap, onchange: e => { G.selected[key] = e.target.checked ? [...G.selected[key], s.id] : G.selected[key].filter(x => x !== s.id); save(); renderMain(); }}),
+        return h('label', {class: 'cg-stmt' + (on ? ' on' : ''), style: show ? '' : 'display:none'}, h('input', {type: 'checkbox', checked: on, disabled: !editable, onchange: e => {
+          G.selected[key] = e.target.checked ? [...G.selected[key], s.id] : G.selected[key].filter(x => x !== s.id);
+          save();
+          if (G.mapRef) {
+            mapSavePromise = mapSavePromise.catch(()=>{}).then(()=>persistMapStatements(G));
+            mapSavePromise.catch(error=>{
+              banner={kind:'err',text:'Could not save this selection to the curriculum map: '+error.message+'. Your plan was not changed on the map; retry after checking the connection.'};
+              renderMain();
+            });
+          }
+          renderMain();
+        }}),
           h('div', {}, h('p', {}, s.text), s.levels?.length ? h('small', {class:'cg-level-tag'}, s.levels.join(' · ')) : null, (s.why || s.confidence != null) ? h('small', {class: 'cg-why ' + (s.link === 'loose' ? 'loose' : '')}, (s.confidence != null ? s.confidence + '% match' : (s.link === 'loose' ? 'Loose match' : 'Linked')) + (s.why ? ' · ' + s.why : '')) : null, h('small', {}, s.source))); }));
   };
   return h('section', {},
-    h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, G.mapRef ? 'These statements come from your department curriculum map. To customise them, change the ticks on the map before generating this plan.' : noviceStages(G).length ? 'Showing Knowledge and Practices from ' + guideStageLabel(G) + '. Suggested matches are pre-ticked; choose any other statements from the selected levels before generating.' : 'All available Year ' + G.year + ' Ministry statements are shown, not just those matched to your topic. Suggested matches are pre-ticked. You can tick or untick any knowledge or practice statement before generating.')),
+    h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, G.mapRef ? (noviceStages(G).length ? 'Your map choices are pre-ticked. The full Knowledge and Practices lists from the selected novice levels are available; tick additional statements here to update the map and your unit plan together.' : 'These statements come from your department curriculum map. To customise them, change the ticks on the map before generating this plan.') : noviceStages(G).length ? 'Showing Knowledge and Practices from ' + guideStageLabel(G) + '. Suggested matches are pre-ticked; choose any other statements from the selected levels before generating.' : 'All available Year ' + G.year + ' Ministry statements are shown, not just those matched to your topic. Suggested matches are pre-ticked. You can tick or untick any knowledge or practice statement before generating.')),
       h('div', {class: 'cg-chips'}, h('span', {class: 'cg-chip acc'}, G.topic), h('span', {class: 'cg-chip'}, guideStageLabel(G)), saveBadge())),
-    !G.mapRef ? h('div', {class: 'cg-bank-controls'},
+    (!G.mapRef || noviceStages(G).length) ? h('div', {class: 'cg-bank-controls'},
       h('input', {type: 'search', class: 'cg-bank-search', 'aria-label': 'Search year-level curriculum statements', placeholder: 'Search knowledge and practices…', value: statementFilter,
         oninput: e => { statementFilter = e.target.value.toLowerCase().trim(); document.querySelectorAll('.cg-stmt').forEach(label => { label.style.display = !statementFilter || label.textContent.toLowerCase().includes(statementFilter) ? '' : 'none'; }); }}),
       (noviceStages(G).length && G.docId && !G.pasted) ? h('button', {type:'button',class:'cg-ghost',disabled:!!G.bankLoaded,onclick: async e=>{
@@ -426,6 +445,22 @@ async function run(title, stages, fn) {
 // A guide opened from the curriculum map uses exactly the statements ticked on the map for that topic. The map is the only place they are
 // changed, so the guide and the map always agree. Returns true when the guide's statements changed.
 let lastPull = {ok: true, error: '', onMap: true, total: 0};
+// Persist language-stage ticks to the same map that linked plans use.
+// The server remains the source of truth when drafting mapped unit plans.
+async function persistMapStatements(guide) {
+  if (!guide?.mapRef) return;
+  const rows = ['knowledge','practices'].flatMap(key=>guide.statements[key]
+    .filter(s=>guide.selected[key].includes(s.id))
+    .map(s=>({kind:key==='practices'?'practice':'knowledge',text:s.text,
+      source:s.source||'Ministry curriculum',doc_id:guide.docId||'',confidence:s.confidence??null,selected:1})));
+  const response = await fetch('curriculum_map_api.php?action=set-statements',{
+    method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({csrf:CS.csrf,department_id:guide.mapRef.department_id,
+      topic_id:guide.mapRef.topic_id,statements:rows})
+  });
+  const result = await response.json().catch(()=>({}));
+  if (!response.ok || !result.ok) throw Error(result.error||'The map could not be updated.');
+}
 async function pullMapStatements(guide) {
   if (!guide || !guide.mapRef) return false;
   lastPull = {ok: false, error: '', onMap: true, total: 0};
@@ -440,10 +475,11 @@ async function pullMapStatements(guide) {
   const rows = r.statements.filter(x => x.selected);
   const mk = (kind, p) => rows.filter(x => x.kind === kind).map((x, i) => ({id: p + (i + 1), text: x.text, source: x.source || '', confidence: x.confidence, link: 'strong', why: '', subject: guide.subject || ''}));
   const next = {knowledge: mk('knowledge', 'k'), practices: mk('practice', 'p')};
-  const key = st => [...st.knowledge, ...st.practices].map(x => x.text).join('\n');
-  const changed = key(next) !== key(guide.statements);
+  const selectedKey = (st,chosen) => ['knowledge','practices'].flatMap(k=>st[k].filter(x=>chosen[k].includes(x.id)).map(x=>x.text)).join('\n');
+  const changed = selectedKey(next,{knowledge:next.knowledge.map(x=>x.id),practices:next.practices.map(x=>x.id)}) !== selectedKey(guide.statements,guide.selected);
   guide.statements = next;
   guide.selected = {knowledge: next.knowledge.map(x => x.id), practices: next.practices.map(x => x.id)};
+  guide.bankLoaded = false;
   if (changed) { guide.docId = guide.docId || (rows[0] && rows[0].doc_id) || ''; save(); }
   return changed;
 }
@@ -477,7 +513,7 @@ async function expandYearStatements(guide, signal) {
 // spend AI credits. Each level's provenance is shown beside its statements.
 async function expandNoviceStatements(guide, signal) {
   const stages = noviceStages(guide);
-  if (!stages.length || !guide.docId || guide.pasted || guide.mapRef) return 0;
+  if (!stages.length || !guide.docId || guide.pasted) return 0;
   const norm = text => String(text || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
   const present = {
     knowledge: new Map(guide.statements.knowledge.map(s => [norm(s.text),s])),
@@ -544,6 +580,7 @@ function find() {
 
 function generate() {
   return run('Drafting your unit plan', ['Reading your selected statements…', 'Planning the learning focuses…', 'Checking the wording matches the curriculum…'], async signal => {
+    if (G.mapRef && noviceStages(G).length) await mapSavePromise;
     const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, existingPlan: G.plan, mapRef: G.mapRef}}, signal);
     const notice = r.statementNotice; delete r.statementNotice;
     G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear();
