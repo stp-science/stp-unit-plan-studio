@@ -30,7 +30,7 @@ async function post(action, body) {
   return r.json().catch(() => ({ok: false, error: 'The server did not answer. Try again.'}));
 }
 async function load(deptId, view) {
-  const keepView = view || (S.view === 'start' ? 'start' : 'map');
+  const keepView = view || (['start', 'upload'].includes(S.view) ? S.view : 'map');
   if (S.run) S.run.stop = true;
   S.loading = true; S.failed = false; render();
   try {
@@ -74,7 +74,7 @@ addEventListener('beforeunload', e => { if (S.saveState === 'saving' || S.draft)
 // Every screen (start, map, coverage) has its own history entry and address, so Back always returns to what you were just doing,
 // and a page opened from the browser's history comes back as it was.
 const BASE = location.pathname.split('/').pop() || 'curriculum_studio.php';
-const viewUrl = (view, deptId) => BASE + (view === 'start' ? '' : '?department=' + (deptId || S.dept?.id || 0) + (view === 'coverage' ? '&view=coverage' : ''));
+const viewUrl = (view, deptId) => BASE + (view === 'start' ? '' : '?department=' + (deptId || S.dept?.id || 0) + (['coverage', 'upload'].includes(view) ? '&view=' + view : ''));
 function syncUrl() {   // keep the current entry's address and state accurate after a load or department change
   const idx = history.state?.cm ? history.state.idx || 0 : 0;
   history.replaceState({cm: 1, view: S.view, dept: S.dept?.id || 0, idx}, '', viewUrl(S.view));
@@ -879,6 +879,7 @@ async function mapJob({title, stages, request, source, kind}) {
     if (!result && !err) err = r.ok ? 'That did not finish. Try again.' : 'That could not be completed.';
     if (err) throw Error(err);
     S.importStmts = result.importStatements && Object.keys(result.importStatements).length ? result.importStatements : null; S.importResult = null; delete result.importStatements;
+    if (kind === 'import') { S.view = 'map'; syncUrl(); }
     S.map = result; S.draft = false; S.review = true; S.edit = true; S.source = source; S.sourceKind = kind; S.note = note; S.version = 0;
   } catch (e) { S.banner = {kind: 'err', text: e.message}; }
   clearInterval(tick); S.working = null; render();
@@ -902,31 +903,41 @@ function startGenerate(f) {
   return '';
 }
 
-function emptyState() {
-  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: '10', blocks: '4', strands: '', notes: '', types: ''};
-  const err = h('div', {class: 'hint', style: 'color:var(--err);min-height:20px'});
+function uploadState() {
   const fileInput = h('input', {type: 'file', accept: '.docx,.xlsx,.csv,.txt,.pdf,.png,.jpg,.jpeg,.webp', style: 'display:none', onchange: e => { if (e.target.files[0]) startImport(e.target.files[0]); }});
   const drop = h('div', {class: 'cm-drop', tabindex: '0', role: 'button', 'aria-label': 'Choose a file to upload',
     onclick: () => fileInput.click(), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } },
     ondragover: e => { e.preventDefault(); drop.classList.add('over'); }, ondragleave: () => drop.classList.remove('over'),
     ondrop: e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) startImport(e.dataTransfer.files[0]); }},
-    h('b', {}, 'Drop your file here, or click to choose'), h('small', {}, 'Word, Excel, CSV, PDF or a picture of your map'));
+    h('b', {}, 'Drop your file here, or click to choose'), h('small', {}, 'Word, Excel, CSV, PDF or a picture of your overview'));
+  return h('div', {class: 'cm-in'},
+    h('div', {class: 'cm-hero'}, h('h2', {}, 'Upload ' + S.dept.name + '’s curriculum overview'),
+      h('p', {}, 'Use an overview or scheme of work you already have. AI reads the units, years and sequence. Check and edit the imported overview, then choose a unit to create its unit plan.')),
+    S.banner ? h('div', {class: 'cm-banner ' + S.banner.kind}, S.banner.text) : null,
+    h('div', {class: 'cm-setup'}, h('div', {class: 'cm-card'},
+      h('h3', {}, 'Upload an existing overview'), drop, fileInput)));
+}
+
+function emptyState() {
+  if (S.view === 'upload') return uploadState();
+  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: '10', blocks: '4', strands: '', notes: '', types: ''};
+  const err = h('div', {class: 'hint', style: 'color:var(--err);min-height:20px'});
   const inp = (k, o = {}) => h('input', {type: 'text', value: f[k], oninput: e => { f[k] = e.target.value; }, ...o});
   return h('div', {class: 'cm-in'},
-    h('div', {class: 'cm-hero'}, h('h2', {}, S.dept.name + ' doesn’t have a curriculum map yet'), h('p', {}, 'Build one here, or upload the one you already use. Everyone in the department sees the same map and can keep it up to date.')),
+    h('div', {class: 'cm-hero'}, h('h2', {}, 'Create ' + S.dept.name + '’s curriculum overview with AI'),
+      h('p', {}, 'Choose your year groups and terms. AI uses the Ministry curriculum to propose a sequence of units, ordered so learning builds over time. You can review and edit the suggested overview.')),
     S.banner ? h('div', {class: 'cm-banner ' + S.banner.kind}, S.banner.text) : null,
-    h('div', {class: 'cm-choice'},
-      h('div', {class: 'cm-card'}, h('h3', {}, 'Upload an existing map'), h('p', {}, 'We read your file and turn it into the map below. You check it before anything is saved.'), drop, fileInput),
-      h('div', {class: 'cm-card'}, h('h3', {}, 'Create a new map with AI'), h('p', {}, 'The AI designs a year-by-year sequence for ' + S.dept.name + ' from the curriculum, ordered so each unit builds on the one before. You review and edit it before anything is saved.'),
+    h('div', {class: 'cm-setup'},
+      h('div', {class: 'cm-card'}, h('h3', {}, 'Tell us what to plan'),
         field('Title', inp('title', {maxlength: '140'})),
         h('div', {class: 'cm-row2'}, field('First year', inp('first', {inputmode: 'numeric'}), '7 to 13'), field('Last year', inp('last', {inputmode: 'numeric'}))),
         field('Terms per year', inp('blocks', {inputmode: 'numeric'}), 'For example 4 terms, or 6 if you plan in half-terms.'),
-        field('Strands (optional)', inp('strands', {placeholder: 'Biology, Chemistry, Physics'}), 'Comma separated. Leave blank and the AI suggests them.'),
+        field('Strands (optional)', inp('strands', {placeholder: 'Enter your department’s strands'}), 'Comma separated. Leave blank and the AI suggests them.'),
         field('Assessment types (optional)', inp('types'), 'Enter your department’s own types as Code = meaning, separated by semicolons. Leave blank to choose later.'),
-        field('Anything the AI should know (optional)', (() => { const t = h('textarea', {rows: 3, placeholder: 'For example: Year 9 must include electricity before Year 10 circuits. Keep two units a term. We run a practical investigation each year.', oninput: e => { f.notes = e.target.value; }}); return t; })()),
+        field('Anything the AI should know (optional)', h('textarea', {rows: 3, placeholder: 'For example: Teach introductory units before advanced ones. Keep two units per term. Allow time for revision and assessment.', oninput: e => { f.notes = e.target.value; }})),
         err, h('div', {style: 'display:flex;gap:10px;flex-wrap:wrap;align-items:center'},
-          h('button', {class: 'cm-btn pri', type: 'button', onclick: () => { err.textContent = startGenerate(f); }}, '✨ Design the sequence'),
-          h('button', {class: 'cm-btn', type: 'button', onclick: () => { err.textContent = startFromScratch(f); }}, 'Start with a blank grid')))));
+          h('button', {class: 'cm-btn pri', type: 'button', onclick: () => { err.textContent = startGenerate(f); }}, '✨ Create curriculum overview'),
+          h('button', {class: 'cm-btn', type: 'button', onclick: () => { err.textContent = startFromScratch(f); }}, 'Build a blank overview manually')))));
 }
 
 function noDepartment() {
@@ -1013,7 +1024,7 @@ function render() {
     else if (false) body.push(h("div", {class: "cm-depts", role: 'tablist'}, ...S.depts.map(d => h('button', {type: 'button', role: 'tab', 'aria-selected': String(d.id === S.dept?.id), class: 'cm-dept' + (d.id === S.dept?.id ? ' on' : ''),
       onclick: () => { if (d.id === S.dept?.id) return; if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => load(d.id)); else load(d.id); }}, d.name))));
     else if (S.dept) body.push(h('div', {class: 'cm-meta', style: 'margin:0 0 10px'}, 'Department: ', h('b', {}, S.dept.name)));
-    if (S.view === 'map' && !S.working && !S.draft && !S.review) body.push(h('div', {class: 'cm-backrow'}, h('button', {class: 'cm-btn sm', type: 'button', onclick: () => goBack('start')}, '← Back')));
+    if (['map', 'upload'].includes(S.view) && !S.working && !S.draft && !S.review) body.push(h('div', {class: 'cm-backrow'}, h('button', {class: 'cm-btn sm', type: 'button', onclick: () => goBack('start')}, '← Back')));
     if (S.working) body.push(working());
     else if (S.view === 'start') body.push(startView());
     else if (S.map) body.push(S.view === 'coverage' ? coverageView() : mapView());
@@ -1032,8 +1043,8 @@ function startView() {
     h('div', {class: 'cm-hero'}, h('h2', {}, 'What would you like to do?'), h('p', {}, 'Choose where to start. You can always come back here, and the Back button takes you to the last screen you were on.')),
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + '?guide=1&blank=1'}),
-      card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Upload or create your department’s curriculum overview', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Upload an existing overview or scheme of work (Word, PDF or Excel), or use AI to create a new one. Review and edit it before saving.', has ? 'Edit your overview' : 'Set up your curriculum overview', {onclick: () => { S.edit = has; showView('map'); }}),
-      card('c', '▶', 'Create unit plans from your curriculum overview', has ? 'Open your department’s overview, choose a unit and draft its unit plan using the selected curriculum statements.' : 'Upload or create your department’s overview first. Then choose a unit and draft its unit plan using the selected curriculum statements.', has ? 'Choose a unit' : 'Set up an overview first', {onclick: () => { S.edit = false; showView('map'); }})),
+      card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { S.edit = has; showView('map'); }}),
+      card('c', '▶', 'Create unit plans from an existing overview', has ? 'Open your department’s overview, choose a unit and draft its unit plan using the selected curriculum statements.' : 'Upload an overview or scheme of work you already use. Check the imported units and curriculum statements, then choose a unit to create its unit plan.', has ? 'Choose a unit' : 'Upload your overview', {onclick: () => { S.edit = false; showView(has ? 'map' : 'upload'); }})),
     null);
 }
 
@@ -1046,7 +1057,7 @@ toastEl = h('div', {class: 'cm-toast', role: 'status'});
   const q = new URLSearchParams(location.search);
   // opening the app from the home screen (no department in the address) shows the start screen; links from a unit plan or the history go straight to the map
   const wantDept = CM.department || parseInt(q.get('department'), 10) || 0;
-  S.view = !(wantDept > 0) && !q.get('go') ? 'start' : q.get('view') === 'coverage' ? 'coverage' : 'map';
+  S.view = !(wantDept > 0) && !q.get('go') ? 'start' : ['coverage', 'upload'].includes(q.get('view')) ? q.get('view') : 'map';
   if (S.view === 'coverage') cov = {rows: null, q: '', kind: '', sort: 'used', err: ''};
   load(wantDept, S.view).then(() => { if (S.view === 'coverage' && S.map) fetchCoverage(); });
 }

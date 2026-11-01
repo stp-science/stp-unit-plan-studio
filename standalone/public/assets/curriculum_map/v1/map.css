@@ -71,8 +71,7 @@
 /* empty / create / import */
 .cm-hero{background:linear-gradient(135deg,#fff,var(--accSoft));border:1px solid var(--line);border-radius:18px;padding:34px 30px;box-shadow:var(--sh);margin-bottom:18px}
 .cm-hero h2{font-size:26px;margin-bottom:6px}.cm-hero p{color:var(--mut);margin:0;max-width:640px}
-.cm-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-@media(max-width:820px){.cm-choice{grid-template-columns:1fr}}
+.cm-setup{display:grid;gap:16px;max-width:900px;margin:0 auto}
 .cm-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:22px}
 .cm-card h3{font-size:18px;margin-bottom:4px}.cm-card>p{color:var(--mut);margin:0 0 14px}
 .cm-drop{display:grid;place-items:center;text-align:center;gap:6px;border:2px dashed #d9bcc4;border-radius:14px;background:var(--accSoft);padding:28px 16px;transition:background .15s,border-color .15s}
