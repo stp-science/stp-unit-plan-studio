@@ -19,6 +19,9 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 
 const JUNIOR = [7, 8, 9, 10];
+const NOVICE = ['Novice 1', 'Novice 2', 'Novice 3'];
+const isLanguageSubject = name => /french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i.test(String(name || ''));
+const guideStageLabel = g => g.stage && NOVICE.includes(g.stage) ? g.stage : 'Year ' + g.year;
 // Department names that sit inside a broader Ministry learning area, so Art finds the Visual Arts document, Geography the Social Sciences one, and so on.
 const SUBJECT_ALIAS = {
   'visual arts': ['art', 'visual art', 'art: design', 'art: photography', 'art design', 'art photography', 'painting', 'printmaking', 'design'],
@@ -32,7 +35,7 @@ let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null
 let statementFilter = '';
 let root, listEl, mainEl, toastEl;
 
-const blank = () => ({id: uid(), topic: '', subject: '', year: 7, docId: '', discipline: '', duration: '', notes: '', pasted: '',
+const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
 const hasStatements = g => g && g.statements.knowledge.length + g.statements.practices.length > 0;
 const hue = s => { let x = 0; for (const c of String(s || 'x')) x = (x * 31 + c.charCodeAt(0)) % 360; return x; };
@@ -97,7 +100,7 @@ function toast(t) {
 function renderList() {
   listEl.replaceChildren(...(guides.length ? guides.map(g => h('button', {type: 'button', class: 'cg-item' + (G && g.id === G.id ? ' on' : ''), onclick: () => open(g.id), style: '--c:' + colour(g.subject || g.docId)},
     h('span', {class: 'cg-dot', style: 'background:' + colour(g.subject || g.docId)}),
-    h('span', {style: 'min-width:0'}, h('b', {}, g.topic || 'Untitled unit plan'), h('small', {}, [g.subject, 'Year ' + g.year, ago(g.updated)].filter(Boolean).join(' · '))),
+    h('span', {style: 'min-width:0'}, h('b', {}, g.topic || 'Untitled unit plan'), h('small', {}, [g.subject, guideStageLabel(g), ago(g.updated)].filter(Boolean).join(' · '))),
     h('span', {class: 'cg-tag' + (g.plan ? ' done' : '')}, g.plan ? 'Drafted' : hasStatements(g) ? 'Outline' : 'New'))) : [h('p', {class: 'cg-empty-list'}, 'Your unit plans will appear here.')]));
 }
 
@@ -217,6 +220,7 @@ function topicCard() {
   const areas = [...new Set(shown.map(d => d.learningArea))].sort();
   const doc = docs.find(d => d.id === G.docId);
   const isArts = doc && doc.learningArea === 'The Arts';
+  const isLanguage = (doc && doc.learningArea === 'Learning Languages') || isLanguageSubject(G.subject);
   const found = hasStatements(G);
   const ready = G.topic.trim() && (G.docId || G.pasted.trim());
   const go = G.mapRef
@@ -234,12 +238,15 @@ function topicCard() {
   return h('section', {class: 'cg-card'},
     h('h2', {}, 'What are you teaching?'), h('p', {class: 'lead'}, 'Start with the unit. We will find the matching Ministry statements next.'),
     h('input', {class: 'cg-topic', type: 'text', value: G.topic, placeholder: 'e.g. Forces and motion', 'aria-label': 'Unit', oninput: e => { G.topic = e.target.value; save(); sync(); }}),
-    h('div', {style: 'margin-top:20px'}, h('span', {class: 'cg-f'}, h('span', {style: 'display:block;font-weight:620;font-size:13px;margin-bottom:6px'}, 'Year group')),
-      h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
+    h('div', {style: 'margin-top:20px'}, h('span', {class: 'cg-f'}, h('span', {style: 'display:block;font-weight:620;font-size:13px;margin-bottom:6px'}, isLanguage ? 'Language proficiency stage' : 'Year group')),
+      isLanguage
+        ? h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Language proficiency stage'}, NOVICE.map(stage => h('button', {type:'button', class: (G.stage || 'Novice 1') === stage ? 'on' : '', 'aria-pressed': (G.stage || 'Novice 1') === stage ? 'true' : 'false',
+            onclick: () => { G.stage = stage; G.year = 7; G.statements = {knowledge:[], practices:[]}; G.selected = {knowledge:[], practices:[]}; G.bankLoaded = false; save(); renderMain(); }}, stage)))
+        : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
-      field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value; save(); renderMain(); }}),
+      field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value; if (isLanguageSubject(G.subject)) { G.stage = G.stage || 'Novice 1'; G.year = 7; } else G.stage = ''; save(); renderMain(); }}),
         h('datalist', {id: 'cg-subjects'}, subjectNames.map(n => h('option', {value: n})))), matches.length ? 'Showing the Ministry documents for ' + G.subject + '. Clear this to see every subject.' : subj ? 'No Ministry document matches “' + G.subject + '”, so all are shown. You can also paste your own curriculum text below.' : 'Shown on the unit plan. Pick one to filter the curriculum documents.'),
-      field('Curriculum document', (() => h('select', {onchange: e => { G.docId = e.target.value; const d = docs.find(x => x.id === G.docId); if (d && !G.subject.trim()) G.subject = d.subject; G.discipline = ''; save(); renderMain(); }}, h('option', {value: ''}, 'Choose a document…'),
+      field('Curriculum document', (() => h('select', {onchange: e => { G.docId = e.target.value; const d = docs.find(x => x.id === G.docId); if (d && !G.subject.trim()) G.subject = d.subject; G.stage = d?.learningArea === 'Learning Languages' ? (G.stage || 'Novice 1') : ''; if (G.stage) G.year = 7; G.discipline = ''; save(); renderMain(); }}, h('option', {value: ''}, 'Choose a document…'),
         ...areas.map(a => h('optgroup', {label: a}, ...shown.filter(d => d.learningArea === a).map(d => h('option', {value: d.id, selected: d.id === G.docId}, d.title))))))(), doc && doc.status ? doc.status : 'Official Ministry text, kept word for word.'),
       isArts ? field('Arts subject', h('select', {onchange: e => { G.discipline = e.target.value; save(); }}, h('option', {value: ''}, 'All'), ...['Dance', 'Drama', 'Music', 'Visual Arts'].map(s => h('option', {value: s, selected: s === G.discipline}, s)))) : null,
       ),
@@ -266,12 +273,12 @@ function outlineCard() {
           h('div', {}, h('p', {}, s.text), (s.why || s.confidence != null) ? h('small', {class: 'cg-why ' + (s.link === 'loose' ? 'loose' : '')}, (s.confidence != null ? s.confidence + '% match' : (s.link === 'loose' ? 'Loose match' : 'Linked')) + (s.why ? ' · ' + s.why : '')) : null, h('small', {}, s.source))); }));
   };
   return h('section', {},
-    h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, G.mapRef ? 'These statements come from your department curriculum map. To customise them, change the ticks on the map before generating this plan.' : 'All available Year ' + G.year + ' Ministry statements are shown, not just those matched to your topic. Suggested matches are pre-ticked. You can tick or untick any knowledge or practice statement before generating.')),
-      h('div', {class: 'cg-chips'}, h('span', {class: 'cg-chip acc'}, G.topic), h('span', {class: 'cg-chip'}, 'Year ' + G.year), saveBadge())),
+    h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, G.mapRef ? 'These statements come from your department curriculum map. To customise them, change the ticks on the map before generating this plan.' : G.stage ? 'These are the curriculum statements matched to ' + G.stage + ' for your unit. Suggested matches are pre-ticked. Tick or untick statements before generating.' : 'All available Year ' + G.year + ' Ministry statements are shown, not just those matched to your topic. Suggested matches are pre-ticked. You can tick or untick any knowledge or practice statement before generating.')),
+      h('div', {class: 'cg-chips'}, h('span', {class: 'cg-chip acc'}, G.topic), h('span', {class: 'cg-chip'}, guideStageLabel(G)), saveBadge())),
     !G.mapRef ? h('div', {class: 'cg-bank-controls'},
       h('input', {type: 'search', class: 'cg-bank-search', 'aria-label': 'Search year-level curriculum statements', placeholder: 'Search knowledge and practices…', value: statementFilter,
         oninput: e => { statementFilter = e.target.value.toLowerCase().trim(); document.querySelectorAll('.cg-stmt').forEach(label => { label.style.display = !statementFilter || label.textContent.toLowerCase().includes(statementFilter) ? '' : 'none'; }); }}),
-      (JUNIOR.includes(G.year) && G.docId && !G.pasted) ? h('button', {type: 'button', class: 'cg-ghost', disabled: !!G.bankLoaded, onclick: async e => {
+      (JUNIOR.includes(G.year) && G.docId && !G.pasted && !G.stage) ? h('button', {type: 'button', class: 'cg-ghost', disabled: !!G.bankLoaded, onclick: async e => {
         const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Loading Year ' + G.year + ' statements…';
         try { const count = await expandYearStatements(G); banner = {kind:'ok',text: count ? 'Added ' + count + ' further Ministry statement(s). Existing choices remain ticked.' : 'All available Ministry statements are listed. Your choices have been kept.'}; renderMain(); }
         catch(err) { banner = {kind:'note',text:err.message}; renderMain(); }
@@ -352,7 +359,7 @@ function guideView() {
   }, 50);
 
   return h('div', {},
-    h('div', {class: 'cg-gtitle'}, h('div', {}, h('h1', {}, G.topic || 'Unit plan'), h('div', {class: 'cg-chips meta'}, h('span', {class: 'cg-chip acc'}, G.subject || 'Subject'), h('span', {class: 'cg-chip'}, 'Year ' + G.year), G.plan && G.plan.duration ? h('span', {class: 'cg-chip', id: 'cg-dchip'}, G.plan.duration) : null, saveBadge())),
+    h('div', {class: 'cg-gtitle'}, h('div', {}, h('h1', {}, G.topic || 'Unit plan'), h('div', {class: 'cg-chips meta'}, h('span', {class: 'cg-chip acc'}, G.subject || 'Subject'), h('span', {class: 'cg-chip'}, guideStageLabel(G)), G.plan && G.plan.duration ? h('span', {class: 'cg-chip', id: 'cg-dchip'}, G.plan.duration) : null, saveBadge())),
       h('div', {class: 'cg-gactions'}, h('button', {class: 'cg-ghost', type: 'button', onclick: () => { view = 'outline'; renderMain(true); }}, '↻ Change statements'), h('button', {class: 'cg-btn', type: 'button', onclick: download}, '⬇ Word'), resetLink())),
     h('div', {class: 'cg-guide'}, tocEl, h('div', {}, overview, ...focuses, yours, exportCard)));
 }
@@ -409,7 +416,7 @@ const syncMap = () => {};
 
 // Add every Ministry statement from the selected year, retaining AI-suggested ticks.
 async function expandYearStatements(guide, signal) {
-  if (!JUNIOR.includes(guide.year) || !guide.docId || guide.pasted || guide.mapRef) return 0;
+  if (!JUNIOR.includes(guide.year) || !guide.docId || guide.pasted || guide.mapRef || guide.stage) return 0;
   const query = new URLSearchParams({action:'statement-bank',doc_id:guide.docId,year:String(guide.year),discipline:guide.discipline||''});
   const response = await fetch(CS.api + '?' + query, {credentials:'same-origin',signal});
   const result = await response.json().catch(()=>({}));
@@ -432,12 +439,12 @@ async function expandYearStatements(guide, signal) {
 }
 function find() {
   return run('Finding your curriculum statements', ['Reading the Ministry curriculum…', 'Matching statements to your unit…', 'Checking every word against the source…'], async signal => {
-    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
+    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
     G.statements = {knowledge: r.knowledge, practices: r.practices};
     G.selected = {knowledge: r.knowledge.filter(s => s.link !== 'loose').map(s => s.id), practices: r.practices.filter(s => s.link !== 'loose').map(s => s.id)};
     G.bankLoaded = false;
     statementFilter = '';
-    if (JUNIOR.includes(G.year) && G.docId && !G.pasted) {
+    if (JUNIOR.includes(G.year) && G.docId && !G.pasted && !G.stage) {
       try { await expandYearStatements(G, signal); }
       catch (error) { banner = {kind:'note',text:'Matched statements are available, but the full Year '+G.year+' library could not load: '+error.message}; }
     }
@@ -448,7 +455,7 @@ function find() {
 
 function generate() {
   return run('Drafting your unit plan', ['Reading your selected statements…', 'Planning the learning focuses…', 'Checking the wording matches the curriculum…'], async signal => {
-    const r = await stream('generate', {guide: {year: G.year, topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, existingPlan: G.plan, mapRef: G.mapRef}}, signal);
+    const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, existingPlan: G.plan, mapRef: G.mapRef}}, signal);
     const notice = r.statementNotice; delete r.statementNotice;
     G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear();
     banner = notice ? {kind: 'note', text: 'Your draft is ready. ' + notice} : {kind: 'ok', text: 'Your draft is ready. Review it, edit anything, then download it.'};
@@ -591,13 +598,13 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abor
     const q = new URLSearchParams(location.search);
     if (q.get('blank')) { history.replaceState(null, '', location.pathname + '?guide=1'); newGuide(); }
     else if (q.get('topic')) {   // arriving from the curriculum map: reopen the guide for that topic, or start one with the topic filled in
-      const subj = q.get('subject') || '', yr = parseInt(q.get('year'), 10) || 7, topic = q.get('topic');
+      const subj = q.get('subject') || '', yr = parseInt(q.get('year'), 10) || 7, stage = NOVICE.includes(q.get('stage')) ? q.get('stage') : '', topic = q.get('topic');
       history.replaceState(null, '', location.pathname + '?guide=1');
       const mref = q.get('dept') && q.get('mt') ? {department_id: parseInt(q.get('dept'), 10), topic_id: q.get('mt')} : null;
-      const ex = guides.find(g => (g.topic || '').toLowerCase() === topic.toLowerCase() && Number(g.year) === yr && (g.subject || '').toLowerCase() === subj.toLowerCase());
+      const ex = guides.find(g => (g.topic || '').toLowerCase() === topic.toLowerCase() && Number(g.year) === yr && (g.stage || '') === stage && (g.subject || '').toLowerCase() === subj.toLowerCase());
       if (ex) { if (mref && (!ex.mapRef || ex.mapRef.department_id !== mref.department_id || ex.mapRef.topic_id !== mref.topic_id)) { ex.mapRef = mref; G = ex; save(); } open(ex.id); }
       else {
-        newGuide(); G.topic = topic; G.subject = subj; G.year = yr; G.mapRef = mref;
+        newGuide(); G.topic = topic; G.subject = subj; G.year = yr; G.stage = stage; G.mapRef = mref;
         const d = docs.find(x => (x.years || JUNIOR).includes(yr) && [x.subject, x.learningArea].some(n => (n || '').toLowerCase() === subj.toLowerCase())); if (d) G.docId = d.id;
         renderMain();
         if (mref) { const g = G; pullMapStatements(g).then(() => { if (G === g) { if (!lastPull.ok) banner = {kind: 'err', text: lastPull.error + ' Press “Use the statements from the curriculum map” to try again.'}; view = hasStatements(g) ? 'outline' : 'topic'; renderList(); renderMain(); } }); }
