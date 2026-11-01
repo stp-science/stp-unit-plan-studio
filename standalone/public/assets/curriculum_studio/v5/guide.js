@@ -311,8 +311,10 @@ function outlineCard() {
           G.selected[key] = e.target.checked ? [...G.selected[key], s.id] : G.selected[key].filter(x => x !== s.id);
           save();
           if (G.mapRef) {
-            mapSavePromise = mapSavePromise.catch(()=>{}).then(()=>persistMapStatements(G));
+            const guide = G;
+            mapSavePromise = mapSavePromise.catch(()=>{}).then(()=>persistMapStatements(guide));
             mapSavePromise.catch(error=>{
+              if (G !== guide) return;
               banner={kind:'err',text:'Could not save this selection to the curriculum map: '+error.message+'. Your plan was not changed on the map; retry after checking the connection.'};
               renderMain();
             });
