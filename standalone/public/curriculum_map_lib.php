@@ -459,7 +459,7 @@ Shape:
 - Put one to three topics in each term (usually two). Year labels are "Year 7", "Year 8" and so on.
 - Topic titles are short and conventional, as a teacher would write them on a map. No codes, initials or lesson numbers.
 - strand: the strand or discipline each topic belongs to. Use the teacher's strands if they gave some; otherwise propose the subject's natural strands (for example Biology, Chemistry and Physics for science). Leave every strand colour as an empty string.
-- assess: a code from the assessment types supplied (or from the short key you propose if none were supplied). Vary the types sensibly across the year rather than using one type for every unit. Use short-investigation, project or report style types for no more than about a quarter of the units; most units should use the test or extended-writing types.
+- assess: use only a code from the assessment types supplied by the teacher, choosing a type that suits the subject and unit. Do not assume tests, extended writing, investigations or any other default types. If no assessment types were supplied, return an empty assessTypes array and an empty assess string for every topic so staff can decide later.
 - optional: true only for a unit that can be dropped when time is short. Use it sparingly.
 - owner: always an empty string.
 - title: use the requested title, or "<Department> curriculum overview" if none was given. notes: an empty string.

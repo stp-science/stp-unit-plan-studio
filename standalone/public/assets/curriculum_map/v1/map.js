@@ -903,7 +903,7 @@ function startGenerate(f) {
 }
 
 function emptyState() {
-  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: '10', blocks: '4', strands: '', notes: '', types: 'T = End-of-unit test; E = Extended writing; I = Short investigation report'};
+  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: '10', blocks: '4', strands: '', notes: '', types: ''};
   const err = h('div', {class: 'hint', style: 'color:var(--err);min-height:20px'});
   const fileInput = h('input', {type: 'file', accept: '.docx,.xlsx,.csv,.txt,.pdf,.png,.jpg,.jpeg,.webp', style: 'display:none', onchange: e => { if (e.target.files[0]) startImport(e.target.files[0]); }});
   const drop = h('div', {class: 'cm-drop', tabindex: '0', role: 'button', 'aria-label': 'Choose a file to upload',
@@ -922,7 +922,7 @@ function emptyState() {
         h('div', {class: 'cm-row2'}, field('First year', inp('first', {inputmode: 'numeric'}), '7 to 13'), field('Last year', inp('last', {inputmode: 'numeric'}))),
         field('Terms per year', inp('blocks', {inputmode: 'numeric'}), 'For example 4 terms, or 6 if you plan in half-terms.'),
         field('Strands (optional)', inp('strands', {placeholder: 'Biology, Chemistry, Physics'}), 'Comma separated. Leave blank and the AI suggests them.'),
-        field('Assessment types', inp('types'), 'Code = meaning, separated by semicolons.'),
+        field('Assessment types (optional)', inp('types'), 'Enter your department’s own types as Code = meaning, separated by semicolons. Leave blank to choose later.'),
         field('Anything the AI should know (optional)', (() => { const t = h('textarea', {rows: 3, placeholder: 'For example: Year 9 must include electricity before Year 10 circuits. Keep two units a term. We run a practical investigation each year.', oninput: e => { f.notes = e.target.value; }}); return t; })()),
         err, h('div', {style: 'display:flex;gap:10px;flex-wrap:wrap;align-items:center'},
           h('button', {class: 'cm-btn pri', type: 'button', onclick: () => { err.textContent = startGenerate(f); }}, '✨ Design the sequence'),

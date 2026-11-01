@@ -252,7 +252,7 @@ try {
         $y1 = (int)($in['first'] ?? 0); $y2 = (int)($in['last'] ?? 0); $per = (int)($in['blocks'] ?? 4);
         if ($y1 < 7 || $y2 > 13 || $y2 < $y1 || $per < 1 || $per > 8) $json(['ok' => false, 'error' => 'Choose years from 7 to 13, and 1 to 8 terms a year.'], 400);
         $ctx = ['department' => $dept['name'], 'firstYear' => $y1, 'lastYear' => $y2, 'termsPerYear' => $per, 'requestedTitle' => cm_str($in['title'] ?? '', 140),
-            'strands' => cm_str($in['strands'] ?? '', 300) ?: '(none given: propose them)', 'assessmentTypes' => cm_str($in['types'] ?? '', 400) ?: '(none given: propose a short key)',
+            'strands' => cm_str($in['strands'] ?? '', 300) ?: '(none given: propose them)', 'assessmentTypes' => cm_str($in['types'] ?? '', 400) ?: '(none supplied: leave assessment types and topic assessments blank)',
             'teacherNotes' => mb_substr(trim((string)($in['notes'] ?? '')), 0, 1500)];
         @set_time_limit(420);
         @ini_set('zlib.output_compression', '0');
@@ -271,6 +271,11 @@ try {
             $model = (string)$res['model'];
             $stmts = [];
             $map = cm_from_import($res['json'], $stmts);
+            if (trim((string)($in['types'] ?? '')) === '') {
+                $map['assessTypes'] = [];
+                foreach ($map['years'] as &$year) foreach ($year['blocks'] as &$term) foreach ($term['topics'] as &$topic) $topic['assess'] = '';
+                unset($year, $term, $topic);
+            }
             $topics = 0; foreach ($map['years'] as $y) foreach ($y['blocks'] as $b) $topics += count($b['topics']);
             if (!$map['years'] || $topics < 1) throw new CsInvalid('The AI did not return a usable sequence. Try again, or add more detail in the notes.');
             if ($ctx['requestedTitle'] !== '') $map['title'] = $ctx['requestedTitle'];
