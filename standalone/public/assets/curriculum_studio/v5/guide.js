@@ -464,7 +464,7 @@ const closeDlg = () => { dlg?.remove(); dlg = null; };
 addEventListener('keydown', e => { if (e.key === 'Escape' && dlg) closeDlg(); });
 function openDlg(title, body, actions) {
   closeDlg();
-  dlg = h('div', {class: 'cg-veil', role: 'dialog', 'aria-modal': 'true', 'aria-label': title}, h('div', {class: 'cg-dlg'}, h('h3', {}, title), body, h('div', {class: 'cg-dacts'}, ...actions)));
+  dlg = h('div', {class: 'cg cg-veil', role: 'dialog', 'aria-modal': 'true', 'aria-label': title}, h('div', {class: 'cg-dlg'}, h('h3', {}, title), body, h('div', {class: 'cg-dacts'}, ...actions)));
   document.body.append(dlg);
   dlg.querySelector('input,button')?.focus();
 }
