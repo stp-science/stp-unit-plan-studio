@@ -31,6 +31,10 @@ The command restores the five maps, seven plans, statement choices, matching pro
 
 Keep the original ZIP, SQLite file, SQL data dump and config.local.php private. API secrets are not automatically transferred from the current host; school IT must configure them on the PHP host.
 
+### Browser restore on a fresh installation
+
+Once private login works, open `/restore_private_data.php` and upload the original ZIP. The page requires the existing owner login and a session CSRF token. It accepts only the expected database entry, checks size and integrity, and keeps the database outside the public directory. It backs up an automatically created empty database and refuses to replace any saved work. After a successful restore, a private marker prevents further restores. The ZIP is not retained and no AI calls are made.
+
 ## Checks without API use
 
     php tests/claude-adapter.php
