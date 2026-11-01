@@ -64,25 +64,81 @@ function cs_senior_docs(): array
     return $cache;
 }
 
-// Senior documents are long (up to ~300K characters). Send only the pages that mention the topic, plus the page after each
-// (tables continue across pages), within a character budget.
-function cs_senior_pages(array $pages, string $topic, int $budget): array
+// Rank senior evidence by the unit title AND selected content, avoiding unrelated
+// uses of a short title (for example biological cells versus atmospheric cells).
+function cs_senior_keywords(string $topic, string $context = ''): array
 {
-    $total = 0;
-    foreach ($pages as $p) $total += strlen((string)($p['text'] ?? ''));
-    if ($total <= $budget) return $pages;
-    $skip = ['and', 'with', 'the', 'from', 'their', 'that', 'this', 'year', 'years', 'unit', 'topic', 'about'];
+    $stop = array_flip(explode(' ', 'and with the from their that this year years unit topic about students student learning learn knowledge practices practice understand understanding identify explain describe using used uses different specific including following these those through which where when what into will have been they them also such each more other some between taught teach related relevant'));
     $terms = [];
-    foreach (preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($topic)) as $w) if (mb_strlen($w) >= 4 && !in_array($w, $skip, true)) $terms[] = mb_substr($w, 0, max(4, mb_strlen($w) - 2));
-    $score = [];
-    foreach ($pages as $i => $p) { $t = mb_strtolower((string)($p['text'] ?? '')); $n = 0; foreach ($terms as $w) $n += substr_count($t, $w); $score[$i] = $n; }
-    arsort($score);
-    $pick = [];
-    foreach ($score as $i => $n) { if ($n <= 0 || count($pick) >= 12) break; $pick[$i] = true; if (isset($pages[$i + 1])) $pick[$i + 1] = true; }
-    if (!$pick) foreach (array_keys($pages) as $k) { $pick[$k] = true; if (count($pick) >= 8) break; }
-    ksort($pick);
-    $out = []; $used = 0;
-    foreach (array_keys($pick) as $i) { $len = strlen((string)($pages[$i]['text'] ?? '')); if ($out && $used + $len > $budget) break; $out[] = $pages[$i]; $used += $len; }
+    foreach ([[$topic, 4], [$context, 1]] as [$text, $weight]) {
+        foreach (preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($text)) ?: [] as $word) {
+            if (mb_strlen($word) < 4 || isset($stop[$word])) continue;
+            $word = preg_replace('/(?<!s)s$/u', '', $word);
+            $terms[$word] = max($terms[$word] ?? 0, $weight);
+            if (count($terms) >= 60) break;
+        }
+    }
+    return $terms;
+}
+function cs_senior_score(string $text, array $terms): int
+{
+    $score = 0;
+    foreach ($terms as $word => $weight) {
+        $n = preg_match_all('/(?<![\p{L}\p{N}])' . preg_quote($word, '/') . '(?:s|es|al|ular|ing|ed)?(?![\p{L}\p{N}])/iu', $text);
+        $score += min(8, (int)$n) * $weight;
+    }
+    return $score;
+}
+function cs_senior_excerpt(string $text, array $terms, int $budget): string
+{
+    if (mb_strlen($text) <= $budget) return $text;
+    $lines = preg_split('/\r?\n/', $text) ?: [];
+    $rank = []; foreach ($lines as $i => $line) $rank[$i] = cs_senior_score($line, $terms);
+    arsort($rank);
+    $pick = []; $used = 0;
+    // Keep the page heading, which carries strand/year/column labels.
+    foreach (array_slice(array_keys($lines), 0, 7) as $i) { $pick[$i] = true; $used += mb_strlen($lines[$i]) + 1; }
+    foreach ($rank as $i => $score) {
+        if ($score <= 0) break;
+        $group = []; $length = 0;
+        foreach (range(max(0, $i - 1), min(count($lines) - 1, $i + 1)) as $k) if (!isset($pick[$k])) { $group[] = $k; $length += mb_strlen($lines[$k]) + 1; }
+        if ($used + $length > $budget - 60) continue;
+        foreach ($group as $k) $pick[$k] = true;
+        $used += $length;
+    }
+    ksort($pick); $out = []; $previous = -1;
+    foreach (array_keys($pick) as $i) { if ($i > $previous + 1) $out[] = '[excerpt gap]'; $out[] = $lines[$i]; $previous = $i; }
+    return mb_substr(implode("\n", $out), 0, $budget);
+}
+function cs_senior_pages(array $pages, string $topic, int $budget, string $context = ''): array
+{
+    $terms = cs_senior_keywords($topic, $context);
+    $rank = [];
+    foreach ($pages as $i => $page) {
+        $text = (string)($page['text'] ?? '');
+        $score = cs_senior_score($text, $terms);
+        if (stripos($text, 'Knowledge') !== false && stripos($text, 'Practices') !== false) $score *= 2;
+        if (stripos($text, 'Purpose statement') !== false) $score = (int)($score / 5);
+        $rank[$i] = $score;
+    }
+    arsort($rank);
+    // Statement extraction uses a larger budget and needs complete source pages
+    // so wrapped statements retain their exact wording.
+    if ($budget >= 10000) {
+        $out = []; $used = 0;
+        foreach ($rank as $i => $score) {
+            if ($score <= 0 || count($out) >= 8) break;
+            $length = mb_strlen((string)$pages[$i]['text']);
+            if ($used + $length > $budget) continue;
+            $out[] = $pages[$i]; $used += $length;
+        }
+        return $out;
+    }
+    $pick = array_slice(array_keys(array_filter($rank, static fn($score) => $score > 0)), 0, 2);
+    if (!$pick) return [];
+    $perPage = max(500, (int)floor(($budget - 100) / count($pick)));
+    $out = [];
+    foreach ($pick as $i) { $page = $pages[$i]; $page['text'] = cs_senior_excerpt((string)$page['text'], $terms, $perPage); $out[] = $page; }
     return $out;
 }
 
@@ -132,7 +188,7 @@ Prior learning: identify the prerequisite idea or practice and explain how this 
 Future learning: identify the later topic and explain specifically what the current unit prepares students to know or do. Use later units, including a later unit in the same year where its order is confirmed.
 Department sequence: when departmentSequence and thisUnit are supplied, use the exact year labels and topic titles in that list for confirmed school connections, respecting its chronological order. Name only units with a genuine conceptual or disciplinary link. Never claim an unlisted unit is part of the school's confirmed programme. If no confirmed school sequence is supplied, use relevant curriculum-supported topic descriptions and likely years only as explicitly labelled suggestions in the form "Suggested Year [number/range] — [Topic] (sequence to confirm): [short link]". Do not present a suggested topic as an official Ministry unit title or as learning already taught at this school. If the evidence does not support a specific year or topic, state that the connection needs confirming rather than inventing one.
 Senior learning: when seniorCurriculum excerpts support a genuine connection to later Years 11–13 learning, add a final future-connection line in the same year–topic–description format. Name the senior subject and relevant topic or content area from the extract and the specific idea or practice this unit builds towards. Use the exact year or year range supported by the extract; never assign a phase-wide statement to one exact year without evidence. Label it "national curriculum; school course to confirm". Do not invent school course names, achievement standards, codes or credit values.
-Lesson allocation: give every focus lessonCount, a whole number of lessons (at least 1, usually 1 to 8) that focus realistically needs, reflecting how much content and practical work it holds and where assessment and feedback fall. Always do this, even when no timing is given. Set every focus's lessons field to an empty string (the page works out the labels and the total). timingRules is the teacher's plain-English description of the time available (for example lessons per week, number of weeks, lesson length, assessments, practicals or events). When timingRules gives usable timing, work out the total number of lessons (lessons per week multiplied by weeks, or the total they state), make the lessonCount values add up to exactly that total, follow any rules about where assessments, practicals or other lessons fall, and set the duration field to one tidy sentence in exactly this form, for example '18 lessons of approximately 50 minutes (3 a week for 6 weeks), including assessment and feedback.' (check the multiplication: 3 a week for 6 weeks is 18, not more or less). When no usable timing is given, leave duration empty and do not invent a timetable; just suggest sensible lessonCount values. If currentDraft already has lessonCount values the teacher may have adjusted, keep them unless the timing total requires a change.
+Lesson allocation: group related statements into coherent learning focuses before allocating time; one statement does not automatically mean one focus or one lesson. Give each focus lessonCount, a positive whole number representing the minimum realistic time for its conceptual depth, practical work, guided and independent practice, assessment and feedback. Brief historical context, naming or a simple factual statement should usually be embedded within a related focus and take only part of a lesson, not a separate multi-lesson block. Allocate several lessons only when substantive learning or practical work justifies them; do not pad simple content to fill time. Avoid splitting a small topic into many focuses that each force an extra whole lesson. Always do this, even when no timing is given. Set every focus's lessons field to an empty string (the page works out the labels and the total). timingRules is the teacher's plain-English description of the time available (for example lessons per week, number of weeks, lesson length, assessments, practicals or events). When timingRules gives usable timing, work out the total number of lessons (lessons per week multiplied by weeks, or the total they state), make the lessonCount values add up to exactly that total, follow any rules about where assessments, practicals or other lessons fall, and set the duration field to one tidy sentence in exactly this form, for example '18 lessons of approximately 50 minutes (3 a week for 6 weeks), including assessment and feedback.' (check the multiplication: 3 a week for 6 weeks is 18, not more or less). When no usable timing is given, leave duration empty and do not invent a timetable; just suggest sensible lessonCount values. If currentDraft already has lessonCount values the teacher may have adjusted, keep them unless the timing total requires a change.
 Knowledge Summary: concise overview of WHAT facts, concepts, principles and theories students learn across the unit. Do not count statements, list focus titles, or repeat every statement.
 Practices Summary: concise overview of the disciplinary skills, strategies and applications selected, not a list of classroom activities or a copy of all practice statements.
 Copy the selected official knowledge and practice statements exactly. Never invent Ministry wording. Include every selected statement at least once and no unselected statement; focuses may group them into coherent conceptual sequences without changing wording or losing statements. The number of focuses depends on the unit and the learning; four is illustrative only. A focus can span several lessons and have more than one objective.
@@ -350,7 +406,7 @@ function cs_vocab_join(string $t2, string $t3): string
  * Excerpts of the national Years 11-13 curriculum for a guide's subject, so future-learning connections can name senior learning.
  * Returns [] when no senior document matches. At most two documents, the pages most relevant to the topic, within a character budget.
  */
-function cs_senior_future(string $subject, string $topic): array
+function cs_senior_future(string $subject, string $topic, string $context = ''): array
 {
     $name = mb_strtolower(trim($subject));
     if ($name === '') return [];
@@ -378,21 +434,21 @@ function cs_senior_future(string $subject, string $topic): array
         }
     }
     if (!$cands) return [];
-    $terms = [];
-    foreach (preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($topic)) as $w) if (mb_strlen($w) >= 4) $terms[] = mb_substr($w, 0, max(4, mb_strlen($w) - 2));
+    $terms = cs_senior_keywords($topic, $context);
     $scored = [];
     foreach (array_slice($cands, 0, 14) as $d) {
         $body = cs_catalogue_content($d); $pages = $body['pages'] ?? [];
         if (!$pages) continue;
         $text = ''; foreach ($pages as $p) $text .= ' ' . mb_strtolower((string)($p['text'] ?? ''));
-        $n = 0; foreach ($terms as $t) $n += substr_count($text, $t);
+        $n = cs_senior_score($text, $terms);
         $scored[] = ['doc' => $d, 'pages' => $pages, 'score' => $n];
     }
     usort($scored, static fn($a, $b) => $b['score'] <=> $a['score']);
     $out = [];
     foreach (array_slice($scored, 0, 2) as $s) {
         if (count($scored) > 2 && $s['score'] <= 0) break;   // a broad learning area with no link to this topic: name nothing rather than guess
-        $pages = cs_senior_pages($s['pages'], $topic, 4500);
+        $pages = cs_senior_pages($s['pages'], $topic, 4500, $context);
+        if (!$pages) continue;
         $text = '';
         foreach ($pages as $p) $text .= "\n--- page " . ($p['page'] ?? '?') . " ---\n" . preg_replace('/[ \t]{2,}/', ' ', (string)($p['text'] ?? ''));
         $out[] = ['document' => $s['doc']['title'], 'years' => implode(', ', $s['doc']['years']), 'excerpt' => mb_substr(trim($text), 0, 4500)];
