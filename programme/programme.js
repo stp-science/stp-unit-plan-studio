@@ -65,7 +65,107 @@ $('addUnit').onclick=()=>{const u={id:uid(),title:'New unit',year:7,term:1,subje
 function renderOverview(){const grid=$('overviewGrid');grid.replaceChildren();const shown=pendingOverview?.units||p.units;if(!shown.length){grid.append(el('p','Upload an overview, ask AI to propose one, or add a unit manually.','empty'));return;}if(pendingOverview)grid.append(el('p','Draft overview — confirm it after review before using it to build topic guides.','notice'));else if(p.overviewWarnings?.length)grid.append(el('p',p.overviewWarnings.join(' · '),'notice'));const years=el('div',undefined,'year-grid');for(const year of [7,8,9,10]){const col=el('div',undefined,'year-column');col.append(el('h3','Year '+year));for(const term of [1,2,3,4]){const d=el('div',undefined,'term');d.append(el('strong','TERM '+term));for(const u of shown.filter(u=>u.year===year&&u.term===term)){const b=pendingOverview?el('div',u.title,'unit-tile'):button(u.title,()=>editUnit(u),'unit-tile');b.append(el('span',`${u.subject||p.subjects} · ${p.guides[u.id]?'Guide saved':'Guide to create'}`));d.append(b);}col.append(d);}years.append(col);}grid.append(years);}
 function editUnit(u){const root=$('unitEditor');root.replaceChildren();const card=el('div',undefined,'editor-card');card.append(el('h3','Edit unit & source statements'));for(const [k,label]of [['title','Unit title'],['subject','Learning area(s)'],['duration','Duration'],['rationale','Position in the sequence']])card.append(field(label,u[k],v=>{u[k]=v;persist();},k==='rationale'?3:1));const row=el('div',undefined,'form-grid');for(const [k,values]of [['year',[7,8,9,10]],['term',[1,2,3,4]]]){const l=el('label',k==='year'?'Year':'Term'),s=el('select');s.append(...values.map(v=>new Option(v,v)));s.value=u[k];s.onchange=()=>{u[k]=Number(s.value);persist();renderOverview();};l.append(s);row.append(l);}card.append(row,el('p','One statement per line: subject | document and page | exact wording. Use this for manual corrections before generation.','helper'));for(const key of ['knowledge','practices'])card.append(field(key==='knowledge'?'Knowledge statements':'Practice statements',u[key].map(s=>`${s.subject} | ${s.source} | ${s.text}`).join('\n'),v=>{u[key]=v.split('\n').filter(s=>s.trim()).map((line,i)=>{const parts=line.split('|');return {id:u.id+'-'+key+'-'+i,subject:(parts.shift()||u.subject).trim(),source:parts.length>1?parts.shift().trim():'Source to verify',text:parts.join('|').trim()};});u[key==='knowledge'?'selectedKnowledge':'selectedPractices']=u[key].map(s=>s.id);if(p.mapping)p.mappingStale=true;persist();},6));card.append(button('Done',()=>{root.replaceChildren();render();}),button('Open topic guide',()=>{unitId=u.id;working=null;mode('one');},'primary'));if(!p.guides[u.id])card.append(button('Remove unit',()=>{if(!confirm('Remove this unit from the overview?'))return;p.units=p.units.filter(x=>x.id!==u.id);p.mapping=null;persist();root.replaceChildren();render();},'quiet'));root.append(card);card.scrollIntoView({behavior:'smooth',block:'start'});}
 function currentUnit(){return p.units.find(u=>u.id===unitId);}
-function renderSelection(){const select=$('unitSelect');select.replaceChildren(...p.units.map(u=>new Option(`Year ${u.year} · Term ${u.term} · ${u.title}`,u.id)));if(!currentUnit())unitId=p.units[0]?.id||'';select.value=unitId;const root=$('statementSelection');root.replaceChildren();const u=currentUnit();if(!u){root.append(el('p','Create or import your overview in Mode 1 first.','empty'));return;}root.append(el('p',u.rationale||'Review this unit’s place in the programme.','notice'));for(const key of ['knowledge','practices']){const group=el('fieldset');group.append(el('legend',key==='knowledge'?'Curriculum knowledge statements':'Curriculum practice statements'));const selection=key==='knowledge'?'selectedKnowledge':'selectedPractices';for(const s of u[key]){const l=check(`${s.text} — ${s.subject} · ${s.source}`,u[selection].includes(s.id),on=>{u[selection]=on?[...u[selection],s.id]:u[selection].filter(x=>x!==s.id);p.mappingStale=true;persist();});group.append(l);}if(!u[key].length)group.append(el('p','No statements mapped. Add or check the source statements in Mode 1.','helper'));root.append(group);}if(p.guides[u.id]&&p.guides[u.id].selectionSignature!==signature(u))root.append(el('p','The unit or statement selection has changed since this guide was generated. The saved guide is retained; regenerate and review it when ready.','notice'));}
+const curriculumBankCache=new Map();
+let selectionRenderToken=0;
+function curriculumBank(sourceId,year){
+ const cacheKey=sourceId+':'+year;
+ if(!curriculumBankCache.has(cacheKey)){
+  const pending=fetch('/api/curriculum-library?source='+encodeURIComponent(sourceId)+'&year='+year)
+   .then(async response=>{
+    const data=await response.json();
+    if(!response.ok)throw Error(data.error||'Could not open the curriculum library.');
+    if(!data.ready||!Array.isArray(data.records))throw Error('The year-level statement index is not ready.');
+    return data.records.filter(s=>['knowledge','practice'].includes(s.kind)&&s.id&&s.text&&s.source);
+   }).catch(error=>{curriculumBankCache.delete(cacheKey);throw error;});
+  curriculumBankCache.set(cacheKey,pending);
+ }
+ return curriculumBankCache.get(cacheKey);
+}
+function renderSelection(){
+ const token=++selectionRenderToken;
+ const select=$('unitSelect');
+ select.replaceChildren(...p.units.map(u=>new Option('Year '+u.year+' · Term '+u.term+' · '+u.title,u.id)));
+ if(!currentUnit())unitId=p.units[0]?.id||'';
+ select.value=unitId;
+ const root=$('statementSelection');
+ root.replaceChildren();
+ const u=currentUnit();
+ if(!u){root.append(el('p','Create or import your overview in Mode 1 first.','empty'));return;}
+ root.append(el('p',u.rationale||'Review this unit’s place in the programme.','notice'));
+ root.append(el('h3','Year '+u.year+' curriculum statements and practices'));
+ root.append(el('p','Statements linked to this unit are ticked already. Search the full year-level Ministry list and tick or untick any additional knowledge and practices. Only ticked statements will be used to generate this guide.','helper'));
+ const controls=el('div',undefined,'statement-tools');
+ const search=el('input');search.type='search';search.placeholder='Search knowledge and practices…';search.setAttribute('aria-label','Search curriculum statements');
+ const matchedOnly=check('Show only statements mapped to this unit',false,on=>{onlyMapped=on;draw();});
+ controls.append(search,matchedOnly);
+ const note=el('p','Loading the Year '+u.year+' Ministry statements…','helper');
+ const results=el('div',undefined,'year-statement-groups');
+ root.append(controls,note,results);
+ let records=[],onlyMapped=false;
+ function draw(){
+  const query=search.value.trim().toLowerCase();
+  results.replaceChildren();
+  let displayedTotal=0;
+  for(const [key,kind,heading,selection] of [
+   ['knowledge','knowledge','Knowledge statements','selectedKnowledge'],
+   ['practices','practice','Practice statements','selectedPractices']
+  ]){
+   const group=el('fieldset',undefined,'curriculum-statement-group');
+   const chosen=u[selection]||[];
+   const available=[],seen=new Set();
+   // Keep any manually entered or uploaded-overview statements even when the catalogue cannot locate them.
+   for(const s of u[key]||[]){if(!seen.has(s.id)){seen.add(s.id);available.push({...s,mapped:true});}}
+   for(const s of records.filter(s=>s.kind===kind)){
+    if(!seen.has(s.id)){seen.add(s.id);available.push({...s,mapped:false});}
+   }
+   const visible=available.filter(s=>(!onlyMapped||s.mapped)&&(!query||(s.text+' '+s.subject+' '+s.source+' '+(s.section||'')).toLowerCase().includes(query)));
+   displayedTotal+=visible.length;
+   group.append(el('legend',heading+' ('+chosen.length+' selected · '+available.length+' available)'));
+   if(!visible.length)group.append(el('p',query?'No matching statements.':'No statements available in this group.','helper'));
+   for(const s of visible){
+    const label=(s.mapped?'Mapped · ':'')+s.text+' — '+(s.subject||u.subject)+' · '+s.source;
+    const option=check(label,chosen.includes(s.id),on=>{
+     if(on){
+      if(!u[key].some(item=>item.id===s.id))u[key].push({id:s.id,text:s.text,subject:s.subject||u.subject,source:s.source});
+      if(!u[selection].includes(s.id))u[selection].push(s.id);
+     }else u[selection]=u[selection].filter(id=>id!==s.id);
+     if(p.mapping)p.mappingStale=true;
+     persist();
+     draw();
+    });
+    if(s.section)option.title=s.section;
+    group.append(option);
+   }
+   results.append(group);
+  }
+  if(!displayedTotal&&query)results.append(el('p','No curriculum statements match that search.','helper'));
+ }
+ search.oninput=draw;
+ draw();
+ const sourceIds=[...new Set((p.catalogueIds||[]).filter(id=>catalogueEntries.some(d=>d.id===id&&d.availableForCurriculum!==false)))];
+ if(p.guides[u.id]&&p.guides[u.id].selectionSignature!==signature(u))root.append(el('p','The unit or statement selection has changed since this guide was generated. The saved guide is retained; regenerate and review it when ready.','notice'));
+ if(!sourceIds.length){
+  note.textContent='No complete Ministry catalogue source is selected. Showing the statements already mapped to this unit; choose a Ministry source in Mode 1 to browse the full year.';
+  return;
+ }
+ Promise.allSettled(sourceIds.map(id=>curriculumBank(id,u.year))).then(outcomes=>{
+  if(token!==selectionRenderToken||currentUnit()?.id!==u.id)return;
+  records=outcomes.filter(r=>r.status==='fulfilled').flatMap(r=>r.value);
+  // The Arts catalogue holds several disciplines. Only offer those selected for this programme.
+  if(p.learningArea==='The Arts'&&(p.disciplines||[]).length){
+   const disciplines=p.disciplines.map(d=>d.toLowerCase());
+   records=records.filter(s=>disciplines.some(d=>(s.subject||'').toLowerCase()===d||(s.section||'').toLowerCase().includes(d)));
+  }
+  const missing=outcomes.filter(r=>r.status==='rejected');
+  const extraSources=(p.sources||[]).length||p.curriculumText?.trim();
+  note.textContent=missing.length
+   ?'Some Ministry statement indexes are unavailable. Showing the available Year '+u.year+' records and the statements already mapped to this unit; the list may be incomplete.'
+   :extraSources
+    ?'Showing '+records.length+' Year '+u.year+' catalogue statements plus any statements in your uploaded sources already mapped to this unit. Uploaded documents may contain additional statements not indexed here.'
+    :'Showing '+records.length+' Year '+u.year+' Ministry curriculum records from the selected source(s), plus any unit-specific manual entries.';
+  draw();
+ });
+}
 function signature(u){return JSON.stringify([u.title,u.year,u.subject,u.duration,selectedStatements(u,'knowledge'),selectedStatements(u,'practices')]);}
 $('unitSelect').onchange=()=>{saveWorking();unitId=$('unitSelect').value;working=null;renderSelection();renderGuide();};
 function sourceFor(u){return {title:[...new Set([...u.knowledge,...u.practices].map(s=>s.source))].join('; '),knowledge:selectedStatements(u,'knowledge').map(s=>s.text).join('\n'),practices:selectedStatements(u,'practices').map(s=>s.text).join('\n')};}
