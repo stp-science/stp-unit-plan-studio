@@ -106,13 +106,16 @@ addEventListener('popstate', async e => {
 // ---------------------------------------------------------------- helpers on the map
 const strandOf = id => S.map.strands.find(s => s.id === id);
 const typeOf = code => S.map.assessTypes.find(t => t.code === code);
-const yearNum = label => { const m = /\d+/.exec(label || ''); return m ? m[0] : ''; };
+const yearNum = label => { const m = /\bYear\s*(\d+)\b/i.exec(label || ''); return m ? m[1] : ''; };
+const noviceOf = label => { const m = /^\s*Novice\s*([123])\s*$/i.exec(label || ''); return m ? 'Novice ' + m[1] : ''; };
+const isLanguageDept = () => /french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i.test(S.dept?.name || '');
+const yearOf = label => noviceOf(label) ? 7 : (parseInt(yearNum(label), 10) || 0);
 function findTopic(id) {
   for (const y of S.map.years) for (const b of y.blocks) { const i = b.topics.findIndex(t => t.id === id); if (i >= 0) return {y, b, i, t: b.topics[i]}; }
   return null;
 }
 function guideUrl(y, t) {
-  return CM.guide + '?' + new URLSearchParams({guide: '1', new: '1', subject: S.dept.name, year: yearNum(y.label), topic: t.title, dept: S.dept.id, mt: t.id});
+  return CM.guide + '?' + new URLSearchParams({guide: '1', new: '1', subject: S.dept.name, year: String(yearOf(y.label)), stage: noviceOf(y.label), topic: t.title, dept: S.dept.id, mt: t.id});
 }
 function counts() {
   const core = {}, opt = {};
@@ -121,8 +124,10 @@ function counts() {
   return {core: fmt(core), opt: fmt(opt)};
 }
 function rangeText() {
+  const stages = S.map.years.map(y => noviceOf(y.label)).filter(Boolean);
+  if (stages.length === S.map.years.length) return 'across ' + stages.join(', ');
   const ys = S.map.years.map(y => yearNum(y.label)).filter(Boolean);
-  return ys.length > 1 && ys.length === S.map.years.length ? 'across Years ' + ys[0] + '–' + ys.at(-1) : 'across all year groups';
+  return ys.length > 1 && ys.length === S.map.years.length ? 'across Years ' + ys[0] + '–' + ys.at(-1) : 'across all groups';
 }
 const termName = (y, b) => (b.label && !/^(block|term)\s*\d+$/i.test(b.label.trim())) ? b.label : 'Term ' + (y.blocks.indexOf(b) + 1);
 function blockNumber(yi, bi) { let n = 0; for (let i = 0; i < yi; i++) n += S.map.years[i].blocks.length; return n + bi + 1; }
@@ -187,7 +192,7 @@ const recordMatch = (id, status, found, note) => {
   paintBar(id, true); paintStrip();
   return post('match-mark', {department_id: S.dept.id, topic_id: id, status, found, note: note || ''}).catch(() => {});
 };
-const eligible = y => { const n = parseInt(yearNum(y.label), 10); return n >= 7 && n <= 13; };
+const eligible = y => !!noviceOf(y.label) || (yearOf(y.label) >= 7 && yearOf(y.label) <= 13);
 const allTopics = () => S.map.years.flatMap(y => y.blocks.flatMap(b => b.topics.map(t => ({y, b, t}))));
 function tileState(id) {
   const k = tiles.get(id);
@@ -254,14 +259,14 @@ function reviewNext() {
   S.open.add(k.t.id); k.body.hidden = false; paintBar(k.t.id, true); k.wrap.scrollIntoView({block: 'center', behavior: 'smooth'});
 }
 async function matchOne({y, t}, deptId, run) {
-  const year = parseInt(yearNum(y.label), 10); let status = 'attention', found = 0, note = '';
+  const year = yearOf(y.label), stage = noviceOf(y.label); let status = 'attention', found = 0, note = '';
   try {
     if (!(year >= 7 && year <= 13)) throw Error('Statements are available for Years 7 to 13.');
     const info = await resolveDoc(year);
     if (!info) throw Error('No Ministry curriculum document matches “' + S.dept.name + '” for Year ' + year + '.');
     const rows = await loadStatements(t.id);
     const {res, otherLevel} = await findFor(info, year, t.title, topicContext(y, t), {
-      shouldContinue: () => !run.stop && S.dept?.id === deptId,
+      stage, shouldContinue: () => !run.stop && S.dept?.id === deptId,
       onWait: ({seconds}) => { run.waiting = 'Waiting ' + seconds + ' seconds before retrying “' + t.title + '”…'; paintStrip(); }
     });
     run.waiting = '';
@@ -360,10 +365,12 @@ async function getLevels(info, year) {
 }
 // Statements for a year. Frameworks with year columns load that column; proficiency-based ones load the levels this department maps to the year
 // (and the whole document when it has neither), so statements are available even when the document never names a year group.
-async function ensureBank(year, onProgress, all) {
+async function ensureBank(year, onProgress, all, stage = '') {
   const info = await resolveDoc(year);
   if (!info) return {info: null, bank: null};
-  const lv = await getLevels(info, year), base = {department_id: S.dept.id, doc_id: info.doc.id, year, discipline: info.disc};
+  const base = {department_id: S.dept.id, doc_id: info.doc.id, year, discipline: info.disc};
+  if (stage) return {info: {...info, mode: 'novice', active: [stage]}, bank: await loadBank({...base, level:stage}, onProgress)};
+  const lv = await getLevels(info, year);
   if (lv.mode === 'years') return {info: {...info, mode: 'years'}, bank: await loadBank(base, onProgress)};
   const items = [], names = all && lv.mode === 'levels' ? lv.levels.map(l => l.name) : lv.active;
   for (const n of names) {
@@ -379,9 +386,11 @@ function topicContext(y, t) {
   return ['Department: ' + S.dept.name, 'Target year: ' + y.label, strand ? 'Strand: ' + strand : '', S.map?.notes ? 'Overview notes: ' + S.map.notes : ''].filter(Boolean).join('\n').slice(0, 2000);
 }
 async function findFor(info, year, title, notes = '', options = {}) {
-  const lv = await getLevels(info, year), inLevels = lv.mode === 'levels' ? lv.active : [], all = lv.mode === 'levels' ? lv.levels.map(l => l.name) : [];
+  const stage = options.stage || '';
+  const lv = stage ? {mode:'levels',active:[stage],levels:[{name:stage}]} : await getLevels(info, year);
+  const inLevels = lv.mode === 'levels' ? lv.active : [], all = stage ? inLevels : lv.mode === 'levels' ? lv.levels.map(l => l.name) : [];
   const call = levels => curriculumAi(() => fetch(CM.studio + '?action=find', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({csrf: CM.csrf, year, topic: title, docId: info.doc.id, discipline: info.disc, levels, notes, pasted: '', pacedRetry: true})}).then(streamResult), options);
+    body: JSON.stringify({csrf: CM.csrf, year, stage, topic: title, docId: info.doc.id, discipline: info.disc, levels, notes, pasted: '', pacedRetry: true})}).then(streamResult), options);
   const miss = e => /No matching curriculum statements/i.test(e.message || '');
   try { return {res: await call(inLevels), otherLevel: false}; }
   catch (e) {
@@ -442,9 +451,11 @@ async function relinkImported(year, info, items) {
 }
 // After a map is imported or generated, get the statements ready for every year on it, quietly.
 async function prefetchBanks() {
+  const stages = [...new Set((S.map?.years || []).map(y => noviceOf(y.label)).filter(Boolean))];
   const years = [...new Set((S.map?.years || []).map(y => parseInt(yearNum(y.label), 10)).filter(n => n >= 7 && n <= 13))];
   let ready = 0;
   let linked = 0;
+  for (const stage of stages) { try { const r = await ensureBank(7, null, false, stage); if (r.bank) ready++; } catch(e) { if (['rate_limit','quota','settings'].includes(e.code)) break; } }
   for (const yr of years) { try { const r = await ensureBank(yr); if (r.bank) { ready++; linked += await relinkImported(yr, r.info, r.bank.items).catch(() => 0); } } catch (e) { if (['rate_limit', 'quota', 'settings'].includes(e.code)) break; /* retry other failures on demand */ } }
   if (linked) toast('Matched ' + linked + ' imported statement' + (linked === 1 ? '' : 's') + ' to the official Ministry wording.');
   else if (ready) toast('Curriculum statements are ready to tick for ' + ready + ' year group' + (ready > 1 ? 's' : '') + '.');
@@ -457,7 +468,7 @@ function statementsPanel(y, t) {
   box.append(head, info, tools, list);
   const others = new Map(), acked = new Set();   // statement text -> other topics using it; statements the teacher agreed to reuse
   let allLevels = false, rows = null, ctx = null, bank = null, busy = '', note = '', prog = '', q = '', show = 'all', timer = 0;
-  const year = parseInt(yearNum(y.label), 10);
+  const year = yearOf(y.label), stage = noviceOf(y.label);
   const rowFor = text => (rows || []).find(r => flatTxt(r.text) === flatTxt(text));
   const reopen = () => { closeModal(); const f = findTopic(t.id); if (f) (S.edit ? topicEditor(f.y, f.b, f.t, false) : topicDetails(f.y, f.b, f.t)); };
   const persist = () => { clearTimeout(timer); timer = setTimeout(() => saveStatements(t.id, rows.filter(r => r.selected || r.confidence != null)).then(paintHead).catch(e => toast(e.message)), 600); };
@@ -470,6 +481,7 @@ function statementsPanel(y, t) {
       rows && used() ? h('button', {class: 'cm-btn sm', type: 'button', title: 'Untick every statement for this unit', onclick: askClear}, 'Clear selection') : null,
       h('button', {class: 'cm-btn sm', type: 'button', disabled: !!busy || !ctx, title: 'Optional: the AI ticks the statements that best match this unit. You can still tick any others yourself.', onclick: suggest}, '✨ Suggest with AI (optional)'));
     const lvNote = () => {
+      if (ctx?.mode === 'novice') return [h('p', {class: 'hint'}, 'Showing official ' + stage + ' language statements, rather than statements allocated to a school year.')];
       if (ctx?.mode === 'whole') return [h('p', {class: 'hint'}, 'This curriculum is not divided by year group, so every statement is offered for ' + y.label + '.')];
       if (ctx?.mode !== 'levels') return [];
       const lv = ctx.levels, ok = lv.levels.filter(l => ctx.active.includes(l.name)).every(l => l.confirmed);
@@ -575,9 +587,9 @@ function statementsPanel(y, t) {
   }
   async function loadBankNow() {
     try {
-      const r = await ensureBank(year, p => { prog = 'Reading the curriculum for ' + y.label + ': part ' + p.done + ' of ' + p.total + '. This only happens once per subject and year.'; paintHead(); }, allLevels);
+      const r = await ensureBank(year, p => { prog = 'Reading the curriculum for ' + y.label + ': part ' + p.done + ' of ' + p.total + '. This only happens once per source and stage.'; paintHead(); }, allLevels, stage);
       prog = ''; ctx = r.info; bank = r.bank;
-      if (!ctx) note = 'No Ministry curriculum document matches “' + S.dept.name + '” for Year ' + year + '. Open the unit plan to paste your own curriculum text.';
+      if (!ctx) note = 'No Ministry curriculum document matches “' + S.dept.name + '” for ' + y.label + '. Open the unit plan to paste your own curriculum text.';
     } catch (e) { prog = ''; note = e.message; }
     paintHead(); paintList();
   }
@@ -592,16 +604,17 @@ function statementsPanel(y, t) {
       for (const r of all.statements || []) if (r.selected && r.topic_id !== t.id && names[r.topic_id]) { const k = flatTxt(r.text); if (!others.has(k)) others.set(k, []); others.get(k).push(names[r.topic_id]); }
     } catch (e) { /* the list still works without the used-in hints */ }
     paintList();
-    if (!(year >= 7 && year <= 13)) { note = 'Statements are available for Years 7 to 13. Rename the year row, for example “Year 9”.'; paintHead(); return; }
+    if (!(year >= 7 && year <= 13)) { note = 'Use a Year 7–13 label or a language Novice 1–3 label to find curriculum statements.'; paintHead(); return; }
     await loadBankNow();
   })();
   return box;
 }
 
+const stageLabel = y => noviceOf(y.label) ? 'Proficiency stage' : 'Year';
 function topicDetails(y, b, t) {
   const st = strandOf(t.strand), ty = typeOf(t.assess);
   openModal(t.title, h('div', {class: 'cm-det'},
-    h('div', {}, h('span', {}, 'Year'), h('b', {}, y.label + ' · ' + termName(y, b))),
+    h('div', {}, h('span', {}, stageLabel(y)), h('b', {}, y.label + ' · ' + termName(y, b))),
     st ? h('div', {}, h('span', {}, 'Strand'), h('span', {class: 'cm-pill', style: '--c:' + st.color}, st.name)) : null,
     t.assess ? h('div', {}, h('span', {}, 'Assessment'), h('span', {}, h('span', {class: 'cm-code'}, t.assess), ' ', ty?.label || '')) : null,
     t.owner ? h('div', {}, h('span', {}, 'Taught by'), h('b', {}, t.owner)) : null,
@@ -771,7 +784,7 @@ function cell(y, b) {
 function yearRow(y, yi) {
   const n = Math.max(1, y.blocks.length);
   const head = h('div', {class: 'cm-yh'},
-    S.edit ? h('input', {type: 'text', value: y.label, maxlength: '40', 'aria-label': 'Year label', oninput: e => { y.label = e.target.value; clearTimeout(saveTimer); if (!S.draft) { S.saveState = 'saving'; paintSave(); saveTimer = setTimeout(save, 900); } }}) : y.label,
+    S.edit ? h('input', {type: 'text', value: y.label, maxlength: '40', 'aria-label': stageLabel(y) + ' label', oninput: e => { y.label = e.target.value; clearTimeout(saveTimer); if (!S.draft) { S.saveState = 'saving'; paintSave(); saveTimer = setTimeout(save, 900); } }}) : y.label,
     S.edit ? h('div', {style: 'display:flex;gap:4px;flex-wrap:wrap'},
       yi > 0 ? h('button', {class: 'cm-btn sm', type: 'button', 'aria-label': 'Move year up', onclick: () => { [S.map.years[yi - 1], S.map.years[yi]] = [S.map.years[yi], S.map.years[yi - 1]]; changed(); }}, '↑') : null,
       yi < S.map.years.length - 1 ? h('button', {class: 'cm-btn sm', type: 'button', 'aria-label': 'Move year down', onclick: () => { [S.map.years[yi + 1], S.map.years[yi]] = [S.map.years[yi], S.map.years[yi + 1]]; changed(); }}, '↓') : null,
@@ -783,7 +796,7 @@ function yearRow(y, yi) {
       S.edit ? h('button', {class: 'cm-btn sm danger', type: 'button', 'aria-label': 'Remove term', onclick: () => confirmModal('Remove this term?', 'Its units will be removed from the map.', 'Remove', () => { y.blocks.splice(bi, 1); changed(); })}, '✕') : null), cell(y, b)));
   });
   if (!y.blocks.length) row.append(h('div', {class: 'cm-empty-cell'}, 'No terms yet'));
-  if (S.edit) row.append(h('div', {class: 'cm-addblk'}, h('button', {class: 'cm-add', type: 'button', style: 'width:100%', onclick: () => { y.blocks.push({id: uid(), label: '', topics: []}); changed(); }}, '＋ Add a term to ' + (y.label || 'this year'))));
+  if (S.edit) row.append(h('div', {class: 'cm-addblk'}, h('button', {class: 'cm-add', type: 'button', style: 'width:100%', onclick: () => { y.blocks.push({id: uid(), label: '', topics: []}); changed(); }}, '＋ Add a term to ' + (y.label || 'this group'))));
   return row;
 }
 
