@@ -48,6 +48,62 @@ try {
             foreach (cs_senior_docs() as $d) $docs[] = ['id' => $d['id'], 'learningArea' => $d['learningArea'], 'subject' => $d['subject'], 'title' => $d['title'], 'version' => $d['version'], 'status' => $d['publicationStatus'], 'years' => $d['years'], 'subjects' => $d['subjects']];
             $json(['ok' => true, 'documents' => $docs]);
         }
+        if ($action === 'statement-bank') {
+            // Teacher-accessible, read-only list of the complete Ministry statements for one year.
+            // The source files are bundled with the repository and do not need an AI request.
+            $docId = (string)($_GET['doc_id'] ?? '');
+            $year = (int)($_GET['year'] ?? 0);
+            $discipline = trim((string)($_GET['discipline'] ?? ''));
+            if (!in_array($year, [7, 8, 9, 10], true)) $json(['ok' => false, 'error' => 'Choose Year 7, 8, 9 or 10.'], 422);
+            $doc = cs_catalogue_doc($docId);
+            if (!$doc || !empty($doc['senior']) || empty($doc['availableForAi']) || ($doc['availableForCurriculum'] ?? true) === false) {
+                $json(['ok' => false, 'error' => 'Choose a Years 7–10 Ministry curriculum source.'], 422);
+            }
+            $repoRoot = dirname(__DIR__, 2);
+            $records = [];
+            if ($docId === 'science-aug-2026') {
+                $library = json_decode((string)@file_get_contents($repoRoot . '/unit-plan-builder/science-curriculum.json'), true);
+                foreach (($library['units'] ?? []) as $unit) {
+                    if ((int)($unit['year'] ?? 0) !== $year) continue;
+                    foreach (['knowledge' => 'knowledge', 'practices' => 'practice'] as $key => $kind) {
+                        foreach (($unit[$key] ?? []) as $s) {
+                            $records[] = [
+                                'id' => (string)($s['id'] ?? ''), 'kind' => $kind,
+                                'text' => (string)($s['text'] ?? ''), 'subject' => 'Science',
+                                'source' => (string)($library['title'] ?? 'Ministry Science') . ', ' . (string)($library['version'] ?? '') . ', Year ' . $year . ', page ' . (int)($s['page'] ?? 0),
+                                'section' => (string)($unit['strand'] ?? '') . ' — ' . (string)($unit['title'] ?? '')
+                            ];
+                        }
+                    }
+                }
+            } else {
+                $library = json_decode((string)@file_get_contents($repoRoot . '/curriculum-library/catalogue-banks.json'), true);
+                $bank = $library[$docId . ':' . $year] ?? null;
+                foreach (($bank['records'] ?? []) as $s) {
+                    $records[] = [
+                        'id' => (string)($s['id'] ?? ''), 'kind' => (string)($s['kind'] ?? ''),
+                        'text' => (string)($s['text'] ?? ''), 'subject' => (string)($s['subject'] ?? $doc['subject'] ?? ''),
+                        'source' => (string)($s['source'] ?? $doc['title'] ?? 'Ministry curriculum'),
+                        'section' => (string)($s['section'] ?? '')
+                    ];
+                }
+            }
+            $seen = []; $clean = [];
+            foreach ($records as $s) {
+                if (!in_array($s['kind'], ['knowledge', 'practice'], true) || trim($s['text']) === '') continue;
+                if ($discipline !== '' && ($doc['learningArea'] ?? '') === 'The Arts') {
+                    $haystack = mb_strtolower($s['subject'] . ' ' . $s['section']);
+                    if (mb_strpos($haystack, mb_strtolower($discipline)) === false) continue;
+                }
+                $dedupe = $s['kind'] . ':' . mb_strtolower(preg_replace('/\s+/u', ' ', trim($s['text'])) ?: $s['text']);
+                if (isset($seen[$dedupe])) continue;
+                $seen[$dedupe] = true;
+                $s['id'] = 'bank-' . substr(hash('sha256', $docId . ':' . $year . ':' . $dedupe), 0, 24);
+                $clean[] = $s;
+            }
+            if (!$clean) $json(['ok' => false, 'error' => 'The complete year-level curriculum bank is unavailable. Please keep your current mapped selections.'], 503);
+            $json(['ok' => true, 'year' => $year, 'records' => $clean]);
+        }
         $json(['ok' => false, 'error' => 'Unknown action.'], 400);
     }
 
