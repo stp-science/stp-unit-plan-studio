@@ -18,6 +18,14 @@ foreach ($files as $id) {
         $prepared = cm_bank_prepare($id, 7, '', $level);
         if (is_string($prepared) || empty($prepared[1])) throw new RuntimeException($id . ': cannot read ' . $level);
     }
+    // Any two selected stages must contribute source pages to the combined
+    // evidence pool. Never assume Novice 1/2/3 correspond to Year 7/8/9.
+    $one = cm_doc_levels($doc)['Novice 1'];
+    $two = cm_doc_levels($doc)['Novice 2'];
+    $p1 = array_unique(array_map(static fn($pg) => (int)($pg['page'] ?? 0), $one));
+    $p2 = array_unique(array_map(static fn($pg) => (int)($pg['page'] ?? 0), $two));
+    $combined = array_unique(array_merge($p1, $p2));
+    if (!$p1 || !$p2 || count($combined) < max(count($p1), count($p2))) throw new RuntimeException($id . ': Novice level pages could not be combined.');
     echo $doc['subject'] . ": Novice 1 / 2 / 3 verified.\n";
 }
 echo "All five language curricula passed. No API requests.\n";
