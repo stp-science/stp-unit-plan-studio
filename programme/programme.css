@@ -11,3 +11,12 @@ body{font-size:16px}h2{font-size:25px}.programme-bar{display:flex;align-items:en
 .task-progress[data-error]{background:#fff5f3;border-color:#a82536}.task-progress[data-error] strong{color:#861b2b}
 
 .overview-review{margin:24px 0;padding:24px;border:1px solid var(--line);border-radius:8px;background:#faf9f5}.overview-review h3{margin-top:0}.overview-review>label{display:block;font-weight:650;margin:18px 0 8px}.overview-review textarea{display:block;width:100%;margin-bottom:14px}.overview-review details{margin:16px 0}.overview-review summary{cursor:pointer;font-weight:650}.overview-chat{max-height:420px;overflow:auto}.review-message{padding:14px 16px;margin:12px 0;border:1px solid var(--line);border-radius:8px;background:white}.review-message.user{margin-left:8%;background:#f2e9e9}.review-message.assistant{margin-right:8%}.review-message p{white-space:pre-wrap;margin-bottom:0}.review-message strong{font-size:13px}
+
+/* Full-year curriculum selector: clear search and readable tick boxes. */
+.statement-tools{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin:18px 0}
+.statement-tools input[type=search]{flex:1 1 300px;max-width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--line);border-radius:6px}
+.statement-tools .checkline{flex:1 1 260px;margin:0!important}
+.curriculum-statement-group{border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin:16px 0}
+.curriculum-statement-group legend{padding:0 8px;font-weight:700}
+.curriculum-statement-group .checkline{padding:9px 0;border-bottom:1px solid var(--line);line-height:1.5}
+.curriculum-statement-group .checkline:last-child{border-bottom:0}
