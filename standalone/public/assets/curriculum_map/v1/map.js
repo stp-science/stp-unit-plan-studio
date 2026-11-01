@@ -1,3 +1,5 @@
+import {curriculumError, readCurriculumResult, createCurriculumQueue} from './ai-request.js';
+const curriculumAi = createCurriculumQueue();
 // Curriculum map front end. A department's year -> term -> topic overview: view it, edit it, build one, or import one.
 const CM = window.CM;
 const PALETTE = ['#a9df82', '#fff176', '#d9cce9', '#ffcc80', '#90caf9', '#f48fb1', '#80deea', '#e6ee9c', '#bcaaa4', '#cfd8dc'];
@@ -27,7 +29,9 @@ async function get(params) {
 }
 async function post(action, body) {
   const r = await fetch(CM.api + '?action=' + action, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({...body, csrf: CM.csrf})});
-  return r.json().catch(() => ({ok: false, error: 'The server did not answer. Try again.'}));
+  const packet = await r.json().catch(() => ({ok: false, error: 'The server did not answer. Your saved work is kept.'}));
+  if (!r.ok && !packet.ok && !packet.code) Object.assign(packet, {code: r.status === 429 ? 'rate_limit' : r.status >= 500 ? 'service' : 'error', retryable: r.status === 429 || r.status >= 500, retryAfter: Number(r.headers.get('retry-after')) || 0});
+  return packet;
 }
 async function load(deptId, view) {
   const keepView = view || (['start', 'upload'].includes(S.view) ? S.view : 'map');
@@ -173,18 +177,7 @@ async function deptStatements() {
   if (!S.stmtAll) { const r = await get({action: 'statements', department_id: S.dept.id}); S.stmtAll = r.ok ? (r.statements || []).filter(x => x.selected) : []; }
   return S.stmtAll;
 }
-async function streamResult(r) {
-  if (!r.body) throw Error('no stream');
-  const reader = r.body.getReader(), dec = new TextDecoder(); let buf = '', result = null, err = '';
-  for (;;) {
-    const {value, done} = await reader.read(); if (done) break;
-    buf += dec.decode(value, {stream: true});
-    let i; while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!line) continue; try { const o = JSON.parse(line); if (o.type === 'result') result = o.result; else if (o.type === 'error') err = o.error; } catch (e) { /* ignore */ } }
-  }
-  if (err) throw Error(err);
-  if (!result) throw Error('That did not finish. Try again.');
-  return result;
-}
+const streamResult = readCurriculumResult;
 
 // ---- automatic matching: state of each topic, the batch runner, and the strip above the map
 const tiles = new Map();
@@ -236,7 +229,7 @@ function paintStrip(el) {
       h('div', {class: 'cm-mtop'}, h('b', {}, 'Matching curriculum statements: ' + r.done + ' of ' + r.total + ' units'),
         h('button', {class: 'cm-btn sm', type: 'button', disabled: r.stop, onclick: () => { r.stop = true; paintStrip(); }}, r.stop ? 'Stopping…' : 'Stop')),
       h('div', {class: 'cm-prbar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct)}, h('i', {style: 'width:' + pct + '%'})),
-      h('p', {class: 'hint'}, 'This runs in the background and saves each unit as it finishes. You can keep using the map, but keep this page open. Anything already matched is kept if you stop.')));
+      h('p', {class: 'hint'}, r.waiting || 'Units are matched one at a time and saved as they finish. Temporary failures are retried automatically. Keep this page open; completed matches are kept if you stop.')));
     return;
   }
   const chip = (cls, txt, on, tip) => h(on ? 'button' : 'span', {class: 'cm-mchip ' + cls + (on ? ' btn' : ''), type: on ? 'button' : null, title: tip || null, onclick: on || null}, txt);
@@ -260,14 +253,18 @@ function reviewNext() {
   if (!k) { toast('No units need attention.'); return; }
   S.open.add(k.t.id); k.body.hidden = false; paintBar(k.t.id, true); k.wrap.scrollIntoView({block: 'center', behavior: 'smooth'});
 }
-async function matchOne({y, t}, deptId) {
+async function matchOne({y, t}, deptId, run) {
   const year = parseInt(yearNum(y.label), 10); let status = 'attention', found = 0, note = '';
   try {
     if (!(year >= 7 && year <= 13)) throw Error('Statements are available for Years 7 to 13.');
     const info = await resolveDoc(year);
     if (!info) throw Error('No Ministry curriculum document matches “' + S.dept.name + '” for Year ' + year + '.');
     const rows = await loadStatements(t.id);
-    const {res, otherLevel} = await findFor(info, year, t.title);
+    const {res, otherLevel} = await findFor(info, year, t.title, topicContext(y, t), {
+      shouldContinue: () => !run.stop && S.dept?.id === deptId,
+      onWait: ({seconds}) => { run.waiting = 'Waiting ' + seconds + ' seconds before retrying “' + t.title + '”…'; paintStrip(); }
+    });
+    run.waiting = '';
     if (otherLevel) for (const arr of [res.knowledge, res.practices]) for (const x of arr) x.source = (x.source || '') + ' · from a level not mapped to this year';
     if (S.dept?.id !== deptId) return;
     for (const [kind, arr] of [['knowledge', res.knowledge], ['practice', res.practices]]) for (const x of arr) {
@@ -279,7 +276,12 @@ async function matchOne({y, t}, deptId) {
     found = rows.filter(r => r.selected).length;
     status = found ? 'done' : 'attention';
     note = found ? '' : ((res.warnings || []).join(' ') || 'The AI found no statement it was confident enough to tick (60% or more).');
-  } catch (e) { note = e.message || 'The AI could not match this unit.'; }
+  } catch (e) {
+    run.waiting = '';
+    if (e.code === 'cancelled') return null;
+    note = e.message || 'The AI could not match this unit.';
+    if (['rate_limit', 'quota', 'settings'].includes(e.code)) { run.stop = true; run.reason = note; }
+  }
   if (S.dept?.id !== deptId) return;
   await recordMatch(t.id, status, found, note);
   return status === 'done';
@@ -288,20 +290,22 @@ async function matchAll(ids) {
   if (S.run || !ids.length) return;
   const deptId = S.dept.id, list = allTopics().filter(x => ids.includes(x.t.id) && eligible(x.y));
   if (!list.length) return;
-  const run = S.run = {total: list.length, done: 0, stop: false, ok: 0, active: new Set(), queue: new Set(list.map(x => x.t.id))};
+  curriculumAi.resetBlock();
+  const run = S.run = {total: list.length, done: 0, stop: false, ok: 0, waiting: '', reason: '', active: new Set(), queue: new Set(list.map(x => x.t.id))};
   S.lastRun = null; paintAllBars(); paintStrip();
   let next = 0;
   const worker = async () => {
     while (!run.stop && next < list.length) {
       const x = list[next++]; run.queue.delete(x.t.id); run.active.add(x.t.id); paintBar(x.t.id);
-      const ok = await matchOne(x, deptId).catch(() => false);
-      run.active.delete(x.t.id); run.done++; if (ok) run.ok++; paintBar(x.t.id, true); paintStrip();
+      const ok = await matchOne(x, deptId, run).catch(() => false);
+      run.active.delete(x.t.id); if (ok !== null) { run.done++; if (ok) run.ok++; } paintBar(x.t.id, true); paintStrip();
     }
   };
-  await Promise.all([worker(), worker(), worker()]);
+  await worker(); // preserve each result before starting the next unit
   S.run = null;
-  S.lastRun = (run.stop ? 'Stopped. ' : 'Finished. ') + run.ok + ' of ' + run.done + ' units matched' + (run.done - run.ok ? '; ' + (run.done - run.ok) + ' need attention.' : '.');
-  if (list.length === 1 && !run.ok && S.match[list[0].t.id]) S.lastRun = 'Still no match for “' + list[0].t.title + '”. ' + (S.match[list[0].t.id].note || '');
+  S.lastRun = (run.stop ? 'Paused. ' : 'Finished. ') + run.ok + ' of ' + run.done + ' units matched' + (run.done - run.ok ? '; ' + (run.done - run.ok) + ' need attention.' : '.');
+  if (run.reason) S.lastRun += ' ' + run.reason + ' Remaining units have not been marked as failed.';
+  if (list.length === 1 && !run.ok && !run.reason && S.match[list[0].t.id]) S.lastRun = 'Still no match for “' + list[0].t.title + '”. ' + (S.match[list[0].t.id].note || '');
   paintAllBars(); paintStrip();
   toast(S.lastRun);
   if (list.length === 1) { S.open.add(list[0].t.id); paintBar(list[0].t.id, true); }
@@ -318,7 +322,7 @@ async function resolveDoc(year) {
   const arts = ['Dance', 'Drama', 'Music', 'Visual Arts'].find(a => a.toLowerCase() === (subjectAlias(S.dept.name) || S.dept.name.trim().toLowerCase())) || '';
   return {doc, disc: doc.learningArea === 'The Arts' ? arts : ''};
 }
-// Loads one stored bank (a year column, a proficiency level, or a whole document), reading the curriculum the first time anyone asks (parts run three at a time).
+// Loads one stored bank (a year column, proficiency level, or document). AI work shares the paced matching queue.
 async function loadBank(params, onProgress) {
   const key = JSON.stringify(params);
   if (bankCache[key]) return bankCache[key];
@@ -330,13 +334,15 @@ async function loadBank(params, onProgress) {
       const worker = async () => {
         while (next < b.total) {
           const i = next++;
-          let r = await post('bank-build', {...params, chunk: i});
-          if (!r.ok) r = await post('bank-build', {...params, chunk: i});   // one quiet retry
-          if (!r.ok) throw Error(r.error || 'Could not read the curriculum document');
+          const r = await curriculumAi(async () => {
+            const result = await post('bank-build', {...params, chunk: i});
+            if (!result.ok) throw curriculumError(result);
+            return result;
+          });
           done++; job.listeners.forEach(f => f({done: Math.min(done, b.total), total: b.total}));
         }
       };
-      await Promise.all([worker(), worker(), worker()]);
+      await worker();
       b = await get({action: 'bank', ...params});
       if (!b.ok || !b.complete) throw Error('Some of the curriculum could not be read. Try again.');
     }
@@ -368,10 +374,14 @@ async function ensureBank(year, onProgress, all) {
 }
 // Asks the AI for the statements that fit a topic. A level-based curriculum is searched in the levels mapped to the year first, then in every level, so a topic
 // the department placed in Year 9 is still found when the curriculum teaches it at another level. Returns {res, otherLevel}.
-async function findFor(info, year, title) {
+function topicContext(y, t) {
+  const strand = S.map?.strands.find(s => s.id === t.strand)?.name;
+  return ['Department: ' + S.dept.name, 'Target year: ' + y.label, strand ? 'Strand: ' + strand : '', S.map?.notes ? 'Overview notes: ' + S.map.notes : ''].filter(Boolean).join('\n').slice(0, 2000);
+}
+async function findFor(info, year, title, notes = '', options = {}) {
   const lv = await getLevels(info, year), inLevels = lv.mode === 'levels' ? lv.active : [], all = lv.mode === 'levels' ? lv.levels.map(l => l.name) : [];
-  const call = levels => fetch(CM.studio + '?action=find', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({csrf: CM.csrf, year, topic: title, docId: info.doc.id, discipline: info.disc, levels, notes: '', pasted: ''})}).then(streamResult);
+  const call = levels => curriculumAi(() => fetch(CM.studio + '?action=find', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({csrf: CM.csrf, year, topic: title, docId: info.doc.id, discipline: info.disc, levels, notes, pasted: '', pacedRetry: true})}).then(streamResult), options);
   const miss = e => /No matching curriculum statements/i.test(e.message || '');
   try { return {res: await call(inLevels), otherLevel: false}; }
   catch (e) {
@@ -435,7 +445,7 @@ async function prefetchBanks() {
   const years = [...new Set((S.map?.years || []).map(y => parseInt(yearNum(y.label), 10)).filter(n => n >= 7 && n <= 13))];
   let ready = 0;
   let linked = 0;
-  for (const yr of years) { try { const r = await ensureBank(yr); if (r.bank) { ready++; linked += await relinkImported(yr, r.info, r.bank.items).catch(() => 0); } } catch (e) { /* each topic panel retries on open */ } }
+  for (const yr of years) { try { const r = await ensureBank(yr); if (r.bank) { ready++; linked += await relinkImported(yr, r.info, r.bank.items).catch(() => 0); } } catch (e) { if (['rate_limit', 'quota', 'settings'].includes(e.code)) break; /* retry other failures on demand */ } }
   if (linked) toast('Matched ' + linked + ' imported statement' + (linked === 1 ? '' : 's') + ' to the official Ministry wording.');
   else if (ready) toast('Curriculum statements are ready to tick for ' + ready + ' year group' + (ready > 1 ? 's' : '') + '.');
 }
@@ -547,9 +557,10 @@ function statementsPanel(y, t) {
   };
   async function suggest() {
     if (!ctx) return;
+    curriculumAi.resetBlock();
     busy = 'The AI is choosing the best matches. You can keep ticking while it works…'; note = ''; paintHead();
     try {
-      const {res, otherLevel} = await findFor(ctx, year, t.title);
+      const {res, otherLevel} = await findFor(ctx, year, t.title, topicContext(y, t));
       if (otherLevel) for (const arr of [res.knowledge, res.practices]) for (const x of arr) x.source = (x.source || '') + ' · from a level not mapped to this year';
       for (const [kind, arr] of [['knowledge', res.knowledge], ['practice', res.practices]]) for (const s of arr) {
         const conf = s.confidence ?? null, row = rowFor(s.text);

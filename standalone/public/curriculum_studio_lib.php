@@ -317,6 +317,19 @@ class CsInvalid extends RuntimeException {}
 // A failure that is the AI's doing (changed wording, incomplete or unreadable reply): worth one automatic retry.
 class CsRetry extends RuntimeException {}
 
+/** Transport failures may be retried; a genuine curriculum mismatch must be reviewed. */
+function cs_failure_meta(Throwable $error): array
+{
+    $message = $error->getMessage();
+    if (preg_match('/daily|per.day|billing|spending limit/i', $message)) return ['code' => 'quota', 'retryable' => false, 'retryAfter' => 0];
+    if (preg_match('/API limit|rate(?: or spending)? limit|quota|too many requests/i', $message)) return ['code' => 'rate_limit', 'retryable' => true, 'retryAfter' => 30];
+    if (preg_match('/credentials|API permissions|API access|configure .*KEY|model is not available|model ID/i', $message)) return ['code' => 'settings', 'retryable' => false, 'retryAfter' => 0];
+    if ($error instanceof CsInvalid) return ['code' => str_contains($message, 'No matching curriculum statements') ? 'no_match' : 'input', 'retryable' => false, 'retryAfter' => 0];
+    if (preg_match('/timed out|connection failed|failed or timed out/i', $message)) return ['code' => 'timeout', 'retryable' => true, 'retryAfter' => 4];
+    if ($error instanceof CsRetry) return ['code' => 'service', 'retryable' => true, 'retryAfter' => 4];
+    return ['code' => 'error', 'retryable' => false, 'retryAfter' => 0];
+}
+
 function cs_validate_plan($p): void
 {
     if (!is_array($p)) throw new CsInvalid('The plan must be a JSON object.');

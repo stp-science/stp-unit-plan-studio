@@ -153,7 +153,7 @@ try {
                 cs_usage_log($pdo, $schoolId, $teacherId, 'bank', $dept['name'] . ' Y' . $yr . ' #' . $chunk, $model, $usage, time() - $t0, true);
             } catch (Throwable $e) {
                 cs_usage_log($pdo, $schoolId, $teacherId, 'bank', $dept['name'] . ' Y' . $yr . ' #' . $chunk, $model, $usage, time() - $t0, false, get_class($e) . ': ' . $e->getMessage());
-                $json(['ok' => false, 'error' => $e instanceof CsInvalid || $e instanceof CsRetry ? $e->getMessage() : 'Could not read that part of the curriculum. Try again.'], 502);
+                $json(['ok' => false, 'error' => $e instanceof CsInvalid || $e instanceof CsRetry ? $e->getMessage() : 'Could not read that part of the curriculum. Try again.'] + cs_failure_meta($e), 502);
             }
         }
         $b = cm_bank_get($pdo, $docId, $kYr, $kDisc);

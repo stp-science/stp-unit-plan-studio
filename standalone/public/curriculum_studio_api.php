@@ -311,7 +311,10 @@ try {
         } catch (Throwable $e) {
             $msg = $e->getMessage();
             cs_usage_log($pdo, $schoolId, $teacherId, $action, $detail . ($attempt > 1 ? ' (retry)' : ''), $model, $usage, time() - $t0, false, get_class($e) . ': ' . $msg);
-            if ($e instanceof CsRetry && $attempt < 2) {
+            // Matching retries are paced by the page; never immediately repeat a limit error.
+            $failureMeta = cs_failure_meta($e);
+            if ($e instanceof CsRetry && $attempt < 2 && !($action === 'find' && !empty($in['pacedRetry'])) && !in_array($failureMeta['code'], ['rate_limit', 'quota', 'settings'], true)) {
+                sleep(2);
                 $emit(['type' => 'progress']);
                 if ($action === 'generate' && str_contains($msg, 'miscounted')) {
                     $content[] = ['type' => 'input_text', 'text' => 'CORRECTION: your lesson counts were wrong. The total is lessons per week multiplied by the number of weeks (or the total the teacher stated). Recalculate it, state it correctly in the duration, and make the last learning focus end exactly on that total.'];
@@ -335,7 +338,7 @@ try {
             break;
         }
     }
-    $emit($failure !== null ? ['type' => 'error', 'error' => $failure, 'code' => $code ?? 'error'] : ['type' => 'result', 'result' => $final]);
+    $emit($failure !== null ? ['type' => 'error', 'error' => $failure] + ($failureMeta ?? ['code' => $code ?? 'error', 'retryable' => false, 'retryAfter' => 0]) : ['type' => 'result', 'result' => $final]);
     exit;
 } catch (Throwable $e) {
     error_log('[curriculum_studio] ' . $e->getMessage());
