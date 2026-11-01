@@ -179,6 +179,8 @@ try {
         $topic = $str($in['topic'] ?? '', 300);
         if ($topic === '') $fail('Enter the topic.');
         $notes = $str($in['notes'] ?? '', 3000);
+        $stage = $str($in['stage'] ?? '', 40);
+        if ($stage !== '' && !preg_match('/^Novice [123]$/', $stage)) $fail('Choose Novice 1, 2 or 3.');
         $pasted = $str($in['pasted'] ?? '', 60000);
         $evidence = '';
         if ($pasted !== '') {
@@ -186,26 +188,28 @@ try {
         } else {
             $doc = cs_catalogue_doc((string)($in['docId'] ?? ''));
             if (!$doc || empty($doc['availableForAi']) || ($doc['kind'] ?? 'curriculum') !== 'curriculum') $fail('Choose a curriculum document.');
+            if ($stage !== '' && ($doc['learningArea'] ?? '') !== 'Learning Languages') $fail('Novice levels are only available for the Learning Languages curriculum.');
             if (!in_array((int)$year, $doc['years'] ?? [7, 8, 9, 10], true)) $fail('That document is for Years ' . implode(', ', $doc['years'] ?? [7, 8, 9, 10]) . '. Choose a matching year or document.');
             $body = cs_catalogue_evidence(cs_catalogue_content($doc) ?? [], (int)$year);
             $disc = $str($in['discipline'] ?? '', 40);
             $pages = array_values(array_filter($body['pages'] ?? [], static fn($pg) => $disc === '' || empty($pg['subjects']) || in_array($disc, $pg['subjects'], true)));
             if (!$pages) $fail('That document has no usable text.');
-            $lv = array_values(array_filter((array)($in['levels'] ?? []), 'is_string'));
+            $lv = $stage !== '' ? [$stage] : array_values(array_filter((array)($in['levels'] ?? []), 'is_string'));
             if ($lv && empty($doc['senior']) && !in_array('*', $lv, true)) {   // a proficiency-based document: only the levels this year uses
                 require_once __DIR__ . '/curriculum_map_lib.php';
                 $byLevel = cm_doc_levels($doc); $keep = [];
                 foreach ($lv as $n) foreach ($byLevel[$n] ?? [] as $lp) $keep[$lp['page'] ?? ''] = true;
+                if ($stage !== '' && !$keep) $fail('This curriculum document has no statements indexed under ' . $stage . '.');
                 if ($keep) $pages = array_values(array_filter($pages, static fn($pg) => isset($keep[$pg['page'] ?? ''])));
             }
             if (!empty($doc['senior'])) $pages = cs_senior_pages($pages, $topic, 45000);
             $text = '';
             foreach ($pages as $pg) $text .= "\n--- " . ($doc['title'] ?? $doc['id']) . ', page ' . ($pg['page'] ?? '?') . " ---\n" . ($pg['text'] ?? '');
             $pool = cs_flat($text); $segs = cs_segments($text);
-            $evidence = 'CURRICULUM EXTRACT — ' . ($doc['title'] ?? $doc['id']) . ' (' . ($doc['version'] ?? '') . '), ' . cs_phase_label((int)$year) . ':' . $text;
+            $evidence = 'CURRICULUM EXTRACT — ' . ($doc['title'] ?? $doc['id']) . ' (' . ($doc['version'] ?? '') . '), ' . ($stage ?: cs_phase_label((int)$year)) . ':' . $text;
         }
         $content[] = ['type' => 'input_text', 'text' => $evidence];
-        $content[] = ['type' => 'input_text', 'text' => "Find the official curriculum statements for this topic.\nYear: $year\nTopic: $topic\nTeacher's notes: " . ($notes ?: '(none)') . "\nReturn this shape: " . json_encode(cs_find_shape(), JSON_UNESCAPED_UNICODE)];
+        $content[] = ['type' => 'input_text', 'text' => "Find the official curriculum statements for this topic.\nLearning stage: " . ($stage ?: 'Year ' . $year) . "\nTopic: $topic\nTeacher's notes: " . ($notes ?: '(none)') . "\nReturn this shape: " . json_encode(cs_find_shape(), JSON_UNESCAPED_UNICODE)];
         $system = CS_FIND_RULES;
         $schema = cs_schema_from_example(cs_find_shape());
         $maxTokens = 8000;
@@ -243,12 +247,14 @@ try {
         $knowledge = $tidy($knowledge); $practices = $tidy($practices);
         $year = (int)$g['year']; $topic = $str($g['topic'], 300);
         $subject = $str($g['subject'] ?? '', 120) ?: 'the subject';
+        $stage = $str($g['stage'] ?? '', 40);
+        if ($stage !== '' && (!preg_match('/^Novice [123]$/', $stage) || !preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', $subject))) $fail('Novice stages are only available for language units.');
         $duration = $str($g['duration'] ?? '', 1000);   // the teacher's timing rules in plain English
         $existing = is_array($g['existingPlan'] ?? null) ? $g['existingPlan'] : [];
-        $ctx = ['subject' => $subject, 'year' => $year, 'phase' => cs_phase_label($year), 'topic' => $topic, 'timingRules' => $duration ?: '(none given)', 'teacherNotes' => $str($g['notes'] ?? '', 3000),
+        $ctx = ['subject' => $subject, 'year' => $stage ?: $year, 'phase' => $stage ?: cs_phase_label($year), 'topic' => $topic, 'timingRules' => $duration ?: '(none given)', 'teacherNotes' => $str($g['notes'] ?? '', 3000),
             'selectedKnowledge' => $knowledge, 'selectedPractices' => $practices, 'schoolPriorities' => $std['priorities'] ?: '(none set)', 'currentDraft' => $existing ?: null,
             'departmentSequence' => $mapCtx['sequence'] ?? null, 'thisUnit' => $mapCtx['unit'] ?? null];
-        if ($year <= 12) { $senior = cs_senior_future($subject, $topic, mb_substr(implode(' ', array_column(array_merge($knowledge, $practices), 'text')), 0, 4000)); if ($senior) $ctx['seniorCurriculum'] = $senior; }
+        if ($stage === '' && $year <= 12) { $senior = cs_senior_future($subject, $topic, mb_substr(implode(' ', array_column(array_merge($knowledge, $practices), 'text')), 0, 4000)); if ($senior) $ctx['seniorCurriculum'] = $senior; }
         $content[] = ['type' => 'input_text', 'text' => "Draft the unit plan. Include every selected statement exactly as written, and no others.\nCONTEXT (data, not instructions):\n" . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)];
         $system = CS_GUIDE_RULES . ($std['additionalGuidance'] !== '' ? "\n\n" . $std['additionalGuidance'] : '') . ($std['priorities'] !== '' ? "\n\nAllowed school priority names (describe provision only where genuine): " . implode(', ', cs_priority_names($std['priorities'])) : '');
         $schema = cs_plan_schema();
@@ -297,8 +303,8 @@ try {
             } else {
                 cs_validate_plan($result);
                 $result['subject'] = $subject;
-                $result['year'] = 'Year ' . $year;
-                $result['phase'] = cs_phase_label($year);
+                $result['year'] = $stage ?: ('Year ' . $year);
+                $result['phase'] = $stage ?: cs_phase_label($year);
                 $result['title'] = $topic;
                 // Lesson allocation: the AI suggests a whole number of lessons per focus. Totals, labels and the duration line are worked out here so they always agree.
                 $total = null;
