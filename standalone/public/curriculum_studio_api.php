@@ -48,6 +48,29 @@ try {
             foreach (cs_senior_docs() as $d) $docs[] = ['id' => $d['id'], 'learningArea' => $d['learningArea'], 'subject' => $d['subject'], 'title' => $d['title'], 'version' => $d['version'], 'status' => $d['publicationStatus'], 'years' => $d['years'], 'subjects' => $d['subjects']];
             $json(['ok' => true, 'documents' => $docs]);
         }
+        if ($action === 'novice-bank') {
+            // Read all official statements from each requested novice stage. Reuse the
+            // curriculum map's cached, verbatim-validated statement bank for the school.
+            require_once __DIR__ . '/curriculum_map_lib.php';
+            $docId = (string)($_GET['doc_id'] ?? '');
+            $stage = (string)($_GET['stage'] ?? '');
+            $doc = cs_catalogue_doc($docId);
+            if (!preg_match('/^Novice [123]$/', $stage) || !$doc || ($doc['learningArea'] ?? '') !== 'Learning Languages' || empty($doc['availableForAi']) || ($doc['kind'] ?? 'curriculum') !== 'curriculum') {
+                $json(['ok' => false, 'error' => 'Choose a supported Ministry language teaching sequence and Novice 1, 2 or 3.'], 422);
+            }
+            $prepared = cm_bank_prepare($docId, 7, '', $stage);
+            if (is_string($prepared)) $json(['ok' => false, 'error' => $prepared], 422);
+            cm_bank_setup($pdo);
+            [$yr, $disc] = cm_bank_key(7, '', $stage);
+            $bank = cm_bank_get($pdo, $docId, $yr, $disc);
+            $total = count($prepared[1]);
+            $existing = $pdo->prepare('SELECT chunk FROM mis_statement_bank WHERE doc_id = ? AND yr = ? AND disc = ?');
+            $existing->execute([$docId, $yr, $disc]);
+            $done = array_map('intval', $existing->fetchAll(PDO::FETCH_COLUMN));
+            $missing = array_values(array_diff(range(0, $total - 1), $done));
+            $json(['ok' => true, 'stage' => $stage, 'complete' => !$missing,
+                'missing' => $missing, 'total' => $total, 'items' => $bank['items']]);
+        }
         if ($action === 'statement-bank') {
             // Teacher-accessible, read-only list of the complete Ministry statements for one year.
             // The source files are bundled with the repository and do not need an AI request.
@@ -113,6 +136,39 @@ try {
     $in = json_decode($raw, true);
     if (!is_array($in)) $json(['ok' => false, 'error' => 'Use JSON.'], 400);
     if (!mis_csrf_valid(isset($in['csrf']) ? (string)$in['csrf'] : null)) $json(['ok' => false, 'error' => 'Session expired. Refresh the page; your unit plans are saved.'], 403);
+
+    if ($action === 'novice-bank-build') {
+        // Each uncached part is an explicit teacher-initiated AI extraction, cached
+        // for reuse. No school map, selected statements or drafts are modified.
+        require_once __DIR__ . '/curriculum_map_lib.php';
+        $docId = (string)($in['doc_id'] ?? '');
+        $stage = (string)($in['stage'] ?? '');
+        $chunk = filter_var($in['chunk'] ?? null, FILTER_VALIDATE_INT);
+        $doc = cs_catalogue_doc($docId);
+        if (!preg_match('/^Novice [123]$/', $stage) || !$doc || ($doc['learningArea'] ?? '') !== 'Learning Languages' || empty($doc['availableForAi']) || ($doc['kind'] ?? 'curriculum') !== 'curriculum') {
+            $json(['ok' => false, 'error' => 'Choose a supported Ministry language teaching sequence and Novice stage.'], 422);
+        }
+        $prepared = cm_bank_prepare($docId, 7, '', $stage);
+        if (is_string($prepared)) $json(['ok' => false, 'error' => $prepared], 422);
+        if ($chunk === false || $chunk < 0 || $chunk >= count($prepared[1])) $json(['ok' => false, 'error' => 'Invalid curriculum section.'], 422);
+        cm_bank_setup($pdo);
+        [$yr, $disc] = cm_bank_key(7, '', $stage);
+        $have = $pdo->prepare('SELECT 1 FROM mis_statement_bank WHERE doc_id = ? AND yr = ? AND disc = ? AND chunk = ?');
+        $have->execute([$docId, $yr, $disc, $chunk]);
+        if (!$have->fetchColumn()) {
+            if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+            @set_time_limit(420);
+            $usage = []; $model = ''; $t0 = time();
+            try {
+                cm_bank_build_chunk($pdo, $docId, 7, '', $chunk, $usage, $model, $stage);
+                cs_usage_log($pdo, $schoolId, $teacherId, 'bank', $doc['subject'] . ' ' . $stage . ' #' . $chunk, $model, $usage, time() - $t0, true);
+            } catch (Throwable $e) {
+                cs_usage_log($pdo, $schoolId, $teacherId, 'bank', $doc['subject'] . ' ' . $stage . ' #' . $chunk, $model, $usage, time() - $t0, false, get_class($e) . ': ' . $e->getMessage());
+                $json(['ok' => false, 'error' => $e instanceof CsInvalid || $e instanceof CsRetry ? $e->getMessage() : 'Could not read that curriculum section. Try again.'] + cs_failure_meta($e), 502);
+            }
+        }
+        $json(['ok' => true]);
+    }
 
     if ($action === 'save') {
         $obj = json_decode($raw)->guide ?? null;   // object form so {} stays {}
@@ -180,7 +236,12 @@ try {
         if ($topic === '') $fail('Enter the topic.');
         $notes = $str($in['notes'] ?? '', 3000);
         $stage = $str($in['stage'] ?? '', 40);
-        if ($stage !== '' && !preg_match('/^Novice [123]$/', $stage)) $fail('Choose Novice 1, 2 or 3.');
+        $stages = array_key_exists('stages', $in)
+            ? (is_array($in['stages']) ? $in['stages'] : [])
+            : ($stage !== '' ? [$stage] : []);
+        $stages = array_values(array_unique($stages));
+        if (count($stages) > 3 || array_diff($stages, ['Novice 1', 'Novice 2', 'Novice 3'])) $fail('Choose one or more of Novice 1, 2 and 3.');
+        $stage = implode(' + ', $stages);
         $pasted = $str($in['pasted'] ?? '', 60000);
         $evidence = '';
         if ($pasted !== '') {
@@ -188,18 +249,18 @@ try {
         } else {
             $doc = cs_catalogue_doc((string)($in['docId'] ?? ''));
             if (!$doc || empty($doc['availableForAi']) || ($doc['kind'] ?? 'curriculum') !== 'curriculum') $fail('Choose a curriculum document.');
-            if ($stage !== '' && ($doc['learningArea'] ?? '') !== 'Learning Languages') $fail('Novice levels are only available for the Learning Languages curriculum.');
+            if ($stages && ($doc['learningArea'] ?? '') !== 'Learning Languages') $fail('Novice levels are only available for the Learning Languages curriculum.');
             if (!in_array((int)$year, $doc['years'] ?? [7, 8, 9, 10], true)) $fail('That document is for Years ' . implode(', ', $doc['years'] ?? [7, 8, 9, 10]) . '. Choose a matching year or document.');
             $body = cs_catalogue_evidence(cs_catalogue_content($doc) ?? [], (int)$year);
             $disc = $str($in['discipline'] ?? '', 40);
             $pages = array_values(array_filter($body['pages'] ?? [], static fn($pg) => $disc === '' || empty($pg['subjects']) || in_array($disc, $pg['subjects'], true)));
             if (!$pages) $fail('That document has no usable text.');
-            $lv = $stage !== '' ? [$stage] : array_values(array_filter((array)($in['levels'] ?? []), 'is_string'));
+            $lv = $stages ?: array_values(array_filter((array)($in['levels'] ?? []), 'is_string'));
             if ($lv && empty($doc['senior']) && !in_array('*', $lv, true)) {   // a proficiency-based document: only the levels this year uses
                 require_once __DIR__ . '/curriculum_map_lib.php';
                 $byLevel = cm_doc_levels($doc); $keep = [];
                 foreach ($lv as $n) foreach ($byLevel[$n] ?? [] as $lp) $keep[$lp['page'] ?? ''] = true;
-                if ($stage !== '' && !$keep) $fail('This curriculum document has no statements indexed under ' . $stage . '.');
+                if ($stages && (count(array_intersect(array_keys($byLevel), $stages)) !== count($stages))) $fail('This curriculum document is missing one or more selected Novice stages.');
                 if ($keep) $pages = array_values(array_filter($pages, static fn($pg) => isset($keep[$pg['page'] ?? ''])));
             }
             if (!empty($doc['senior'])) $pages = cs_senior_pages($pages, $topic, 45000);
@@ -247,8 +308,14 @@ try {
         $knowledge = $tidy($knowledge); $practices = $tidy($practices);
         $year = (int)$g['year']; $topic = $str($g['topic'], 300);
         $subject = $str($g['subject'] ?? '', 120) ?: 'the subject';
-        $stage = $str($g['stage'] ?? '', 40);
-        if ($stage !== '' && (!preg_match('/^Novice [123]$/', $stage) || !preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', $subject))) $fail('Novice stages are only available for language units.');
+        $legacyStage = $str($g['stage'] ?? '', 40);
+        $stages = array_key_exists('stages', $g)
+            ? (is_array($g['stages']) ? $g['stages'] : [])
+            : ($legacyStage !== '' ? [$legacyStage] : []);
+        $stages = array_values(array_unique($stages));
+        if (count($stages) > 3 || array_diff($stages, ['Novice 1', 'Novice 2', 'Novice 3'])) $fail('Choose one or more valid Novice stages.');
+        $stage = implode(' + ', $stages);
+        if ($stages && !preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', $subject)) $fail('Novice stages are only available for language units.');
         $duration = $str($g['duration'] ?? '', 1000);   // the teacher's timing rules in plain English
         $existing = is_array($g['existingPlan'] ?? null) ? $g['existingPlan'] : [];
         $ctx = ['subject' => $subject, 'year' => $stage ?: $year, 'phase' => $stage ?: cs_phase_label($year), 'topic' => $topic, 'timingRules' => $duration ?: '(none given)', 'teacherNotes' => $str($g['notes'] ?? '', 3000),
