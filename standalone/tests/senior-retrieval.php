@@ -12,6 +12,8 @@ foreach ($links as $link) {
     if (str_contains($link['excerpt'], 'Purpose statement')) throw new RuntimeException('Introduction replaced the teaching content.');
     if (mb_strlen($link['excerpt']) > 4500) throw new RuntimeException('Senior evidence budget exceeded.');
 }
+$biology = array_values(array_filter($links, static fn($link) => $link['document'] === 'Biology — Years 12–13'))[0];
+if (!preg_match('/Year 12 {5,}Year 13/', $biology['excerpt'])) throw new RuntimeException('Year-column spacing was lost.');
 $doc = cs_catalogue_doc('senior-biology-years12-13-oct26-1');
 $body = cs_catalogue_content($doc);
 $pages = cs_senior_pages($body['pages'], 'Cells', 45000);

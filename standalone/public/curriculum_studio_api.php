@@ -230,8 +230,6 @@ try {
                 $result['phase'] = cs_phase_label($year);
                 $result['title'] = $topic;
                 // Lesson allocation: the AI suggests a whole number of lessons per focus. Totals, labels and the duration line are worked out here so they always agree.
-                $cnt = [];
-                foreach ($result['focuses'] as $fi => $f) $cnt[$fi] = max(1, min(40, (int)($f['lessonCount'] ?? 0) ?: 3));
                 $total = null;
                 if ($duration !== '') {   // the teacher gave timing rules: the allocation must add up to the total they imply
                     $d = (string)$result['duration'];
@@ -240,20 +238,7 @@ try {
                         if (preg_match('/\((\d+)\s+a week for (\d+)\s+weeks?\)/i', $d, $m2) && (int)$m2[1] * (int)$m2[2] !== $total) throw new CsRetry('The AI miscounted the lessons, so nothing was applied. Please try again. [lesson arithmetic: ' . $d . ']');
                     }
                 }
-                if ($total !== null && $total >= count($cnt)) {
-                    $sum = array_sum($cnt);
-                    while ($sum !== $total) {
-                        arsort($cnt);   // change the largest allocations first
-                        $moved = false;
-                        foreach (array_keys($cnt) as $fi) {
-                            if ($sum < $total) { $cnt[$fi]++; $sum++; $moved = true; }
-                            elseif ($cnt[$fi] > 1) { $cnt[$fi]--; $sum--; $moved = true; }
-                            if ($sum === $total) break;
-                        }
-                        if (!$moved) break;
-                    }
-                    ksort($cnt);
-                } else $total = null;
+                $cnt = cs_lesson_counts($result['focuses'], $total);
                 $sum = array_sum($cnt); $at = 1;
                 foreach ($result['focuses'] as $fi => $f) {
                     $n = $cnt[$fi];
@@ -262,6 +247,7 @@ try {
                     $at += $n;
                 }
                 if ($duration === '') $result['duration'] = 'Approximately ' . $sum . ' lessons, estimated from the learning focuses.';
+                elseif ($total !== null && $sum !== $total) $result['duration'] = $sum . ' planned lessons within ' . $total . ' available lessons; remaining time is unallocated for the teacher to decide.';
                 foreach (['assessment', 'descriptors', 'reporting', 'resources', 'whakatauki'] as $k) $result[$k] = (string)($existing[$k] ?? '');
                 if ($mapCtx) {   // facts the department already holds are filled in, never invented
                     if (trim($result['assessment']) === '' && $mapCtx['assessLabel'] !== '') $result['assessment'] = $mapCtx['assessLabel'];

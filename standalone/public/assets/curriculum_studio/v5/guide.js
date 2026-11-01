@@ -441,7 +441,7 @@ function fitTotal(p, T) {
   while (sum !== T) {
     let moved = false;
     for (const f of p.focuses.slice().sort((a, b) => (b.lessonCount || 0) - (a.lessonCount || 0))) {
-      if (sum < T) { f.lessonCount = (f.lessonCount || 0) + 1; sum++; moved = true; } else if ((f.lessonCount || 0) > 1) { f.lessonCount--; sum--; moved = true; }
+      if (sum < T && f.lessonScope !== 'brief') { f.lessonCount = (f.lessonCount || 0) + 1; sum++; moved = true; } else if (sum > T && (f.lessonCount || 0) > 1) { f.lessonCount--; sum--; moved = true; }
       if (sum === T) break;
     }
     if (!moved) break;
