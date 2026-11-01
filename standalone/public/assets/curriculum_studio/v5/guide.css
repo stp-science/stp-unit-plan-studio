@@ -186,3 +186,12 @@ details.cg-more[open] summary::before{content:'– '}
 .cg-bank-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0}
 .cg-bank-search{min-width:260px;flex:1 1 330px;max-width:100%;border:1px solid #c9c9c9;border-radius:8px;padding:11px 14px;font:inherit}
 .cg-bank-controls .cg-ghost{flex:0 1 auto}
+
+/* Novice levels are independent proficiency stages, not student year groups. */
+.cg-novice-picker{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.cg-novice-picker>.cg-mut{flex-basis:100%;margin:0 0 4px;font-size:13px}
+.cg-novice-option{display:flex;align-items:center;gap:9px;padding:11px 15px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--card,#fff);font-weight:600}
+.cg-novice-option.on{border-color:var(--acc);background:var(--accSoft)}
+.cg-novice-option input{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.cg-novice-option:has(input:disabled){opacity:.66;cursor:default}
+.cg-level-tag{display:block;color:var(--acc);font-weight:650;margin-top:4px}
