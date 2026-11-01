@@ -1,6 +1,6 @@
 # Deploy the complete friend's edition with Claude
 
-The friend's PHP interface, map workflow, statement matching, catalogue and Word exports are retained. The AI transport is now Claude.
+The friend's PHP interface, map workflow, statement matching, catalogue and Word exports are retained. Claude is the default provider; Gemini can be selected for a trial. Each request uses only the selected provider, with no automatic fallback.
 
 The current live ChatGPT Sites Worker URL and API secret are unchanged. This PHP application cannot run directly on that runtime or GitHub Pages. This branch is prepared for PHP hosting; it is not a completed live deployment.
 
@@ -35,8 +35,22 @@ Keep the original ZIP, SQLite file, SQL data dump and config.local.php private. 
 
 Once private login works, open `/restore_private_data.php` and upload the original ZIP. The page requires the existing owner login and a session CSRF token. It accepts only the expected database entry, checks size and integrity, and keeps the database outside the public directory. It backs up an automatically created empty database and refuses to replace any saved work. After a successful restore, a private marker prevents further restores. The ZIP is not retained and no AI calls are made.
 
+## Switching between Gemini and Claude
+
+For PHP hosts that do not pass website environment variables to PHP, the CLI-only helper saves provider settings in ignored `runtime.local.php`, outside the web root with owner-only permissions. It preserves the other provider's settings and the private login. Enter the key into a hidden shell prompt, then pass the value over stdin; never paste it into a command or GitHub:
+
+    read -s -p "Paste API key, then press Enter: " studio_api_key
+
+After entering the key and returning to the shell prompt:
+
+    printf '%s' "$studio_api_key" | PHP_VERSION=8.3 php tools/configure-ai.php gemini gemini-3.5-flash-lite
+    unset studio_api_key
+
+For Claude, use `claude` and the school's working Claude model ID instead. This setup helper makes no API calls. Gemini uses the documented streamed GenerateContent endpoint with JSON-schema output and inline validated PDF/image data. Test a single small task first. Quotas and charges depend on the Google project; do not promise unlimited or free usage.
+
 ## Checks without API use
 
     php tests/claude-adapter.php
+    php tests/gemini-adapter.php
 
 Use the original maps and saved guides to test viewing, editing and exports without AI. Any live generation test spends Claude API credits and should be kept small. There is no OpenAI fallback.

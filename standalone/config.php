@@ -1,6 +1,13 @@
 <?php
 declare(strict_types=1);
 /** Server secrets are environment variables. Local overrides are ignored by Git. */
+$runtimeFile = __DIR__ . '/runtime.local.php';
+if (is_file($runtimeFile)) {
+    $runtime = require $runtimeFile;
+    if (is_array($runtime)) foreach (['AI_PROVIDER', 'GEMINI_API_KEY', 'GEMINI_MODEL', 'ANTHROPIC_API_KEY', 'CLAUDE_MODEL'] as $key) {
+        if (isset($runtime[$key]) && is_string($runtime[$key])) putenv($key . '=' . $runtime[$key]);
+    }
+}
 $c = [
     'driver' => getenv('STUDIO_DB_DRIVER') ?: 'sqlite',
     'sqlite_path' => getenv('STUDIO_SQLITE_PATH') ?: __DIR__ . '/data/studio.sqlite',

@@ -1,4 +1,5 @@
 /config.local.php
+/runtime.local.php
 /.env
 /data/*
 !/data/.gitkeep

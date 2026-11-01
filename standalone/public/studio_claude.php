@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-/** Legacy function name retained; transport is exclusively Claude. */
+/** Legacy function name retained; the selected provider is called once, without fallback. */
+function cs_ai_label(): string { return strtolower(trim((string)getenv('AI_PROVIDER'))) === 'gemini' ? 'Gemini' : 'Claude'; }
 function cs_claude_payload(array $input, string $instructions, array $schema, int $maxTokens, string $model): array {
     $messages = [];
     foreach ($input as $message) {
@@ -36,6 +37,12 @@ function cs_claude_event(string $packet, array &$state, array &$usage): void {
     if (($e['type'] ?? '') === 'message_delta') { $state['stop'] = $e['delta']['stop_reason'] ?? $state['stop']; $usage['output_tokens'] = (int)($e['usage']['output_tokens'] ?? ($usage['output_tokens'] ?? 0)); }
 }
 function cs_openai(array $input, string $instructions, array $schema, int $maxTokens, callable $emit, array &$usage = [], string $cacheKey = '', string $effort = 'low'): array {
+    $provider = strtolower(trim((string)(getenv('AI_PROVIDER') ?: 'claude')));
+    if ($provider === 'gemini') {
+        require_once __DIR__ . '/studio_gemini.php';
+        return cs_gemini_request($input, $instructions, $schema, $maxTokens, $emit, $usage);
+    }
+    if ($provider !== 'claude') throw new RuntimeException('AI_PROVIDER must be claude or gemini.');
     require_once dirname(__DIR__) . '/assessment/diag_lib.php';
     $key = diagApiKey(); $model = diagModel();
     if ($key === '' || $model === '') throw new RuntimeException('School IT must configure ANTHROPIC_API_KEY and CLAUDE_MODEL on the PHP server.');
