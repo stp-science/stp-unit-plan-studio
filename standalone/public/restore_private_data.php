@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 $config = require dirname(__DIR__) . '/config.php';
+// config.php may open a connection while discovering the single owner.
+// Release it before the restore checkpoints and replaces the fresh database.
+unset($db);
 require_once __DIR__ . '/studio_auth.php';
 require_once dirname(__DIR__) . '/tools/private-restore-lib.php';
 header('Cache-Control: no-store');

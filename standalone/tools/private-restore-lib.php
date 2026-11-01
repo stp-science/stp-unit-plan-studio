@@ -38,22 +38,30 @@ function studio_restore_zip(string $archive, string $target): array
             $counts[$label] = (int)$source->query('SELECT COUNT(*) FROM ' . $table)->fetchColumn();
         }
         $source = null;
-        if (is_file($target . '-wal') || is_file($target . '-journal')) throw new RuntimeException('The database is busy. Close other studio tabs and try again.');
         if (is_file($target)) {
             $existing = new PDO('sqlite:' . $target, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            $existing->exec('PRAGMA query_only=ON');
+            $existing->exec('PRAGMA busy_timeout=3000');
+            // WAL files can exist on an idle database. Ask SQLite to checkpoint
+            // and leave WAL mode, rather than guessing from file existence.
+            $checkpoint = $existing->query('PRAGMA wal_checkpoint(TRUNCATE)')->fetch(PDO::FETCH_NUM);
+            if ($checkpoint && (int)$checkpoint[0] !== 0) throw new RuntimeException('The database is busy. Close other studio tabs and try again.');
+            if (strtolower((string)$existing->query('PRAGMA journal_mode=DELETE')->fetchColumn()) !== 'delete') throw new RuntimeException('The database is busy. Close other studio tabs and try again.');
+            $existing->exec('BEGIN EXCLUSIVE');
             $tables = $existing->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN);
             foreach ($tables as $table) {
                 $quoted = '"' . str_replace('"', '""', (string)$table) . '"';
                 $count = (int)$existing->query('SELECT COUNT(*) FROM ' . $quoted)->fetchColumn();
                 if (($table === 'teachers' && $count > 1) || ($table !== 'teachers' && $count > 0)) throw new RuntimeException('This site already contains work. Restore stopped to protect it.');
             }
-            $existing = null;
             $backup = $target . '.before-restore-' . bin2hex(random_bytes(6));
             if (!copy($target, $backup)) throw new RuntimeException('Could not back up the fresh database.');
             chmod($backup, 0600);
+            if (!rename($temporary, $target)) throw new RuntimeException('Could not install the restored database.');
+            $temporary = '';
+            $existing->exec('COMMIT');
+            $existing = null;
         }
-        if (!rename($temporary, $target)) throw new RuntimeException('Could not install the restored database.');
+        if ($temporary !== '' && !rename($temporary, $target)) throw new RuntimeException('Could not install the restored database.');
         $temporary = '';
         chmod($target, 0600);
         file_put_contents($target . '.restored', gmdate('c'), LOCK_EX);
