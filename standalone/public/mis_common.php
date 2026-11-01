@@ -1,11 +1,8 @@
 <?php
 declare(strict_types=1);
 /**
- * Unit Plan Studio, standalone edition: replaces the school site's login, session and menu layer.
- *
- * There is NO login. Every request is treated as the one teacher named in config.php, with leadership rights
- * (so the whole school's curriculum maps are visible). Do not put this on the public internet as it is:
- * anyone who can reach the page can read and change the data and spend your OpenAI credit.
+ * Standalone school workspace. Private HTTP credentials decide admin/staff access;
+ * both logins share the configured workspace teacher so existing work is retained.
  */
 
 $GLOBALS['STUDIO_CFG'] = require dirname(__DIR__) . '/config.php';
@@ -55,7 +52,7 @@ function mis_table_exists(PDO $pdo, string $table): bool
     } catch (Throwable $e) { return false; }
 }
 
-/** No sign-in: the configured teacher is always the user. */
+/** Both logins use the shared workspace; privileges come from verified credentials. */
 function mis_require_teacher(PDO $pdo): array
 {
     $id = (int)studio_cfg('teacher_id', 0);
@@ -66,16 +63,17 @@ function mis_require_teacher(PDO $pdo): array
     } catch (Throwable $e) { $t = false; }
     if (!$t) $t = ['id' => $id, 'name' => 'Teacher', 'email' => '', 'school_id' => (int)studio_cfg('school_id', 0), 'role' => 'leadership'];
     if (empty($t['school_id'])) $t['school_id'] = (int)studio_cfg('school_id', 0);
+    $t['role'] = studio_is_admin() ? 'leadership' : 'teacher';
     return $t;
 }
 
-// There is no session to protect, so the anti-forgery token is a constant that always passes.
+// Each browser session has its own anti-forgery token.
 function mis_csrf_token(): string { return studio_csrf_token(); }
 function mis_csrf_valid(?string $token): bool { return studio_csrf_valid($token); }
 
 function mis_school_flag(PDO $pdo, int $schoolId, string $flag, bool $default = false): bool { return true; }
 function mis_school_name(PDO $pdo, int $schoolId): string { return (string)studio_cfg('school_name', 'Your school'); }
-function mis_is_school_admin(PDO $pdo, int $teacherId): bool { return true; }
-function mis_is_leadership(PDO $pdo, int $teacherId): bool { return true; }
+function mis_is_school_admin(PDO $pdo, int $teacherId): bool { return studio_is_admin(); }
+function mis_is_leadership(PDO $pdo, int $teacherId): bool { return studio_is_admin(); }
 function mis_menu_visibility(PDO $pdo, int $schoolId): array { return []; }
 function mis_teacher_classes(PDO $pdo, int $teacherId, int $schoolId): array { return []; }

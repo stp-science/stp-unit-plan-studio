@@ -20,6 +20,12 @@ $schoolName     = mis_school_name($pdo, $schoolId);
 $isAdmin = mis_is_school_admin($pdo, $teacherId) || mis_is_leadership($pdo, $teacherId);
 $std     = $isAdmin ? cs_school_standard($pdo, $schoolId) : null;
 $usage   = $isAdmin ? cs_usage_summary($pdo, $schoolId, 30) : [];
+$staffUsername = 'staff';
+if ($isAdmin && is_file(dirname(__DIR__) . '/staff-login.local.php')) {
+    $staffAccount = require dirname(__DIR__) . '/staff-login.local.php';
+    if (is_array($staffAccount) && is_string($staffAccount['username'] ?? null)) $staffUsername = $staffAccount['username'];
+    unset($staffAccount);
+}
 $e = static fn($v) => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $base = 'assets/curriculum_studio/' . CS_ASSET_VER . '/';
 $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base . $f) ?: 1);
@@ -42,7 +48,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
     <a href="curriculum_studio.php">Start</a>
     <a href="curriculum_studio.php?department=<?= (int)($_GET['department'] ?? 0) ?>">Curriculum map</a>
     <a href="curriculum_studio.php?guide=1">Unit plans</a>
-    <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?></span>
+    <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?> &middot; <?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
   </nav>
   <div class="app-shell">
     <div class="workspace">
@@ -51,7 +57,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
           <div class="page-title">
             <p class="eyebrow"><?= $e($schoolName) ?> · Teaching &amp; learning</p>
             <h1>Unit Plan Studio</h1>
-            <p><a href="curriculum_studio.php">&larr; Back to start</a> &middot; Choose your subject, year and unit. The Ministry curriculum gives the outline and your department's curriculum map gives the sequence. Your unit plans are private to you.</p>
+            <p><a href="curriculum_studio.php">&larr; Back to start</a> &middot; Choose your subject, year and unit. The Ministry curriculum gives the outline and your department's curriculum map gives the sequence. Maps and unit plans are shared with staff using this site.</p>
           </div>
         </div>
       </header>
@@ -68,6 +74,12 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
           <?php if (!$usage): ?>none yet.<?php else: foreach ($usage as $u): ?>
             <?= $e($u['op']) ?>: <?= (int)$u['calls'] ?> calls, <?= number_format((int)$u['inp']) ?> input tokens (<?= number_format((int)$u['cached']) ?> cached), <?= number_format((int)$u['outp']) ?> output;
           <?php endforeach; endif; ?></p>
+          <h3>Shared staff login</h3>
+          <p class="cg-hint">Set a separate login for staff to try the shared maps and unit plans. They cannot change school settings or this login. Your administrator username and password stay the same.</p>
+          <p><label>Staff username <input id="cs-staff-user" type="text" value="<?= $e($staffUsername) ?>" minlength="3" maxlength="64" pattern="[A-Za-z0-9._-]{3,64}" autocomplete="off" required></label></p>
+          <p><label>New staff password <input id="cs-staff-password" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></label></p>
+          <p class="cg-hint">Use 12–72 characters and a different password from your administrator login. Entering a new one replaces the previous staff password.</p>
+          <p><button type="button" id="cs-staff-save">Save staff login</button> <span id="cs-staff-message" role="status"></span></p>
         </details>
         <?php endif; ?>
         <div id="cg-root"></div>
@@ -86,6 +98,20 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
         body: JSON.stringify({csrf: CS.csrf, priorities: document.getElementById('cs-pri').value, additionalGuidance: document.getElementById('cs-add').value})});
       var d = await r.json(); m.textContent = d.ok ? 'Saved. New drafts will use these.' : (d.error || 'Could not save.');
     } catch (e) { m.textContent = 'Could not save.'; }
+  };
+  document.getElementById('cs-staff-save').onclick = async function () {
+    var user = document.getElementById('cs-staff-user'), password = document.getElementById('cs-staff-password');
+    if (!user.reportValidity() || !password.reportValidity()) return;
+    var button = this, message = document.getElementById('cs-staff-message');
+    button.disabled = true; message.textContent = 'Saving…';
+    try {
+      var response = await fetch(CS.api + '?action=save-staff-login', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({csrf: CS.csrf, username: user.value, password: password.value})});
+      var result = await response.json();
+      if (result.ok) { password.value = ''; message.textContent = 'Saved. Staff username: ' + result.username + '. Your administrator login is unchanged.'; }
+      else message.textContent = result.error || 'Could not save the staff login.';
+    } catch (e) { message.textContent = 'Could not save. Check the connection and try again.'; }
+    finally { button.disabled = false; }
   };
   </script>
   <?php endif; ?>

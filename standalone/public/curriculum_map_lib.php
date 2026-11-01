@@ -53,8 +53,9 @@ function cm_departments(PDO $pdo, int $schoolId, int $teacherId): array
     $st->execute([$schoolId]);
     $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
     $isManager = cm_is_manager($pdo, $teacherId);
+    $sharedStaff = studio_is_staff(); // shared testing login sees the school workspace without admin powers
     $mine = []; $myFaculties = [];
-    if (!$isManager) {
+    if (!$isManager && !$sharedStaff) {
         $h = $pdo->prepare('SELECT department_id FROM mis_department_heads WHERE teacher_id = ? AND school_id = ?');
         $h->execute([$teacherId, $schoolId]);
         foreach ($h->fetchAll(PDO::FETCH_COLUMN) as $d) $mine[(int)$d] = true;
@@ -73,7 +74,7 @@ function cm_departments(PDO $pdo, int $schoolId, int $teacherId): array
     $out = []; $facDone = [];
     foreach ($rows as $r) {
         $did = (int)$r['id']; $fid = $r['faculty_id'] === null ? 0 : (int)$r['faculty_id'];
-        $visible = $isManager || isset($mine[$did]);
+        $visible = $isManager || $sharedStaff || isset($mine[$did]);
         if (!$visible) continue;
         if ($fid && ($perFaculty[$fid] ?? 0) > 1 && !isset($facDone[$fid])) {   // the whole-faculty map comes first in its group
             $facDone[$fid] = true;

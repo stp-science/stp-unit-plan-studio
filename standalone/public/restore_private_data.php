@@ -5,6 +5,7 @@ $config = require dirname(__DIR__) . '/config.php';
 // Release it before the restore checkpoints and replaces the fresh database.
 unset($db);
 require_once __DIR__ . '/studio_auth.php';
+studio_require_admin();
 require_once dirname(__DIR__) . '/tools/private-restore-lib.php';
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');

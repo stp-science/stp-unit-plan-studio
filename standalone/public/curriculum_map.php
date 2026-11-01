@@ -36,7 +36,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
     <a href="curriculum_studio.php">Start</a>
     <a href="curriculum_studio.php?department=<?= (int)($_GET['department'] ?? 0) ?>">Curriculum map</a>
     <a href="curriculum_studio.php?guide=1">Unit plans</a>
-    <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?></span>
+    <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?> &middot; <?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
   </nav>
   <div class="app-shell">
     <div class="workspace">

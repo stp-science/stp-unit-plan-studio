@@ -16,7 +16,26 @@ Set these server environment variables (not GitHub files):
 - STUDIO_PASSWORD_HASH: a PHP password_hash value; do not commit a password.
 - Optionally STUDIO_SQLITE_PATH for a persistent database outside the web root.
 
-Remote requests refuse access without password configuration. Local loopback testing needs no password. Writes use real session CSRF tokens. This is still the supplied single-owner edition, not independent staff accounts.
+Remote requests refuse access without password configuration. Local loopback testing needs no password. Writes use real session CSRF tokens. The owner login has administrator rights. An optional separate shared staff login can use all school maps and plans without school-settings permissions. These are shared workspace accounts, not individual teacher accounts.
+
+## Shared staff login for testing
+
+Keep the existing owner username/password private. After pulling this version, sign in as the owner, open **Unit plans → School settings (admins only) → Shared staff login**, choose a username and a different password, and press **Save staff login**. Use a separate private browser window to test the staff credentials. The form never displays the saved password and the API rejects requests from staff, including requests made directly.
+
+Alternatively, configure the same account from SSH with a hidden terminal prompt:
+
+    read -s -p "Choose a STAFF website password (12–72 characters): " studio_staff_password
+
+Enter the password, press Enter, and wait until the normal command prompt returns. Then run:
+
+    printf '%s' "$studio_staff_password" | PHP_VERSION=8.4 php /home/stp-unit-plans/studio/standalone/tools/configure-staff.php staff
+    unset studio_staff_password
+
+The helper writes only `staff-login.local.php`, outside the public directory, with a password hash and owner-only file permissions. This file is ignored by Git. It does not change the existing owner password, API settings, or database. Repeating the helper rotates the staff password.
+
+The `staff` login can view, create, edit and delete shared maps/plans and use the configured AI provider. It cannot see the school-settings/usage box, change school settings through the API, create departments, or use the private database restore page. Access is checked from the credentials on every request, even if a browser previously had an administrator session. Only the owner login is an administrator.
+
+Test the staff login in a separate private browser window, because browsers remember HTTP Basic credentials. Check the navigation label says **Staff**; the owner sees **Administrator**. School settings remain available only to the owner. Anyone given the shared staff credentials can use them; this temporary login does not verify school employment.
 
 ## Restore the supplied private work
 

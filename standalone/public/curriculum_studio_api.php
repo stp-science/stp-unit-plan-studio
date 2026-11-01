@@ -94,6 +94,21 @@ try {
         $json(['ok' => true]);
     }
 
+    if ($action === 'save-staff-login') {
+        if (!mis_is_school_admin($pdo, $teacherId) && !mis_is_leadership($pdo, $teacherId)) $json(['ok' => false, 'error' => 'Only the administrator can change the staff login.'], 403);
+        require_once dirname(__DIR__) . '/tools/private-staff-login-lib.php';
+        $username = is_string($in['username'] ?? null) ? trim($in['username']) : '';
+        $password = is_string($in['password'] ?? null) ? $in['password'] : '';
+        $ownerHash = (string)(getenv('STUDIO_PASSWORD_HASH') ?: '');
+        try {
+            if ($ownerHash === '') throw new RuntimeException('Configure your administrator login first.');
+            studio_save_staff_login(dirname(__DIR__) . '/staff-login.local.php', $username, $password, (string)(getenv('STUDIO_LOGIN_USER') ?: 'gary'), $ownerHash);
+        } catch (RuntimeException $e) {
+            $json(['ok' => false, 'error' => $e->getMessage()], 422);
+        } finally { unset($password, $in['password']); }
+        $json(['ok' => true, 'username' => $username]);
+    }
+
     if (!in_array($action, ['find', 'generate'], true)) $json(['ok' => false, 'error' => 'Unknown action.'], 400);
     $fail = static fn(string $m, int $c = 400) => $json(['ok' => false, 'error' => $m], $c);
     $std = cs_school_standard($pdo, $schoolId);
