@@ -572,7 +572,7 @@ function statementsPanel(y, t) {
     curriculumAi.resetBlock();
     busy = 'The AI is choosing the best matches. You can keep ticking while it works…'; note = ''; paintHead();
     try {
-      const {res, otherLevel} = await findFor(ctx, year, t.title, topicContext(y, t));
+      const {res, otherLevel} = await findFor(ctx, year, t.title, topicContext(y, t), {stage});
       if (otherLevel) for (const arr of [res.knowledge, res.practices]) for (const x of arr) x.source = (x.source || '') + ' · from a level not mapped to this year';
       for (const [kind, arr] of [['knowledge', res.knowledge], ['practice', res.practices]]) for (const s of arr) {
         const conf = s.confidence ?? null, row = rowFor(s.text);
@@ -817,6 +817,14 @@ function mapView() {
       S.updatedAt && !S.draft ? h('div', {class: 'cm-meta'}, 'Last updated ' + ago(S.updatedAt) + (S.updatedBy ? ' by ' + S.updatedBy : '')) : null),
     h('div', {class: 'cm-acts'},
       S.draft ? null : h('span', {class: 'cm-save ' + (S.saveState === 'error' ? 'err' : 'ok'), role: 'button', tabindex: '0', onclick: () => { if (S.saveState === 'error') save(); }}, S.saveState === 'error' ? 'Not saved. Click to retry' : S.saveState === 'saving' ? 'Saving…' : 'Saved'),
+      S.edit && isLanguageDept() ? h('button', {class: 'cm-btn', type: 'button', onclick: () => {
+        const existing = new Set(S.map.years.map(y => noviceOf(y.label)).filter(Boolean));
+        const missing = ['Novice 1', 'Novice 2', 'Novice 3'].filter(n => !existing.has(n));
+        if (!missing.length) { toast('All three Novice groups are already present.'); return; }
+        const count = Math.min(8, Math.max(1, S.map.years[0]?.blocks.length || 4));
+        for (const label of missing) S.map.years.push({id:uid(),label,blocks:Array.from({length:count},()=>({id:uid(),label:'',topics:[]}))});
+        changed(); toast('Added missing Novice groups. Existing units and year rows were preserved; move units into the stages you want.');
+      }}, 'Add Novice groups') : null,
       S.edit ? h('button', {class: 'cm-btn', type: 'button', onclick: strandsEditor}, 'Strands & key') : null,
       S.edit ? h('button', {class: 'cm-btn', type: 'button', onclick: () => confirmModal('Replace this map?', 'The current map is removed from the department (a copy is kept for recovery) and you can upload a different file or build a new one.', 'Replace it', async () => { const r = await post('delete', {department_id: S.dept.id}); if (r.ok) { S.map = null; S.version = 0; S.edit = false; S.draft = false; S.banner = null; render(); } else { S.banner = {kind: 'err', text: r.error || 'Could not replace the map.'}; render(); } })}, 'Replace map') : null,
       S.draft ? null : h('button', {class: 'cm-btn', type: 'button', onclick: openCoverage}, 'Curriculum coverage'),
@@ -847,14 +855,15 @@ function mapView() {
 
 // ---------------------------------------------------------------- no map yet: create or import
 function startFromScratch(f) {
-  const first = parseInt(f.first, 10), last = parseInt(f.last, 10);
+  const novice = isLanguageDept();
+  const first = novice ? 7 : parseInt(f.first, 10), last = novice ? 9 : parseInt(f.last, 10);
   if (!(first >= 1 && last >= first && last - first < 13)) return 'Check the first and last year.';
   const per = Math.min(12, Math.max(1, parseInt(f.blocks, 10) || 4));
   let n = 0;
   const strands = f.strands.split(/[,\n]/).map(s => s.trim()).filter(Boolean).slice(0, 12).map((name, i) => ({id: uid(), name, color: PALETTE[i % PALETTE.length]}));
   const assessTypes = f.types.split(/[;\n]/).map(s => { const [code, ...rest] = s.split(/[=:]/); return {code: (code || '').trim().toUpperCase().slice(0, 3), label: rest.join('=').trim()}; }).filter(a => a.code);
   S.map = {v: 1, title: f.title.trim(), notes: '', strands, assessTypes,
-    years: Array.from({length: last - first + 1}, (_, i) => ({id: uid(), label: 'Year ' + (first + i), blocks: Array.from({length: per}, () => ({id: uid(), label: '', topics: []}))}))};
+    years: Array.from({length: last - first + 1}, (_, i) => ({id: uid(), label: novice ? 'Novice ' + (i + 1) : 'Year ' + (first + i), blocks: Array.from({length: per}, () => ({id: uid(), label: '', topics: []}))}))};
   S.draft = false; S.review = true; S.edit = true; S.source = ''; S.sourceKind = ''; S.version = 0; S.banner = null;
   render(); saveNew();
   return '';
@@ -917,13 +926,14 @@ function startImport(file) {
 }
 
 function startGenerate(f) {
-  const first = parseInt(f.first, 10), last = parseInt(f.last, 10), per = parseInt(f.blocks, 10);
+  const novice = isLanguageDept();
+  const first = novice ? 7 : parseInt(f.first, 10), last = novice ? 9 : parseInt(f.last, 10), per = parseInt(f.blocks, 10);
   if (!(first >= 7 && last <= 13 && last >= first)) return 'Choose years between 7 and 13.';
-  if (!(per >= 1 && per <= 8)) return 'Use 1 to 8 terms a year.';
+  if (!(per >= 1 && per <= 8)) return 'Use 1 to 8 planning blocks.';
   mapJob({title: 'Designing your curriculum sequence', source: 'AI', kind: 'ai',
-    stages: [[0, 'Reading the curriculum for ' + S.dept.name + '…'], [6, 'Choosing the units for each year…'], [16, 'Ordering them so each one builds on the last…'], [28, 'Spreading assessments across the terms…'], [45, 'Nearly there…']],
+    stages: [[0, 'Reading the curriculum for ' + S.dept.name + '…'], [6, novice ? 'Choosing the units for each Novice stage…' : 'Choosing the units for each year…'], [16, 'Ordering them so each one builds on the last…'], [28, 'Spreading assessments across the terms…'], [45, 'Nearly there…']],
     request: () => fetch(CM.api + '?action=generate-map', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({csrf: CM.csrf, department_id: S.dept.id, first, last, blocks: per, title: f.title, strands: f.strands, types: f.types, notes: f.notes})})});
+      body: JSON.stringify({csrf: CM.csrf, department_id: S.dept.id, first, last, novice, blocks: per, title: f.title, strands: f.strands, types: f.types, notes: f.notes})})});
   return '';
 }
 
@@ -944,18 +954,20 @@ function uploadState() {
 
 function emptyState() {
   if (S.view === 'upload') return uploadState();
+  const novice = isLanguageDept();
   const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: '10', blocks: '4', strands: '', notes: '', types: ''};
   const err = h('div', {class: 'hint', style: 'color:var(--err);min-height:20px'});
   const inp = (k, o = {}) => h('input', {type: 'text', value: f[k], oninput: e => { f[k] = e.target.value; }, ...o});
   return h('div', {class: 'cm-in'},
     h('div', {class: 'cm-hero'}, h('h2', {}, 'Create ' + S.dept.name + '’s curriculum overview with AI'),
-      h('p', {}, 'Choose your year groups and terms. AI uses the Ministry curriculum to propose a sequence of units, ordered so learning builds over time. You can review and edit the suggested overview.')),
+      h('p', {}, novice ? 'Organise the language curriculum into Novice 1, Novice 2 and Novice 3, following the Ministry teaching sequence rather than student year levels.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to propose a sequence of units, ordered so learning builds over time. You can review and edit the suggested overview.')),
     S.banner ? h('div', {class: 'cm-banner ' + S.banner.kind}, S.banner.text) : null,
     h('div', {class: 'cm-setup'},
       h('div', {class: 'cm-card'}, h('h3', {}, 'Tell us what to plan'),
         field('Title', inp('title', {maxlength: '140'})),
+        novice ? h('p', {class:'hint'}, 'Proficiency groups: Novice 1 · Novice 2 · Novice 3') :
         h('div', {class: 'cm-row2'}, field('First year', inp('first', {inputmode: 'numeric'}), '7 to 13'), field('Last year', inp('last', {inputmode: 'numeric'}))),
-        field('Terms per year', inp('blocks', {inputmode: 'numeric'}), 'For example 4 terms, or 6 if you plan in half-terms.'),
+        field(novice ? 'Planning blocks per novice stage' : 'Terms per year', inp('blocks', {inputmode: 'numeric'}), novice ? 'Units can span several school years. These are sequence blocks, not automatic year allocations.' : 'For example 4 terms, or 6 if you plan in half-terms.'),
         field('Strands (optional)', inp('strands', {placeholder: 'Enter your department’s strands'}), 'Comma separated. Leave blank and the AI suggests them.'),
         field('Assessment types (optional)', inp('types'), 'Enter your department’s own types as Code = meaning, separated by semicolons. Leave blank to choose later.'),
         field('Anything the AI should know (optional)', h('textarea', {rows: 3, placeholder: 'For example: Teach introductory units before advanced ones. Keep two units per term. Allow time for revision and assessment.', oninput: e => { f.notes = e.target.value; }})),
