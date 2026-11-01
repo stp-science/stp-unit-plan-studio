@@ -106,7 +106,7 @@ addEventListener('popstate', async e => {
 // ---------------------------------------------------------------- helpers on the map
 const strandOf = id => S.map.strands.find(s => s.id === id);
 const typeOf = code => S.map.assessTypes.find(t => t.code === code);
-const yearNum = label => { const m = /\bYear\s*(\d+)\b/i.exec(label || ''); return m ? m[1] : ''; };
+const yearNum = label => { if (/^\s*Novice\s*[123]\s*$/i.test(label || '')) return ''; const m = /\d+/.exec(label || ''); return m ? m[0] : ''; };
 const noviceOf = label => { const m = /^\s*Novice\s*([123])\s*$/i.exec(label || ''); return m ? 'Novice ' + m[1] : ''; };
 const isLanguageDept = () => /french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i.test(S.dept?.name || '');
 const yearOf = label => noviceOf(label) ? 7 : (parseInt(yearNum(label), 10) || 0);
