@@ -7,6 +7,20 @@ $payload = cs_claude_payload([['role' => 'user', 'content' => [['type' => 'input
 check($payload['messages'][0]['content'][1]['type'] === 'document', 'PDF conversion');
 check($payload['tools'][0]['input_schema'] === $schema, 'Schema retained');
 check($payload['tool_choice']['name'] === 'submit_result', 'Structured result');
+// Sonnet 5.5 must never use forced tools. Its JSON-schema response streams as text.
+$sonnet = cs_claude_payload([['role' => 'user', 'content' => [['type' => 'input_text', 'text' => 'Test only']]]], 'Test instructions', $schema, 512, 'claude-sonnet-5-5');
+check(!isset($sonnet['tool_choice']) && !isset($sonnet['tools']), 'Sonnet 5.5 no forced tool choice');
+check(($sonnet['output_config']['format']['type'] ?? '') === 'json_schema' && ($sonnet['output_config']['format']['schema'] ?? null) === $schema, 'Sonnet 5.5 native JSON schema');
+$sonnetState = ['json' => '', 'stop' => '', 'error' => false, 'mode' => 'json']; $sonnetUsage = [];
+foreach ([
+ ['type' => 'message_start', 'message' => ['usage' => ['input_tokens' => 7]]],
+ ['type' => 'content_block_start', 'index' => 0, 'content_block' => ['type' => 'text', 'text' => '']],
+ ['type' => 'content_block_delta', 'index' => 0, 'delta' => ['type' => 'text_delta', 'text' => '{"ok":']],
+ ['type' => 'content_block_delta', 'index' => 0, 'delta' => ['type' => 'text_delta', 'text' => 'true}']],
+ ['type' => 'message_delta', 'delta' => ['stop_reason' => 'end_turn'], 'usage' => ['output_tokens' => 4]],
+] as $event) cs_claude_event('data: ' . json_encode($event), $sonnetState, $sonnetUsage);
+check(($sonnetState['stop'] ?? '') === 'end_turn' && (json_decode($sonnetState['json'], true)['ok'] ?? false) === true, 'Sonnet 5.5 streamed structured JSON');
+check($sonnetUsage['input_tokens'] === 7 && $sonnetUsage['output_tokens'] === 4, 'Sonnet 5.5 usage counts');
 $state = ['json' => '', 'stop' => '', 'error' => false];$usage = [];
 $events = [
  ['type' => 'message_start', 'message' => ['usage' => ['input_tokens' => 10, 'cache_read_input_tokens' => 20]]],
