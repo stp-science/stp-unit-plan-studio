@@ -292,7 +292,12 @@ function topicCard() {
       h('summary', {}, 'Add context or paste your own curriculum text'),
       field('Anything the AI should know', area(G.notes, v => { G.notes = v; save(); }, 2), 'Equipment, what students already know, local focus…'),
       field('Paste curriculum text (if your subject is not listed)', area(G.pasted, v => { G.pasted = v; save(); sync(); }, 4), 'Paste the official knowledge and practice statements for this year. They are checked against exactly what you paste.')),
-    h('div', {class: 'cg-actions'}, go, found ? h('button', {class: 'cg-ghost', type: 'button', onclick: () => { view = 'outline'; renderMain(true); }}, 'Back to my outline') : null,
+    h('div', {class: 'cg-actions'}, go,
+      !G.mapRef && G.docId && !G.pasted && (JUNIOR.includes(G.year) || noviceStages(G).length) ?
+        h('button', {class:'cg-ghost',type:'button',
+          disabled:!G.topic.trim() || (isLanguage && !noviceStages(G).length),
+          onclick:browseOfficialStatements}, 'Browse all official statements' + (noviceStages(G).length ? '' : ' · no AI')) : null,
+      found ? h('button', {class: 'cg-ghost', type: 'button', onclick: () => { view = 'outline'; renderMain(true); }}, 'Back to my outline') : null,
       h('span', {style: 'margin-left:auto'}, resetLink())));
 }
 
@@ -562,6 +567,21 @@ async function expandNoviceStatements(guide, signal) {
   save();
   return added;
 }
+// Teachers can bypass AI title matching entirely. The prepared curriculum
+// library is authoritative and is available regardless of the unit title.
+function browseOfficialStatements() {
+  return run('Opening the official curriculum', ['Loading your subject and year…', 'Preparing Knowledge and Practices…'], async signal => {
+    if (!G.docId) throw Error('Choose a curriculum source first.');
+    if (noviceStages(G).length) await expandNoviceStatements(G, signal);
+    else if (JUNIOR.includes(G.year)) await expandYearStatements(G, signal);
+    else throw Error('The full source library is currently available for Years 7–10. For senior subjects, use the topic matcher or paste official curriculum statements.');
+    if (!hasStatements(G)) throw Error('No curriculum statements were found for this source. Check the selected subject and document.');
+    statementFilter = '';
+    view = 'outline';
+    banner = {kind:'note',text:'Official curriculum statements are ready. Nothing has been selected automatically. Tick the Knowledge and Practices this unit will teach.'};
+    save();
+  });
+}
 function find() {
   return run('Finding your curriculum statements', ['Reading the Ministry curriculum…', 'Matching statements to your unit…', 'Checking every word against the source…'], async signal => {
     const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
@@ -576,8 +596,14 @@ function find() {
       try { await expandYearStatements(G, signal); }
       catch (error) { banner = {kind:'note',text:'Matched statements are available, but the full Year '+G.year+' library could not load: '+error.message}; }
     }
-    save(); view = 'outline';
-    if (r.warnings && r.warnings.length) banner = {kind: 'note', text: [...(banner ? [banner.text] : []),...r.warnings].join(' ')};
+    save();
+    if (hasStatements(G)) {
+      view = 'outline';
+      if (r.warnings && r.warnings.length) banner = {kind:'note',text:[...(banner ? [banner.text] : []),...r.warnings].join(' ')};
+    } else {
+      view = 'topic';
+      banner = {kind:'note',text:'The automatic matcher could not confirm curriculum statements for this unit. Your title is fine. ' + (JUNIOR.includes(G.year) ? 'Use “Browse all official statements” to select the exact Knowledge and Practices for your year and subject.' : 'Check the source document or paste the relevant official statements in the section below.')};
+    }
   });
 }
 
