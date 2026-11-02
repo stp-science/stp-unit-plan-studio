@@ -286,3 +286,24 @@ body[data-page="curriculum-studio"] .cg :focus-visible{outline-color:#82adbf}
   body[data-page="curriculum-studio"] .cg-school-logo{height:75px}
   .cg-schoolwordmark{font-size:22px}
 }
+
+/* Select official curriculum knowledge/practices from several junior years. */
+.cg-year-switcher{margin:14px 0 16px;max-width:100%}
+.cg-year-tablist{display:flex;flex-wrap:wrap;gap:6px;padding:5px;
+  background:#eaf0f2;border:1px solid #d5e1e5;border-radius:12px}
+.cg-year-tab{display:flex;justify-content:center;align-items:center;gap:7px;
+  flex:1 1 110px;padding:10px 11px;border:1px solid transparent;border-radius:9px;
+  font-weight:700;font-size:13.5px;background:transparent;color:#385165;
+  transition:background .15s,border-color .15s}
+.cg-year-tab:hover:not(:disabled){background:#fff;color:#001733}
+.cg-year-tab.on{background:#fff;border-color:#82adbf;color:#001733;
+  box-shadow:0 2px 6px rgba(0,23,51,.1)}
+.cg-year-tab.home:not(.on){border-style:dashed;border-color:#adc8d2}
+.cg-year-tab:disabled{opacity:.65;cursor:progress}
+.cg-year-count{display:grid;place-items:center;min-width:21px;height:21px;
+  padding:0 5px;border-radius:99px;background:#cf082b;color:#fff;font-size:11px;font-weight:750}
+.cg-year-hint{margin:8px 4px 0;color:var(--mut);font-size:13px}
+.cg-year-loading,.cg-year-empty{border:1px solid #c6dae3;border-radius:10px;
+  padding:15px;margin:14px 0;background:#f2f8fa;color:#001733}
+.cg-year-empty p{margin:0 0 8px}
+@media(max-width:540px){.cg-year-tab{flex-basis:calc(50% - 4px)}}
