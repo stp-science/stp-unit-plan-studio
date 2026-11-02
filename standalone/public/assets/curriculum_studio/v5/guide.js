@@ -869,7 +869,18 @@ async function pullMapStatements(guide) {
     }
   }
   const rows = r.statements.filter(x => x.selected);
-  const mk = (kind, p) => rows.filter(x => x.kind === kind).map((x, i) => ({id: p + (i + 1), text: x.text, source: x.source || '', confidence: x.confidence, link: 'strong', why: '', subject: guide.subject || ''}));
+  const mk = (kind, p) => rows.filter(x => x.kind === kind).map((x, i) => {
+    const prep = isPrepGuide(guide);
+    const source = prep ? PREP_SOURCES.find(s=>s.id===x.doc_id ||
+      String(x.source||'').startsWith(s.label+' — ')) : null;
+    const stage = /\\bNovice [123]\\b/.exec(String(x.source||''))?.[0];
+    const fromYear = /\\bYear\\s*(7|8)\\b/i.exec(String(x.source||''))?.[1];
+    return {id:p+(i+1),text:x.text,source:x.source||'',confidence:x.confidence,
+      link:'strong',why:'',subject:source?.label||guide.subject||'',
+      ...(source?{prepSourceId:source.id}:{}),
+      ...(source?.novice && stage?{prepStage:stage}:{}),
+      ...(source && !source.novice && fromYear?{curriculumYear:Number(fromYear)}:{})};
+  });
   const next = {knowledge: mk('knowledge', 'k'), practices: mk('practice', 'p')};
   const selectedKey = (st,chosen) => ['knowledge','practices'].flatMap(k=>st[k].filter(x=>chosen[k].includes(x.id)).map(x=>x.text)).join('\n');
   const changed = selectedKey(next,{knowledge:next.knowledge.map(x=>x.id),practices:next.practices.map(x=>x.id)}) !== selectedKey(guide.statements,guide.selected);
