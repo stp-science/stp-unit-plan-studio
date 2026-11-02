@@ -253,3 +253,36 @@ a.cm-txe.cm-txg{display:inline-block;text-decoration:none;background:var(--acc);
 .cm-stag{margin-top:auto;font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 11px;background:var(--line2);color:var(--ink)}
 .cm-startfoot{margin:6px 2px;font-size:14px}.cm-startfoot a{color:var(--mut);text-decoration:none;font-weight:620}.cm-startfoot a:hover{color:var(--acc)}
 @media print{.cm-backrow,.cm-startgrid{display:none}}
+
+/* School homepage — Ministry curriculum resources and knowledge-rich planning. */
+.cm-knowledge-guide{margin-top:30px;border:1px solid #d8e1e5;
+  border-top:4px solid #82adbf;border-radius:13px;padding:22px;
+  background:#fff;box-shadow:0 3px 16px rgba(0,23,51,.06)}
+.cm-knowledge-head{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:18px;flex-wrap:wrap;margin-bottom:17px}
+.cm-knowledge-head>div{flex:1 1 360px}
+.cm-knowledge-kicker{display:block;color:#ae0024;font-size:11px;
+  font-weight:850;letter-spacing:.11em;margin-bottom:6px}
+.cm-knowledge-head h2{margin:0 0 8px;color:#001733;font-size:23px;line-height:1.25}
+.cm-knowledge-head p{margin:0;color:#526879;max-width:740px;font-size:14px;line-height:1.65}
+.cm-nzc-link{display:inline-flex;align-items:center;justify-content:center;
+  padding:11px 15px;border-radius:9px;background:#001733;color:#fff!important;
+  border:1px solid #001733;text-decoration:none;font-size:13px;font-weight:750}
+.cm-nzc-link:hover{background:#153d56}
+.cm-nzc-link:focus-visible{outline:3px solid #82adbf;outline-offset:2px}
+.cm-knowledge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cm-knowledge-principle{display:flex;align-items:flex-start;gap:10px;
+  padding:15px 12px;border:1px solid #e3e9eb;border-radius:10px;
+  background:#fafbf9}
+.cm-knowledge-number{flex:0 0 25px;height:25px;display:grid;place-items:center;
+  border-radius:50%;background:#e5f1f5;color:#001733;font-size:12px;font-weight:800}
+.cm-knowledge-principle h3{margin:0 0 5px;font-size:13px;color:#001733;line-height:1.4}
+.cm-knowledge-principle p{margin:0;color:#4e6573;font-size:12px;line-height:1.6}
+.cm-knowledge-foot{margin:15px 0 0;padding-top:13px;border-top:1px solid #e3e9eb;
+  color:#455e6d;font-size:13px;font-weight:600}
+@media(max-width:850px){.cm-knowledge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+ .cm-knowledge-guide{padding:15px;margin-top:20px}
+ .cm-knowledge-grid{grid-template-columns:1fr}
+ .cm-nzc-link{width:100%}
+}
