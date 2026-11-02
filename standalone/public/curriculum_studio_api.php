@@ -363,8 +363,14 @@ try {
                     }
                 }
                 foreach (['knowledge', 'practices'] as $kk) usort($out[$kk], static fn($x, $y) => $y['confidence'] <=> $x['confidence']);
-                if (!$out['knowledge'] && !$out['practices']) throw new CsInvalid('No matching curriculum statements were found for that unit and year. Try a broader unit name, or check the learning area.');
-                if (!array_filter(array_merge($out['knowledge'], $out['practices']), static fn($x) => $x['link'] === 'strong')) $out['warnings'][] = 'None of these statements closely match your unit title. Check the title, or reword it to match the curriculum, before relying on them.';
+                // A thematic/creative unit title need not appear literally in the Ministry
+                // curriculum. The teacher can still select verbatim source statements
+                // from the year-level library. No match is a review state, not a failed request.
+                if (!$out['knowledge'] && !$out['practices']) {
+                    $out['warnings'][] = 'No statements could be confidently matched automatically. Keep your unit title and select appropriate official Knowledge and Practices from the curriculum library instead.';
+                } elseif (!array_filter(array_merge($out['knowledge'], $out['practices']), static fn($x) => $x['link'] === 'strong')) {
+                    $out['warnings'][] = 'Suggested links are uncertain. Review the official statement list and tick the knowledge and practices this unit actually teaches.';
+                }
                 if ($out['dropped'] > 0) $out['warnings'][] = $out['dropped'] . ' suggested statement(s) were left out because their wording could not be found exactly in the curriculum text.';
                 $final = $out;
             } else {
