@@ -155,6 +155,8 @@ try {
     }
 
     $dept = $deptFor($in['department_id'] ?? 0);
+    if ($dept && ($dept['scope'] ?? '') === 'prep-setup')
+        $json(['ok' => false, 'error' => 'Enable the Prep workspace before editing its overview.'], 422);
     if (!$dept) $json(['ok' => false, 'error' => 'You are not in that department.'], 403);
     $deptId = $dept['id'];
 
