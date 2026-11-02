@@ -235,6 +235,9 @@ function open(id) {
     });
   }
 }
+function newPrepGuide() {
+  newGuide(); G.subject='Prep'; G.year=7; resetPrepView(G); save(); renderMain(true);
+}
 function newGuide() { resetPrepView({year:7}); activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
 
 // ---------------------------------------------------------------- timing rules in plain English, with suggestions to click
@@ -305,9 +308,7 @@ function build() {
     h('p', {}, 'Pick your subject, year and unit. The official Ministry curriculum gives the outline, and your department’s curriculum map gives the sequence.'),
     h('div',{class:'cg-actions'},
       h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →'),
-      h('button', {class:'cg-ghost',type:'button',onclick:()=>{
-        newGuide(); G.subject='Prep'; G.year=7; save(); renderMain(true);
-      }},'Create a Prep unit  →')),
+      h('button', {class:'cg-ghost',type:'button',onclick:newPrepGuide},'Create a Prep unit  →')),
     h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Private to you'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
   if (work) return [stepper(), workCard()];
   if (G.mapRef && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
@@ -870,6 +871,7 @@ async function pullMapStatements(guide) {
   guide.statements = next;
   guide.selected = {knowledge: next.knowledge.map(x => x.id), practices: next.practices.map(x => x.id)};
   guide.bankLoaded = false; guide.bankYears = [];
+  if (isPrepGuide(guide)) guide.prepLoaded = [];
   if (changed || resolvedSource) { guide.docId = guide.docId || (rows[0] && rows[0].doc_id) || ''; if (G === guide) save(); }
   return changed;
 }
@@ -1019,7 +1021,7 @@ function find() {
 function generate() {
   return run('Drafting your unit plan', ['Reading your selected statements…', 'Planning the learning focuses…', 'Checking the wording matches the curriculum…'], async signal => {
     if (G.mapRef) await mapSavePromise;
-    const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, existingPlan: G.plan, mapRef: G.mapRef}}, signal);
+    const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, prep: isPrepGuide(G), existingPlan: G.plan, mapRef: G.mapRef}}, signal);
     const notice = r.statementNotice; delete r.statementNotice;
     G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear();
     banner = notice ? {kind: 'note', text: 'Your draft is ready. ' + notice} : {kind: 'ok', text: 'Your draft is ready. Review it, edit anything, then download it.'};
@@ -1164,6 +1166,7 @@ root.append(h('div', {class:'cg-shell'},
       h('span',{class:'cg-schoollocation'},'CAMBRIDGE, N.Z.')),
     h('h2',{},'My unit plans'),
     h('button',{class:'cg-new',type:'button',onclick:newGuide},'＋ New unit plan'),
+    h('button',{class:'cg-new-prep',type:'button',onclick:newPrepGuide},'＋ New Prep unit'),
     h('div',{class:'cg-sidebar-tools'},
       h('label',{for:'cg-sidebar-filter'},'Subject'),
       sidebarSelect,
