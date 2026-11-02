@@ -50,7 +50,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
       <img class="stp-header-logo" src="assets/stp-crest.svg" alt="" referrerpolicy="no-referrer" width="55" height="55">
       <span class="stp-nav-name"><strong>St Peter's</strong><small>Curriculum Studio</small></span>
     </a>
-    <a href="curriculum_studio.php?guide=1&amp;blank=1"<?=  ' aria-current="page"' ?>>Single unit plan</a>
+    <a href="curriculum_studio.php?guide=1&amp;blank=1" aria-current="page">Single unit plan</a>
     <a href="curriculum_studio.php?mode=overview"<?= $navMode === 'overview' ? ' aria-current="page"' : '' ?>>Curriculum overview</a>
     <a href="curriculum_studio.php?mode=existing"<?= $navMode === 'existing' ? ' aria-current="page"' : '' ?>>Existing overview</a>
     <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?> &middot; <?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
