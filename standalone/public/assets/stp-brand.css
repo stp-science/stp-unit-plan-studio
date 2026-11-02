@@ -1,0 +1,124 @@
+@charset "UTF-8";
+/* St Peter's Cambridge — school-wide Unit Plan Studio branding.
+   Shared by the curriculum map (home) and unit-plan editor.
+   Changes only presentation; data, accounts and curriculum colours are untouched. */
+:root{
+  --stp-navy:#001733; --stp-scarlet:#cf082b; --stp-scarlet-dark:#a50022;
+  --stp-blue:#82adbf; --stp-stone:#ede8e3; --stp-black:#0d0a0a;
+}
+body[data-page="curriculum-map"],
+body[data-page="curriculum-studio"]{
+  --bg:#f7f5f2;--surface:#fff;--surface-soft:#f7f5f2;
+  --surface-blue:#edf4f7;--border:#d7dfe2;--border-strong:#9bb8c5;
+  --text:#001733;--text-soft:#455e6d;--muted:#5c7180;
+  --nav:#001733;--nav-deep:#001020;
+  --primary:#cf082b;--primary-dark:#a50022;--primary-soft:#fff0f3;
+  --violet:#cf082b;--violet-soft:#fff0f3;
+  --fh-accent:#cf082b;--fh-accent-soft:#fff0f3;
+  background:#f7f5f2;color:#0d0a0a;
+}
+body[data-page="curriculum-map"] .studio-nav,
+body[data-page="curriculum-studio"] .studio-nav{
+  background:#001733;border-bottom:3px solid #82adbf;
+  min-height:76px;padding:9px clamp(14px,3vw,36px);gap:8px 24px;
+  box-shadow:0 3px 16px rgba(0,23,51,.12)
+}
+body[data-page="curriculum-map"] .studio-nav a,
+body[data-page="curriculum-studio"] .studio-nav a{color:#e9e5df}
+body[data-page="curriculum-map"] .studio-nav a:hover,
+body[data-page="curriculum-studio"] .studio-nav a:hover{color:#fff;border-bottom-color:#82adbf}
+body[data-page="curriculum-map"] .studio-nav .brand,
+body[data-page="curriculum-studio"] .studio-nav .brand{
+  display:flex;align-items:center;gap:11px;
+  padding:2px 16px 2px 0;margin-right:4px;
+  color:#fff;border:0;min-width:0
+}
+.stp-header-logo{display:block;width:55px;height:55px;object-fit:contain;flex:0 0 55px}
+.stp-nav-name{display:flex;flex-direction:column;min-width:0;gap:3px;line-height:1.1}
+.stp-nav-name strong{font:750 18px/1.1 Georgia,'Times New Roman',serif;color:#fff}
+.stp-nav-name small{font:700 10px/1.2 Inter,system-ui,sans-serif;color:#a6c9d7;letter-spacing:.14em;text-transform:uppercase}
+body[data-page="curriculum-map"] .studio-nav .note,
+body[data-page="curriculum-studio"] .studio-nav .note{color:#bdd0d9}
+body[data-page="curriculum-map"] .topbar,
+body[data-page="curriculum-studio"] .topbar{
+  background:#ede8e3;border-bottom:1px solid #cfdce0;
+  box-shadow:none
+}
+body[data-page="curriculum-map"] .topbar h1,
+body[data-page="curriculum-studio"] .topbar h1{
+  color:#001733;letter-spacing:-.025em
+}
+body[data-page="curriculum-map"] .page-title .eyebrow,
+body[data-page="curriculum-studio"] .page-title .eyebrow{
+  color:#ad0826;font-weight:750;letter-spacing:.055em
+}
+body[data-page="curriculum-map"] .page-title p,
+body[data-page="curriculum-studio"] .page-title p{color:#455e6d}
+body[data-page="curriculum-map"] .page-content,
+body[data-page="curriculum-studio"] .page-content{background:#f7f5f2}
+body[data-page="curriculum-map"] :focus-visible,
+body[data-page="curriculum-studio"] :focus-visible{outline-color:#82adbf;outline-offset:3px}
+/* Curriculum map home, setup, editing, statement selection and modal panels. */
+body[data-page="curriculum-map"] .cm{
+  --ink:#001733;--mut:#546977;--line:#dce4e6;--line2:#eaf0f2;
+  --bg:#f7f5f2;--card:#fff;--acc:#cf082b;--acc2:#aa0023;
+  --accSoft:#fff0f3;--sh:0 2px 12px rgba(0,23,51,.05);
+  --shH:0 8px 28px rgba(0,23,51,.12);
+}
+body[data-page="curriculum-map"] .cm-bar h2,
+body[data-page="curriculum-map"] .cm-hero h2{color:#001733}
+body[data-page="curriculum-map"] .cm-hero{
+  background:linear-gradient(112deg,#fff 0%,#edf4f7 100%);
+  border-top:4px solid #82adbf
+}
+body[data-page="curriculum-map"] .cm-btn.pri{
+  background:#cf082b;box-shadow:0 3px 12px rgba(207,8,43,.19)
+}
+body[data-page="curriculum-map"] .cm-btn.pri:hover{background:#a50022}
+body[data-page="curriculum-map"] .cm-dept.on{
+  color:#001733;background:#dfedf3;border-color:#82adbf
+}
+body[data-page="curriculum-map"] .cm-year{border-color:#dce4e6}
+body[data-page="curriculum-map"] .cm-yh{
+  background:#e7f0f4;color:#001733;border-left:4px solid #82adbf
+}
+body[data-page="curriculum-map"] .cm-bh{color:#455e6d}
+body[data-page="curriculum-map"] .cm-cell{background:#f7f8f8}
+body[data-page="curriculum-map"] .cm-card,
+body[data-page="curriculum-map"] .cm-modal{border-color:#dce4e6}
+body[data-page="curriculum-map"] .cm-drop{background:#eef5f7;border-color:#82adbf}
+body[data-page="curriculum-map"] .cm-drop.over{background:#dcecf3}
+body[data-page="curriculum-map"] .cm-chip{color:#001733}
+/* Keep strand-specific curriculum map chip colours: they communicate learning strands. */
+body[data-page="curriculum-map"] .cm-legend .cm-pill{color:#001733}
+/* The unit-plan editor uses the same accent system and cards. */
+body[data-page="curriculum-studio"] .cg{
+  --ink:#001733;--mut:#526b79;--line:#dce4e6;--line2:#eaf0f2;
+  --bg:#f7f5f2;--card:#fff;--acc:#cf082b;--acc2:#a50022;--accSoft:#fff0f3
+}
+body[data-page="curriculum-studio"] .cg-card{border-color:#dce4e6}
+body[data-page="curriculum-studio"] .cg-step.on{
+  background:#e8f3f7;color:#001733
+}
+body[data-page="curriculum-studio"] .cg-step.on i{background:#001733;color:#fff}
+body[data-page="curriculum-studio"] .cg-chip.acc{
+  background:#e5f1f5;color:#001733;border-color:#82adbf
+}
+body[data-page="curriculum-studio"] .cg-btn:not(.cg-danger),
+body[data-page="curriculum-studio"] .cg-mapbtn{
+  background:#cf082b;color:#fff
+}
+body[data-page="curriculum-studio"] .cg-btn:not(.cg-danger):hover,
+body[data-page="curriculum-studio"] .cg-mapbtn:hover{background:#a50022}
+@media(max-width:700px){
+  .stp-header-logo{width:42px;height:42px;flex-basis:42px}
+  .stp-nav-name strong{font-size:15px}
+  body[data-page="curriculum-map"] .studio-nav,
+  body[data-page="curriculum-studio"] .studio-nav{gap:4px 16px;padding:9px 15px}
+}
+@media print{
+  body[data-page="curriculum-map"] .studio-nav,
+  body[data-page="curriculum-studio"] .studio-nav{display:none!important}
+  body[data-page="curriculum-map"],
+  body[data-page="curriculum-studio"]{background:#fff!important}
+}
