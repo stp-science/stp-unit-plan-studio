@@ -34,7 +34,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
   <a class="skip-link" href="#main">Skip to content</a>
   <nav class="studio-nav" aria-label="Unit Plan Studio">
     <a class="brand" href="curriculum_studio.php" aria-label="St Peter's Curriculum Studio — Home">
-      <img class="stp-header-logo" src="https://cdn.brandfetch.io/idUvNc8YQI/w/500/h/500/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1773258391614" alt="" referrerpolicy="no-referrer" width="55" height="55">
+      <img class="stp-header-logo" src="assets/stp-crest.svg" alt="" referrerpolicy="no-referrer" width="55" height="55">
       <span class="stp-nav-name"><strong>St Peter's</strong><small>Curriculum Studio</small></span>
     </a>
     <a href="curriculum_studio.php">Start</a>
