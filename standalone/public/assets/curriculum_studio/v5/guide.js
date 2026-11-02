@@ -274,7 +274,11 @@ function topicCard() {
             G.mapRef ? h('p', {class:'cg-mut'}, 'Your original map statements stay selected. On the next screen, add statements from these levels; new ticks are saved back to the curriculum map.') : null)
         : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; G.stages = []; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
-      field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value; if (isLanguageSubject(G.subject)) { G.stages = noviceStages(G).length ? noviceStages(G) : ['Novice 1']; G.stage = G.stages[0]; G.year = 7; } else { G.stage = ''; G.stages = []; } save(); renderMain(); }}),
+      field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value;
+          const chosenArt = ['Dance','Drama','Music','Visual Arts'].find(x=>x.toLowerCase()===(subjectAlias(G.subject.toLowerCase()) || G.subject.toLowerCase()));
+          if (chosenArt) G.discipline = chosenArt;
+          else if (docs.find(d=>d.id===G.docId)?.learningArea === 'The Arts') G.discipline = '';
+          if (isLanguageSubject(G.subject)) { G.stages = noviceStages(G).length ? noviceStages(G) : ['Novice 1']; G.stage = G.stages[0]; G.year = 7; } else { G.stage = ''; G.stages = []; } save(); renderMain(); }}),
         h('datalist', {id: 'cg-subjects'}, subjectNames.map(n => h('option', {value: n})))), matches.length ? 'Showing the Ministry documents for ' + G.subject + '. Clear this to see every subject.' : subj ? 'No Ministry document matches “' + G.subject + '”, so all are shown. You can also paste your own curriculum text below.' : 'Shown on the unit plan. Pick one to filter the curriculum documents.'),
       field('Curriculum document', (() => h('select', {onchange: e => {
           if (G.docId !== e.target.value) {
