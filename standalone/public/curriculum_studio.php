@@ -40,11 +40,15 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
   <link rel="stylesheet" href="assets/fresha_concept.css?v=<?= @filemtime(__DIR__ . '/assets/fresha_concept.css') ?: '1' ?>">
   <link rel="stylesheet" href="assets/standalone.css">
   <link rel="stylesheet" href="<?= $base ?>guide.css?v=<?= $v('guide.css') ?>">
+  <link rel="stylesheet" href="assets/stp-brand.css?v=<?= @filemtime(__DIR__ . '/assets/stp-brand.css') ?: '1' ?>">
 </head>
 <body data-page="curriculum-studio">
   <a class="skip-link" href="#main">Skip to content</a>
   <nav class="studio-nav" aria-label="Unit Plan Studio">
-    <a class="brand" href="curriculum_studio.php">Unit Plan Studio</a>
+    <a class="brand" href="curriculum_studio.php" aria-label="St Peter's Curriculum Studio — Home">
+      <img class="stp-header-logo" src="https://cdn.brandfetch.io/idUvNc8YQI/w/500/h/500/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1773258391614" alt="" referrerpolicy="no-referrer" width="55" height="55">
+      <span class="stp-nav-name"><strong>St Peter's</strong><small>Curriculum Studio</small></span>
+    </a>
     <a href="curriculum_studio.php">Start</a>
     <a href="curriculum_studio.php?department=<?= (int)($_GET['department'] ?? 0) ?>">Curriculum map</a>
     <a href="curriculum_studio.php?guide=1">Unit plans</a>
