@@ -195,3 +195,89 @@ details.cg-more[open] summary::before{content:'– '}
 .cg-novice-option input{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
 .cg-novice-option:has(input:disabled){opacity:.66;cursor:default}
 .cg-level-tag{display:block;color:var(--acc);font-weight:650;margin-top:4px}
+
+/* St Peter's Cambridge branding. Palette taken from the school-supplied crest:
+   navy #001733, scarlet #CF082B, light blue #82ADBF,
+   white stone #EDE8E3, warm black #0D0A0A. */
+body[data-page="curriculum-studio"] .cg{
+  --ink:#001733;--mut:#4a5b69;--line:#d8dde0;--line2:#e9edef;
+  --bg:#f6f4f1;--card:#fff;--acc:#cf082b;--acc2:#a90025;
+  --accSoft:#fff0f2;--sh:0 2px 12px rgba(0,23,51,.07);
+  --shH:0 8px 32px rgba(0,23,51,.12)
+}
+body[data-page="curriculum-studio"]{background:#f7f5f2;color:#0d0a0a}
+body[data-page="curriculum-studio"] .studio-nav{background:#001733;border-color:#001733;color:#ede8e3}
+body[data-page="curriculum-studio"] .studio-nav a{color:#ede8e3}
+body[data-page="curriculum-studio"] .studio-nav .brand{color:#fff;font-weight:750}
+body[data-page="curriculum-studio"] .studio-nav a:hover{color:#82adbf}
+body[data-page="curriculum-studio"] .topbar{background:#ede8e3;border-bottom:3px solid #82adbf}
+body[data-page="curriculum-studio"] .topbar h1{color:#001733}
+body[data-page="curriculum-studio"] .topbar .eyebrow{color:#9a0021;font-weight:700}
+body[data-page="curriculum-studio"] .cg-side{
+  background:#001733;border-color:#001733;color:#ede8e3;
+  box-shadow:0 10px 30px rgba(0,23,51,.18);gap:0
+}
+body[data-page="curriculum-studio"] .cg-side h2{color:#82adbf;font-size:12px;letter-spacing:.1em;margin:12px 4px 8px}
+body[data-page="curriculum-studio"] .cg-schoolbrand{
+  background:#ede8e3;border-radius:12px;padding:10px;
+  display:flex;align-items:center;justify-content:center;min-height:136px
+}
+body[data-page="curriculum-studio"] .cg-school-logo{
+  display:block;max-width:100%;height:120px;width:auto;object-fit:contain
+}
+body[data-page="curriculum-studio"] .cg-new{
+  background:#cf082b;box-shadow:0 3px 10px rgba(0,0,0,.19);font-weight:700
+}
+body[data-page="curriculum-studio"] .cg-new:hover{background:#b50727;box-shadow:0 5px 15px rgba(0,0,0,.24)}
+.cg-sidebar-tools{display:grid;gap:7px;margin-top:16px;margin-bottom:12px}
+.cg-sidebar-tools label{font-size:12px;font-weight:700;color:#b9d3df;letter-spacing:.04em}
+.cg-subject-select,.cg-sidebar-search{
+  display:block;width:100%;min-width:0;box-sizing:border-box;
+  border:1px solid #82adbf;border-radius:9px;
+  padding:9px 10px;background:#fff;color:#001733;font:inherit;font-size:13px
+}
+.cg-subject-select:focus-visible,.cg-sidebar-search:focus-visible{
+  outline:3px solid #82adbf;outline-offset:2px
+}
+body[data-page="curriculum-studio"] .cg-list{gap:8px;margin-top:0;padding-right:3px}
+.cg-subject-group{min-width:0;border:1px solid rgba(130,173,191,.25);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.06)}
+.cg-subject-heading{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  color:#ede8e3;background:transparent;border:0;padding:11px 10px;font-weight:700;
+  font-size:13px
+}
+.cg-subject-heading:hover{background:rgba(130,173,191,.16)}
+.cg-subject-heading[aria-expanded="true"]{background:rgba(130,173,191,.15)}
+.cg-subject-arrow{color:#82adbf;width:10px;flex:none}
+.cg-subject-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-subject-count{display:grid;place-items:center;min-width:25px;padding:2px 6px;
+  color:#001733;background:#82adbf;border-radius:999px;font-size:11px;font-weight:800}
+.cg-subject-items{padding:0 5px 5px}
+.cg-subject-items[hidden]{display:none}
+body[data-page="curriculum-studio"] .cg-item{
+  grid-template-columns:6px minmax(0,1fr) auto;color:#f4f1ed;
+  background:transparent;gap:8px;padding:9px 7px;width:100%
+}
+body[data-page="curriculum-studio"] .cg-item:hover{background:rgba(130,173,191,.18)}
+body[data-page="curriculum-studio"] .cg-item.on{background:#ede8e3;color:#001733;border-color:#82adbf}
+body[data-page="curriculum-studio"] .cg-item b{font-size:13px}
+body[data-page="curriculum-studio"] .cg-item small{color:#bdd1da}
+body[data-page="curriculum-studio"] .cg-item.on small{color:#526879}
+body[data-page="curriculum-studio"] .cg-dot{width:6px;height:24px;border-radius:3px;background:#cf082b}
+body[data-page="curriculum-studio"] .cg-item.on .cg-dot{background:#cf082b}
+body[data-page="curriculum-studio"] .cg-tag{font-size:10px;background:rgba(255,255,255,.15);color:#ede8e3;padding:2px 5px}
+body[data-page="curriculum-studio"] .cg-item.on .cg-tag{background:#d9e9ef;color:#001733}
+body[data-page="curriculum-studio"] .cg-tag.done{background:#d8eee2;color:#145a34}
+body[data-page="curriculum-studio"] .cg-empty-list{color:#d0e3eb;padding:12px 5px}
+body[data-page="curriculum-studio"] .cg-hero{background:linear-gradient(135deg,#fff 0,#edf3f6 100%)}
+body[data-page="curriculum-studio"] .cg-btn,
+body[data-page="curriculum-studio"] .cg-mapbtn{background:#cf082b}
+body[data-page="curriculum-studio"] .cg-btn:hover,
+body[data-page="curriculum-studio"] .cg-mapbtn:hover{background:#ad0826}
+body[data-page="curriculum-studio"] .cg-set button{background:#cf082b}
+body[data-page="curriculum-studio"] .cg :focus-visible{outline-color:#82adbf}
+@media(max-width:900px){
+  body[data-page="curriculum-studio"] .cg-side{max-height:none}
+  body[data-page="curriculum-studio"] .cg-schoolbrand{min-height:88px}
+  body[data-page="curriculum-studio"] .cg-school-logo{height:75px}
+}
