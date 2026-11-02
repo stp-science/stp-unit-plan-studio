@@ -1225,7 +1225,13 @@ function startView() {
   const card = (cls, icon, title, text, tag, attrs) => h(attrs.href ? 'a' : 'button', {class: 'cm-start ' + cls, ...attrs, ...(attrs.href ? {} : {type: 'button'})},
     h('span', {class: 'cm-sico', 'aria-hidden': 'true'}, icon), h('b', {}, title), h('span', {class: 'cm-stext'}, text), tag ? h('span', {class: 'cm-stag'}, tag) : null);
   return h('div', {class: 'cm-in'},
-    h('div', {class: 'cm-hero'}, h('h2', {}, 'What would you like to do?'), h('p', {}, 'Choose where to start. You can always come back here, and the Back button takes you to the last screen you were on.')),
+    h('div', {class: 'cm-hero'}, h('h2', {}, 'What would you like to do?'),
+      h('p', {}, 'Choose where to start. You can always come back here, and the Back button takes you to the last screen you were on.'),
+      !isPrepDepartment() ? h('button',{type:'button',class:'cm-btn sm cm-prep-shortcut',
+        onclick:()=>{const prep=S.depts.find(d=>d.name.trim().toLowerCase()==='prep');
+          if(prep)selectDepartment(prep.id);
+        }},'Switch to Prep curriculum planning') :
+        h('p',{class:'hint'},'Prep is selected. You can create a unit, build the Year 7–8 overview or import an existing Prep overview.')),
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + '?guide=1&blank=1'}),
       card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
