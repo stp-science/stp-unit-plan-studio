@@ -74,13 +74,18 @@ function cm_departments(PDO $pdo, int $schoolId, int $teacherId): array
     $out = []; $facDone = [];
     foreach ($rows as $r) {
         $did = (int)$r['id']; $fid = $r['faculty_id'] === null ? 0 : (int)$r['faculty_id'];
-        $visible = $isManager || $sharedStaff || isset($mine[$did]);
+        $visible = $isManager || $sharedStaff || isset($mine[$did]) || mb_strtolower(trim((string)$r['name'])) === 'prep';
         if (!$visible) continue;
         if ($fid && ($perFaculty[$fid] ?? 0) > 1 && !isset($facDone[$fid])) {   // the whole-faculty map comes first in its group
             $facDone[$fid] = true;
             $out[] = ['id' => -$fid, 'name' => (string)$r['faculty'], 'faculty' => (string)$r['faculty'], 'scope' => 'faculty'];
         }
         $out[] = ['id' => $did, 'name' => (string)$r['name'], 'faculty' => (string)($r['faculty'] ?? ''), 'scope' => 'department'];
+    }
+    // Prep is available to every authenticated school teacher. If not yet
+    // provisioned, show an inert setup choice; creation requires an explicit click.
+    if (!array_filter($out, static fn($d) => mb_strtolower(trim($d['name'])) === 'prep')) {
+        $out[] = ['id' => 0, 'name' => 'Prep', 'faculty' => 'Integrated learning', 'scope' => 'prep-setup'];
     }
     return $out;
 }
@@ -476,8 +481,53 @@ const CM_SUBJECT_ALIAS = [
 ];
 
 /** Tries the department's own name first, then the broader Ministry learning area it sits in (Art -> Visual Arts, History -> Social Sciences). */
+/**
+ * Ministry-grounded cross-curricular evidence for Prep. This provides an
+ * introductory selection for AI sequencing; the map editor offers the full
+ * authenticated statement banks for every source and proficiency level.
+ */
+function cm_prep_evidence(): array
+{
+    $parts = [];
+    foreach ([
+        ['English','english-2025'],
+        ['Social Studies','social-sciences-2026'],
+        ['Maths','maths-2025'],
+        ['Health','health-pe-2026']
+    ] as [$label,$id]) {
+        foreach ([7,8] as $yr) {
+            $records = cs_year_statement_bank($id, $yr);
+            if ($label === 'Health') $records = array_values(array_filter($records,
+                static fn($x) => ($x['subject'] ?? '') === 'Health'));
+            if (!$records) throw new CsInvalid('Missing official ' . $label . ' Year ' . $yr . ' statements. No Prep overview was generated.');
+            $txt = '';
+            foreach ($records as $record) {
+                $line = strtoupper($record['kind']) . ': ' . $record['text'] . "\n";
+                if (strlen($txt) + strlen($line) > 4300) break;
+                $txt .= $line;
+            }
+            $parts[] = '=== ' . $label . ' · Year ' . $yr . " ===\n" . $txt;
+        }
+    }
+    $doc = cs_catalogue_doc('languages-te-reo-maori-sep-2026');
+    if (!$doc) throw new CsInvalid('The Te Reo Māori Ministry source is missing. No Prep overview was generated.');
+    $levels = cm_doc_levels($doc);
+    foreach (['Novice 1','Novice 2','Novice 3'] as $stage) {
+        if (empty($levels[$stage])) throw new CsInvalid('The Te Reo Māori ' . $stage . ' curriculum is missing. No Prep overview was generated.');
+        $txt = '';
+        foreach ($levels[$stage] as $page) {
+            $part = trim((string)($page['text'] ?? '')) . "\n";
+            if (strlen($txt) + strlen($part) > 4000) break;
+            $txt .= $part;
+        }
+        $parts[] = '=== Te Reo Māori · ' . $stage . " (proficiency; NOT a school year) ===\n" . $txt;
+    }
+    return [implode("\n\n", $parts), 'Official English, Social Studies, Maths and Health Years 7–8; Te Reo Māori Novice 1, 2 and 3. The teacher can inspect full original statements for each unit.'];
+}
+
 function cm_generate_evidence(string $dept, int $y1, int $y2): array
 {
+    if (mb_strtolower(trim($dept)) === 'prep') return cm_prep_evidence();
     $r = cm_generate_evidence_for($dept, $y1, $y2, true);   // an exact name first (Science finds Science, not Social Sciences)
     if ($r[0] === '') $r = cm_generate_evidence_for($dept, $y1, $y2, false);
     if ($r[0] !== '') return $r;
