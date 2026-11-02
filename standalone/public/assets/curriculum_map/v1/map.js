@@ -758,7 +758,6 @@ function topicDetails(y, b, t) {
     h('div', {}, h('span', {}, stageLabel(y)), h('b', {}, y.label + ' · ' + termName(y, b))),
     st ? h('div', {}, h('span', {}, 'Strand'), h('span', {class: 'cm-pill', style: '--c:' + st.color}, st.name)) : null,
     t.assess ? h('div', {}, h('span', {}, 'Assessment'), h('span', {}, h('span', {class: 'cm-code'}, t.assess), ' ', ty?.label || '')) : null,
-    t.owner ? h('div', {}, h('span', {}, 'Taught by'), h('b', {}, t.owner)) : null,
     t.optional ? h('div', {}, h('span', {}, 'Status'), h('span', {}, 'Optional, if time allows')) : null),
   [h('button', {class: 'cm-btn', type: 'button', onclick: () => { closeModal(); render(); }}, 'Close'),
    h('a', {class: 'cm-btn pri', href: guideUrl(y, t)}, 'Open unit plan')], 'xl');
@@ -769,13 +768,12 @@ function topicEditor(y, b, t, isNew) {
   const title = h('input', {type: 'text', value: t.title, maxlength: '120', placeholder: 'Unit name'});
   const strand = h('select', {}, h('option', {value: ''}, 'No strand'), ...S.map.strands.map(s => h('option', {value: s.id, selected: s.id === t.strand}, s.name)));
   const assess = h('select', {}, h('option', {value: ''}, 'None'), ...S.map.assessTypes.map(a => h('option', {value: a.code, selected: a.code === t.assess}, a.code + (a.label ? ' · ' + a.label : ''))));
-  const owner = h('input', {type: 'text', value: t.owner, maxlength: '24', placeholder: 'e.g. KENH'});
   const optional = h('input', {type: 'checkbox'}); optional.checked = !!t.optional;
   const where = h('select', {}, ...S.map.years.flatMap((yy, yi) => yy.blocks.map((bb, bi) => h('option', {value: yy.id + '|' + bb.id, selected: bb.id === b.id}, yy.label + ' · ' + termName(yy, bb)))));
   openModal(isNew ? 'Add a unit' : 'Edit unit', h('div', {},
     field('Unit', title),
     h('div', {class: 'cm-row2'}, field('Strand', strand), field('Assessment', assess)),
-    h('div', {class: 'cm-row2'}, field('Taught by', owner, 'Initials or name'), field('Where', where)),
+    field('Where', where),
     h('label', {class: 'f', style: 'display:flex;gap:8px;align-items:center'}, optional, 'Optional, only if time allows'),
     isNew ? null : statementsPanel(y, t)),
   [!isNew ? h('button', {class: 'cm-btn danger', type: 'button', style: 'margin-right:auto', onclick: () => { b.topics = b.topics.filter(x => x.id !== t.id); closeModal(); changed(); }}, 'Delete') : null,
@@ -783,7 +781,7 @@ function topicEditor(y, b, t, isNew) {
    h('button', {class: 'cm-btn', type: 'button', onclick: closeModal}, 'Cancel'),
    h('button', {class: 'cm-btn pri', type: 'button', onclick: () => {
      const name = title.value.trim(); if (!name) { title.focus(); return; }
-     Object.assign(t, {title: name, strand: strand.value, assess: assess.value, owner: owner.value.trim(), optional: optional.checked});
+     Object.assign(t, {title: name, strand: strand.value, assess: assess.value, optional: optional.checked});
      const [yid, bid] = where.value.split('|');
      const ty = S.map.years.find(q => q.id === yid), tb = ty?.blocks.find(q => q.id === bid);
      const target = tb || b;
@@ -867,7 +865,7 @@ function chip(y, b, t) {
     onclick: () => S.edit ? topicEditor(y, b, t, false) : topicDetails(y, b, t),
     title: S.edit ? 'Edit or drag to another term' : 'Open details'},
     h('b', {}, t.title),
-    t.assess || t.owner || t.optional ? h('small', {}, t.assess ? h('span', {class: 'cm-code'}, t.assess) : null, t.owner ? h('span', {}, t.owner) : null, t.optional ? h('span', {}, 'if time') : null) : null);
+    t.assess || t.optional ? h('small', {}, t.assess ? h('span', {class: 'cm-code'}, t.assess) : null, t.optional ? h('span', {}, 'if time') : null) : null);
   if (S.edit) {
     el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed = 'move'; });
   }
@@ -910,7 +908,7 @@ function fillTopicStatements(body, y, b, t) {
 function cell(y, b) {
   const el = h('div', {class: 'cm-cell'}, ...b.topics.map(t => chip(y, b, t)),
     !b.topics.length && !S.edit ? h('div', {class: 'cm-empty-cell'}, '—') : null,
-    S.edit ? h('button', {class: 'cm-add', type: 'button', onclick: () => topicEditor(y, b, {id: uid(), title: '', strand: '', assess: '', owner: '', optional: false}, true)}, '＋ Unit') : null);
+    S.edit ? h('button', {class: 'cm-add', type: 'button', onclick: () => topicEditor(y, b, {id: uid(), title: '', strand: '', assess: '', optional: false}, true)}, '＋ Unit') : null);
   if (S.edit) {
     el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
     el.addEventListener('dragleave', () => el.classList.remove('over'));
