@@ -220,11 +220,15 @@ body[data-page="curriculum-studio"] .cg-side{
 body[data-page="curriculum-studio"] .cg-side h2{color:#82adbf;font-size:12px;letter-spacing:.1em;margin:12px 4px 8px}
 body[data-page="curriculum-studio"] .cg-schoolbrand{
   background:#ede8e3;border-radius:12px;padding:10px;
-  display:flex;align-items:center;justify-content:center;min-height:136px
+  display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:156px;gap:2px
 }
 body[data-page="curriculum-studio"] .cg-school-logo{
-  display:block;max-width:100%;height:120px;width:auto;object-fit:contain
+  display:block;max-width:100%;height:103px;width:auto;object-fit:contain;
+  mix-blend-mode:multiply;border-radius:5px
 }
+.cg-schoolwordmark{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:25px;
+  color:#cf082b;letter-spacing:-.035em;line-height:1.1}
+.cg-schoollocation{font-size:9px;font-weight:800;letter-spacing:.13em;color:#cf082b}
 body[data-page="curriculum-studio"] .cg-new{
   background:#cf082b;box-shadow:0 3px 10px rgba(0,0,0,.19);font-weight:700
 }
@@ -280,4 +284,5 @@ body[data-page="curriculum-studio"] .cg :focus-visible{outline-color:#82adbf}
   body[data-page="curriculum-studio"] .cg-side{max-height:none}
   body[data-page="curriculum-studio"] .cg-schoolbrand{min-height:88px}
   body[data-page="curriculum-studio"] .cg-school-logo{height:75px}
+  .cg-schoolwordmark{font-size:22px}
 }
