@@ -403,13 +403,23 @@ function topicCard() {
 }
 
 function outlineCard() {
+  const crossYears = juniorYearTabs(G);
+  const currentYear = crossYears && JUNIOR.includes(activeStatementYear) ? activeStatementYear : Number(G.year);
   const total = G.statements.knowledge.length + G.statements.practices.length;
   const n = G.selected.knowledge.length + G.selected.practices.length;
+  const tabCount = year => ['knowledge','practices'].reduce((count,key)=>
+    count+statementsForYear(G,key,year).filter(s=>G.selected[key].includes(s.id)).length,0);
   const col = (key, title) => {
-    const list = G.statements[key]; if (!list.length) return null;
-    const setAll = on => { G.selected[key] = on ? list.map(s => s.id) : []; save(); renderMain(); };
+    const list = crossYears ? statementsForYear(G,key,currentYear) : G.statements[key];
+    if (!list.length) return null;
+    // All / None affect only the active year, never ticks from other tabs.
+    const setAll = on => {
+      const ids = new Set(list.map(s=>s.id));
+      G.selected[key] = [...G.selected[key].filter(id=>!ids.has(id)),...(on ? [...ids] : [])];
+      save(); renderMain();
+    };
     const fromMap = !!G.mapRef;
-    const editable = !fromMap || noviceStages(G).length > 0;
+    const editable = !fromMap || noviceStages(G).length > 0 || (crossYears && currentYear !== Number(G.year));
     return h('div', {}, h('div', {class: 'cg-colhead'}, h('h3', {}, title + ' ', h('span', {class: 'cg-chip'}, fromMap && !editable ? String(list.length) : G.selected[key].length + '/' + list.length)),
       fromMap ? null : h('div', {}, h('button', {type: 'button', onclick: () => setAll(true)}, 'All'), h('button', {type: 'button', onclick: () => setAll(false)}, 'None'))),
       ...list.map(s => { const on = G.selected[key].includes(s.id); const show = !statementFilter || (s.text + ' ' + s.source + ' ' + (s.subject || '')).toLowerCase().includes(statementFilter);
@@ -430,9 +440,31 @@ function outlineCard() {
           h('div', {}, h('p', {}, s.text), s.levels?.length ? h('small', {class:'cg-level-tag'}, s.levels.join(' · ')) : null, (s.why || s.confidence != null) ? h('small', {class: 'cg-why ' + (s.link === 'loose' ? 'loose' : '')}, (s.confidence != null ? s.confidence + '% match' : (s.link === 'loose' ? 'Loose match' : 'Linked')) + (s.why ? ' · ' + s.why : '')) : null, h('small', {}, s.source))); }));
   };
   return h('section', {},
-    h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, G.mapRef ? (noviceStages(G).length ? 'Your map choices are pre-ticked. The full Knowledge and Practices lists from the selected novice levels are available; tick additional statements here to update the map and your unit plan together.' : 'These statements come from your department curriculum map. To customise them, change the ticks on the map before generating this plan.') : noviceStages(G).length ? 'Showing Knowledge and Practices from ' + guideStageLabel(G) + '. Suggested matches are pre-ticked; choose any other statements from the selected levels before generating.' : 'All available Year ' + G.year + ' Ministry statements are shown, not just those matched to your topic. Suggested matches are pre-ticked. You can tick or untick any knowledge or practice statement before generating.')),
+    h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, crossYears ? (G.mapRef ?
+      'Your unit stays in Year ' + G.year + '. Its map statements remain selected; open another year tab to add statements from that year. Additional ticks are saved back to the map.' :
+      'Your unit stays in Year ' + G.year + '. Suggested statements for its year are pre-ticked. Open any Year 7–10 tab to add official statements from another year; your selections remain ticked across tabs.') :
+      G.mapRef ? (noviceStages(G).length ? 'Your map choices are pre-ticked. The full Knowledge and Practices lists from the selected novice levels are available; tick additional statements here to update the map and your unit plan together.' : 'These statements come from your department curriculum map. To customise them, change the ticks on the map before generating this plan.') :
+      noviceStages(G).length ? 'Showing Knowledge and Practices from ' + guideStageLabel(G) + '. Suggested matches are pre-ticked; choose any other statements from the selected levels before generating.' :
+      'Review the suggested curriculum statements and select the knowledge and practices you want in this plan.')),
       h('div', {class: 'cg-chips'}, h('span', {class: 'cg-chip acc'}, G.topic), h('span', {class: 'cg-chip'}, guideStageLabel(G)), saveBadge())),
-    (!G.mapRef || noviceStages(G).length) ? h('div', {class: 'cg-bank-controls'},
+    crossYears ? h('div', {class:'cg-year-switcher'},
+      h('div', {class:'cg-year-tablist',role:'tablist','aria-label':'Curriculum statement year'},
+        JUNIOR.map(year=>h('button', {type:'button',role:'tab',
+          class:'cg-year-tab'+(year===currentYear?' on':'')+(year===Number(G.year)?' home':''),
+          'aria-selected':year===currentYear?'true':'false',
+          disabled:!!statementYearLoading,
+          onclick:()=>switchStatementYear(year)},
+          h('span',{},'Year '+year+(year===Number(G.year)?' · unit':'')),
+          tabCount(year) ? h('span',{class:'cg-year-count'},String(tabCount(year))) : null))),
+      h('p',{class:'cg-year-hint'},statementYearLoading ?
+        'Loading Year '+statementYearLoading+' official statements…' :
+        statementYearError ? 'Year '+currentYear+': '+statementYearError+' Click this year again to retry.' :
+        currentYear===Number(G.year) ?
+          'Showing your unit’s own year. Suggested matches are already selected.' :
+          'Year '+currentYear+' curriculum · select any additional statements. The unit remains Year '+G.year+'.'),
+      statementYearLoading ? h('div',{class:'cg-year-loading',role:'status'},'Reading the official Year '+statementYearLoading+' list…') : null
+    ) : null,
+    (!G.mapRef || noviceStages(G).length || crossYears) ? h('div', {class: 'cg-bank-controls'},
       h('input', {type: 'search', class: 'cg-bank-search', 'aria-label': 'Search year-level curriculum statements', placeholder: 'Search knowledge and practices…', value: statementFilter,
         oninput: e => { statementFilter = e.target.value.toLowerCase().trim(); document.querySelectorAll('.cg-stmt').forEach(label => { label.style.display = !statementFilter || label.textContent.toLowerCase().includes(statementFilter) ? '' : 'none'; }); }}),
       (noviceStages(G).length && G.docId && !G.pasted) ? h('button', {type:'button',class:'cg-ghost',disabled:!!G.bankLoaded,onclick: async e=>{
@@ -441,15 +473,18 @@ function outlineCard() {
         catch(error){banner={kind:'note',text:error.message};}
         renderMain();
       }},G.bankLoaded?'All selected novice statements loaded':'Load all novice statements') : null,
-      (JUNIOR.includes(G.year) && G.docId && !G.pasted && !noviceStages(G).length) ? h('button', {type: 'button', class: 'cg-ghost', disabled: !!G.bankLoaded, onclick: async e => {
+      (!crossYears && JUNIOR.includes(G.year) && G.docId && !G.pasted && !noviceStages(G).length) ? h('button', {type: 'button', class: 'cg-ghost', disabled: !!G.bankLoaded, onclick: async e => {
         const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Loading Year ' + G.year + ' statements…';
         try { const count = await expandYearStatements(G); banner = {kind:'ok',text: count ? 'Added ' + count + ' further Ministry statement(s). Existing choices remain ticked.' : 'All available Ministry statements are listed. Your choices have been kept.'}; renderMain(); }
         catch(err) { banner = {kind:'note',text:err.message}; renderMain(); }
       }}, G.bankLoaded ? 'Full Year ' + G.year + ' list loaded' : 'Show all Year ' + G.year + ' statements') : null) : null,
-    h('div', {class: 'cg-cols'}, col('knowledge', 'Knowledge'), col('practices', 'Practices')),
-    h('div', {class: 'cg-bar'}, h('div', {}, h('b', {}, n), G.mapRef ? ' statements from the curriculum map' : ' of ' + total + ' statements selected', G.mapRef ? h('a', {class: 'cg-link', href: mapUrl(), style: 'margin-left:12px'}, 'Change them on the map') : null),
+    crossYears && !statementYearLoading && !statementsForYear(G,'knowledge',currentYear).length && !statementsForYear(G,'practices',currentYear).length ?
+      h('div',{class:'cg-year-empty'},h('p',{},'No Year '+currentYear+' statements loaded.'),
+        h('button',{type:'button',class:'cg-ghost',onclick:()=>switchStatementYear(currentYear)},'Load Year '+currentYear+' statements')) : null,
+    (!crossYears || !statementYearLoading) ? h('div', {class: 'cg-cols'}, col('knowledge', 'Knowledge'), col('practices', 'Practices')) : null,
+    h('div', {class: 'cg-bar'}, h('div', {}, h('b', {}, n), G.mapRef ? ' statements selected across the curriculum map' : ' of ' + total + ' statements selected across all years', G.mapRef ? h('a', {class: 'cg-link', href: mapUrl(), style: 'margin-left:12px'}, 'View map') : null),
       h('div', {class: 'cg-actions', style: 'margin:0'}, h('button', {class: 'cg-ghost', type: 'button', onclick: () => { view = 'topic'; renderMain(true); }}, '← Edit unit'),
-        h('button', {class: 'cg-btn', type: 'button', disabled: !n, onclick: generate}, G.plan ? 'Redraft the unit plan  →' : 'Draft the unit plan  →'), resetLink())));
+        h('button', {class: 'cg-btn', type: 'button', disabled: !n || !!statementYearLoading, onclick: generate}, G.plan ? 'Redraft the unit plan  →' : 'Draft the unit plan  →'), resetLink())));
 }
 
 // Key vocabulary is written as two lists. The Word template has one Key Vocabulary cell, so the combined line is kept up to date for it.
@@ -737,7 +772,7 @@ function find() {
 
 function generate() {
   return run('Drafting your unit plan', ['Reading your selected statements…', 'Planning the learning focuses…', 'Checking the wording matches the curriculum…'], async signal => {
-    if (G.mapRef && noviceStages(G).length) await mapSavePromise;
+    if (G.mapRef) await mapSavePromise;
     const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, existingPlan: G.plan, mapRef: G.mapRef}}, signal);
     const notice = r.statementNotice; delete r.statementNotice;
     G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear();
