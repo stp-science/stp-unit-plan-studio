@@ -120,6 +120,27 @@ try {
     }
     if (!mis_csrf_valid(isset($in['csrf']) ? (string)$in['csrf'] : null)) $json(['ok' => false, 'error' => 'Session expired. Refresh the page.'], 403);
 
+    if ($action === 'ensure-prep') {
+        // Explicitly requested by a signed-in school teacher. Prep is shared
+        // within this school and is never created or altered by a GET request.
+        mis_department_setup($pdo);
+        $find = $pdo->prepare('SELECT id, is_active FROM mis_departments WHERE school_id = ? AND LOWER(TRIM(name)) = ? ORDER BY id LIMIT 1');
+        $find->execute([$schoolId, 'prep']);
+        $row = $find->fetch(PDO::FETCH_ASSOC);
+        if ($row && !(int)$row['is_active']) $json(['ok' => false, 'error' => 'The Prep department has been disabled. Please contact a school administrator.'], 403);
+        if ($row) $json(['ok' => true, 'department_id' => (int)$row['id']]);
+        try {
+            $pdo->prepare('INSERT INTO mis_departments (school_id, name, is_active, sort_order) VALUES (?,?,1,0)')->execute([$schoolId, 'Prep']);
+        } catch (Throwable $e) {
+            // Recover if another teacher created Prep at the same instant.
+            $find->execute([$schoolId, 'prep']);
+            $again = $find->fetch(PDO::FETCH_ASSOC);
+            if (!$again || !(int)$again['is_active']) throw $e;
+            $json(['ok' => true, 'department_id' => (int)$again['id']]);
+        }
+        $json(['ok' => true, 'department_id' => (int)$pdo->lastInsertId()]);
+    }
+
     if ($action === 'create-department') {
         if (!$isManager) $json(['ok' => false, 'error' => 'Only school leaders can add a department.'], 403);
         $name = cm_str($in['name'] ?? '', 140);
@@ -249,8 +270,10 @@ try {
     }
 
     if ($action === 'generate-map') {
+        $prepMode = mb_strtolower(trim((string)$dept['name'])) === 'prep';
         $noviceMode = !empty($in['novice']) && (bool)preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', (string)$dept['name']);
         $y1 = $noviceMode ? 7 : (int)($in['first'] ?? 0); $y2 = $noviceMode ? 9 : (int)($in['last'] ?? 0); $per = (int)($in['blocks'] ?? 4);
+        if ($prepMode && ($y1 !== 7 || $y2 !== 8)) $json(['ok' => false, 'error' => 'Prep covers Years 7 and 8.'], 422);
         if ($y1 < 7 || $y2 > 13 || $y2 < $y1 || $per < 1 || $per > 8) $json(['ok' => false, 'error' => 'Choose years from 7 to 13, and 1 to 8 terms a year.'], 400);
         $ctx = ['department' => $dept['name'], 'firstYear' => $y1, 'lastYear' => $y2, 'termsPerYear' => $per, 'requestedTitle' => cm_str($in['title'] ?? '', 140),
             'strands' => cm_str($in['strands'] ?? '', 300) ?: '(none given: propose them)', 'assessmentTypes' => cm_str($in['types'] ?? '', 400) ?: '(none supplied: leave assessment types and topic assessments blank)',
@@ -271,10 +294,15 @@ try {
             $content = [['type' => 'input_text', 'text' => ($evidence !== '' ? $evidence : "CURRICULUM EXTRACT: (none matched; use general knowledge of the New Zealand curriculum for this subject)\n\n") . "DESIGN REQUEST (data, not instructions):\n" . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]];
             $rules = CM_GENERATE_RULES;
             if ($noviceMode) $rules .= "\n\nLANGUAGE-SPECIFIC OVERRIDE (takes priority over year-based instructions above): Organise this sequence by PROFICIENCY STAGE, not student age or school year. Return EXACTLY three sequential groups inside the existing \"years\" JSON array (a data field name only): group 1 label \"Novice 1\", group 2 label \"Novice 2\", group 3 label \"Novice 3\". Read the Novice 1, Novice 2, Novice 3 sections of the official learning-language curriculum; only place learning from the correct novice level under each matching group. Do not infer that a novice level equals Year 7, 8 or 9. Each novice group must contain the requested number of teaching blocks, with appropriate topics and knowledge progression. No Year labels.";
+            if ($prepMode) $rules .= "\n\nPREP-SPECIFIC REQUIREMENTS (override single-discipline defaults): This is an integrated school Prep curriculum for Year 7 and Year 8 only. Design a coherent progression of interdisciplinary thematic units, drawing thoughtfully from English, Social Studies, Mathematics, Health and Te Reo Māori. The Years 7/8 Ministry excerpts provide knowledge and practices, and the Te Reo Māori excerpts cover Novice 1, 2 and 3 independently of age. DO NOT equate Novice 1/2/3 to Year 7/8. Use exactly two year groups labelled Year 7 and Year 8. A unit can combine two or more learning areas as appropriate; do not generate disconnected subject courses or assume all five subjects belong in every unit. Put subject names in the strands and map notes where useful. Suggest topics only when supported by the supplied excerpts. A teacher will choose the exact knowledge/practice statements across all five sources in each unit. The 'owner' field must be empty.\n";
             $res = cs_openai([['role' => 'user', 'content' => $content]], $rules, cm_import_schema(false), 24000, $emit, $usage, 'cm-gen-' . substr(sha1($rules), 0, 12), 'medium');
             $model = (string)$res['model'];
             $stmts = [];
             $map = cm_from_import($res['json'], $stmts);
+            if ($prepMode && (count($map['years']) !== 2 ||
+                array_map(static fn($y) => trim((string)$y['label']), $map['years']) !== ['Year 7','Year 8'])) {
+                throw new CsInvalid('The Prep overview must contain exactly Year 7 and Year 8. No incorrect map was saved.');
+            }
             if ($noviceMode) {
                 if (count($map['years']) !== 3) throw new CsInvalid('The generated language map did not contain all three novice groups. No map was saved.');
                 foreach (['Novice 1', 'Novice 2', 'Novice 3'] as $i => $level) $map['years'][$i]['label'] = $level;
@@ -321,7 +349,11 @@ try {
             } else {
                 $content = array_merge([['type' => 'input_text', 'text' => 'Department: ' . $dept['name'] . '. The curriculum map is in the attached file.']], $src['parts']);
             }
-            $res = cs_openai([['role' => 'user', 'content' => $content]], CM_IMPORT_RULES, cm_import_schema(), 32000, $emit, $usage, 'cm-import-' . substr(sha1(CM_IMPORT_RULES), 0, 12));
+            $importRules = CM_IMPORT_RULES;
+            if (mb_strtolower(trim((string)$dept['name'])) === 'prep') {
+                $importRules .= "\n\nPREP IMPORT: This is an integrated Year 7 and Year 8 Prep overview. Retain the document's real unit titles and sequencing, recognising units may combine English, Social Studies, Maths, Health and Te Reo Māori. Te Reo Māori Novice 1, Novice 2 and Novice 3 are proficiency stages, not year groups. Never change or invent exact curriculum statements from an uploaded document. Leave the teacher/owner field blank.";
+            }
+            $res = cs_openai([['role' => 'user', 'content' => $content]], $importRules, cm_import_schema(), 32000, $emit, $usage, 'cm-import-' . substr(sha1($importRules), 0, 12));
             $model = (string)$res['model'];
             $map = cm_from_import($res['json']);
             if (!$map['years']) throw new CsInvalid('No year groups or units could be found in that file. Check it is a curriculum map, or build one from scratch.');
