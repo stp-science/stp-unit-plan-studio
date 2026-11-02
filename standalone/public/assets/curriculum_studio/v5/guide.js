@@ -616,6 +616,27 @@ async function pullMapStatements(guide) {
   } catch (e) { lastPull.error = 'Could not reach the curriculum map. Check your internet connection.'; return false; }
   if (!r || !r.ok) { lastPull.error = (r && r.error) || 'The curriculum map could not be read.'; return false; }
   lastPull = {ok: true, error: '', onMap: r.onMap !== false, total: r.statements.length};
+  // Older map-linked plans may not have saved a curriculum source ID.
+  // Resolve only a unique match for the selected subject, so they can also
+  // access other year tabs without changing the map or guessing a source.
+  let resolvedSource = false;
+  if (!guide.docId && JUNIOR.includes(+guide.year) && docs.length) {
+    const subject = String(guide.subject || '').toLowerCase().trim();
+    const alias = subjectAlias(subject);
+    const matches = docs.filter(d => (d.years || JUNIOR).includes(+guide.year) &&
+      [d.subject,d.learningArea,d.title,...(d.subjects||[])].some(name => {
+        const lower = String(name || '').toLowerCase().trim();
+        return lower && (lower === subject || lower === alias || (subject && (d.subjects||[]).some(s=>String(s).toLowerCase()===subject)));
+      }));
+    if (matches.length === 1) {
+      guide.docId = matches[0].id;
+      if (matches[0].learningArea === 'The Arts') {
+        const art = ['Dance','Drama','Music','Visual Arts'].find(x=>x.toLowerCase() === subject || x.toLowerCase() === alias);
+        if (art) guide.discipline = art;
+      }
+      resolvedSource = true;
+    }
+  }
   const rows = r.statements.filter(x => x.selected);
   const mk = (kind, p) => rows.filter(x => x.kind === kind).map((x, i) => ({id: p + (i + 1), text: x.text, source: x.source || '', confidence: x.confidence, link: 'strong', why: '', subject: guide.subject || ''}));
   const next = {knowledge: mk('knowledge', 'k'), practices: mk('practice', 'p')};
@@ -624,7 +645,7 @@ async function pullMapStatements(guide) {
   guide.statements = next;
   guide.selected = {knowledge: next.knowledge.map(x => x.id), practices: next.practices.map(x => x.id)};
   guide.bankLoaded = false; guide.bankYears = [];
-  if (changed) { guide.docId = guide.docId || (rows[0] && rows[0].doc_id) || ''; save(); }
+  if (changed || resolvedSource) { guide.docId = guide.docId || (rows[0] && rows[0].doc_id) || ''; if (G === guide) save(); }
   return changed;
 }
 const syncMap = () => {};
