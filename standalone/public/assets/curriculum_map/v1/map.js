@@ -78,7 +78,11 @@ addEventListener('beforeunload', e => { if (S.saveState === 'saving' || S.draft)
 // Every screen (start, map, coverage) has its own history entry and address, so Back always returns to what you were just doing,
 // and a page opened from the browser's history comes back as it was.
 const BASE = location.pathname.split('/').pop() || 'curriculum_studio.php';
-const viewUrl = (view, deptId) => BASE + (view === 'start' ? '' : '?department=' + (deptId || S.dept?.id || 0) + (['coverage', 'upload'].includes(view) ? '&view=' + view : ''));
+let navigationMode = new URLSearchParams(location.search).get('mode') || '';
+const viewUrl = (view, deptId) => BASE + (view === 'start' ? '' :
+  '?department=' + (deptId || S.dept?.id || 0) +
+  (['coverage','upload'].includes(view) ? '&view=' + view : '') +
+  (['overview','existing'].includes(navigationMode) ? '&mode=' + navigationMode : ''));
 function syncUrl() {   // keep the current entry's address and state accurate after a load or department change
   const idx = history.state?.cm ? history.state.idx || 0 : 0;
   history.replaceState({cm: 1, view: S.view, dept: S.dept?.id || 0, idx}, '', viewUrl(S.view));
@@ -1079,9 +1083,28 @@ function startView() {
     h('div', {class: 'cm-hero'}, h('h2', {}, 'What would you like to do?'), h('p', {}, 'Choose where to start. You can always come back here, and the Back button takes you to the last screen you were on.')),
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + '?guide=1&blank=1'}),
-      card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { S.edit = has; showView('map'); }}),
-      card('c', '▶', 'Create unit plans from an existing overview', has ? 'Open your department’s overview, choose a unit and draft its unit plan using the selected curriculum statements.' : 'Upload an overview or scheme of work you already use. Check the imported units and curriculum statements, then choose a unit to create its unit plan.', has ? 'Choose a unit' : 'Upload your overview', {onclick: () => { S.edit = false; showView(has ? 'map' : 'upload'); }})),
-    null);
+      card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
+      card('c', '▶', 'Create unit plans from an existing overview', has ? 'Open your department’s overview, choose a unit and draft its unit plan using the selected curriculum statements.' : 'Upload an overview or scheme of work you already use. Check the imported units and curriculum statements, then choose a unit to create its unit plan.', has ? 'Choose a unit' : 'Upload your overview', {onclick: () => { navigationMode='existing'; S.edit = false; showView(has ? 'map' : 'upload'); }})),
+    h('section',{class:'cm-knowledge-guide','aria-label':'Curriculum design guidance'},
+      h('div',{class:'cm-knowledge-head'},
+        h('div',{},
+          h('span',{class:'cm-knowledge-kicker'},'CURRICULUM DESIGN'),
+          h('h2',{},'Principles of a knowledge-rich curriculum'),
+          h('p',{},'Use these checkpoints when sequencing topics or choosing statements for a unit. They are planning guidance, not additional Ministry curriculum requirements.')),
+        h('a',{class:'cm-nzc-link',href:'https://newzealandcurriculum.tahurangi.education.govt.nz/',target:'_blank',rel:'noopener noreferrer'},
+          'View the official NZ Curriculum ↗')),
+      h('div',{class:'cm-knowledge-grid'},
+        ...[
+          ['1','Start with the important knowledge','Identify the specific facts, concepts, practices and vocabulary students should learn. Keep the unit focused on what matters.'],
+          ['2','Build a coherent sequence','Teach prerequisite knowledge before more complex ideas, and make connections to what students already know.'],
+          ['3','Plan for cumulative learning','Revisit important ideas across units and year groups, adding depth rather than simply repeating activities.'],
+          ['4','Be clear about vocabulary and misconceptions','Explicitly teach disciplinary language and anticipate the misunderstandings that could block later learning.'],
+          ['5','Check understanding as you teach','Use short questions, retrieval and formative checks to reveal gaps and adapt teaching before moving on.'],
+          ['6','Make application purposeful','Select investigations, discussion, writing and assessment that apply taught knowledge, not activities disconnected from it.']
+        ].map(([number,title,description])=>h('div',{class:'cm-knowledge-principle'},
+          h('span',{class:'cm-knowledge-number','aria-hidden':'true'},number),
+          h('div',{},h('h3',{},title),h('p',{},description))))),
+      h('p',{class:'cm-knowledge-foot'},'Planning prompt: What must students know first, what will they know by the end, and how will you check they have learnt it?')));
 }
 
 // ---------------------------------------------------------------- start
@@ -1091,9 +1114,19 @@ root.className = 'cm';
 toastEl = h('div', {class: 'cm-toast', role: 'status'});
 {
   const q = new URLSearchParams(location.search);
-  // opening the app from the home screen (no department in the address) shows the start screen; links from a unit plan or the history go straight to the map
+  // Header links go straight to one of the two overview modes; the first
+  // header mode opens the separate unit-plan builder page.
   const wantDept = CM.department || parseInt(q.get('department'), 10) || 0;
-  S.view = !(wantDept > 0) && !q.get('go') ? 'start' : ['coverage', 'upload'].includes(q.get('view')) ? q.get('view') : 'map';
+  const requestedMode = ['overview','existing'].includes(q.get('mode')) ? q.get('mode') : '';
+  navigationMode = requestedMode;
+  S.view = requestedMode ? 'map' :
+    !(wantDept > 0) && !q.get('go') ? 'start' :
+    ['coverage', 'upload'].includes(q.get('view')) ? q.get('view') : 'map';
   if (S.view === 'coverage') cov = {rows: null, q: '', kind: '', sort: 'used', err: ''};
-  load(wantDept, S.view).then(() => { if (S.view === 'coverage' && S.map) fetchCoverage(); });
+  load(wantDept, S.view).then(() => {
+    if (S.failed || !S.dept) return;
+    if (requestedMode === 'overview' && S.map) { S.edit = true; render(); }
+    if (requestedMode === 'existing' && !S.map) { S.view = 'upload'; syncUrl(); render(); }
+    if (S.view === 'coverage' && S.map) fetchCoverage();
+  });
 }
