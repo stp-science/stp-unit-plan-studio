@@ -19,6 +19,20 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 
 const JUNIOR = [7, 8, 9, 10];
+// Prep is intentionally cross-curricular. Each tab comes from an independent,
+// named Ministry source; Te Reo Māori follows proficiency, not age.
+const PREP_SOURCES = [
+  {id:'english-2025',label:'English'},
+  {id:'social-sciences-2026',label:'Social Studies'},
+  {id:'maths-2025',label:'Maths'},
+  {id:'health-pe-2026',label:'Health'},
+  {id:'languages-te-reo-maori-sep-2026',label:'Te Reo Māori',novice:true}
+];
+const isPrepGuide = g => String(g?.subject||'').trim().toLowerCase() === 'prep';
+const prepLevelKey = (id,level) => id+':'+String(level);
+let prepSourceId = PREP_SOURCES[0].id, prepActiveYear = 7, prepActiveStage = 'Novice 1';
+let prepLoading = '', prepError = '';
+const resetPrepView = guide => {prepSourceId=PREP_SOURCES[0].id;prepActiveYear=Number(guide?.year)||7;prepActiveStage='Novice 1';prepLoading='';prepError='';statementFilter='';};
 const NOVICE = ['Novice 1', 'Novice 2', 'Novice 3'];
 const isLanguageSubject = name => /french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i.test(String(name || ''));
 // New plans store an array; legacy single-stage plans continue to open unchanged.
@@ -54,7 +68,7 @@ const statementsForYear = (guide, key, year) => (guide.statements[key] || []).fi
 let root, listEl, mainEl, toastEl, sidebarSelect, sidebarSearch;
 let sidebarSubject = 'all', sidebarQuery = '', sidebarGroupsOpen = new Set(), sidebarInitialised = false;
 
-const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
+const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
 const hasStatements = g => g && g.statements.knowledge.length + g.statements.practices.length > 0;
 const hue = s => { let x = 0; for (const c of String(s || 'x')) x = (x * 31 + c.charCodeAt(0)) % 360; return x; };
@@ -204,6 +218,7 @@ function renderList() {
 function open(id) {
   mapSavePromise = Promise.resolve();
   G = guides.find(g => g.id === id) || null;
+  resetPrepView(G);
   activeStatementYear = G ? Number(G.year) : 7;
   statementYearLoading = 0; statementYearError = '';
   if (G) sidebarGroupsOpen.add(guideSubject(G).toLocaleLowerCase());
@@ -220,7 +235,7 @@ function open(id) {
     });
   }
 }
-function newGuide() { activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
+function newGuide() { resetPrepView({year:7}); activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
 
 // ---------------------------------------------------------------- timing rules in plain English, with suggestions to click
 const TIMING_IDEAS = ['3 lessons a week', '2 lessons a week', '50-minute lessons', '60-minute lessons', 'about 6 weeks', 'about 14 lessons in total', 'an end-of-unit test in the last lesson', 'one lesson for feedback and reteaching', 'a practical in the middle of the unit', 'fewer lessons in the last week because of events'];
@@ -288,11 +303,15 @@ function renderMain(top) {
 function build() {
   if (!G) return [h('section', {class: 'cg-card cg-hero'}, h('h2', {}, 'Build a unit plan in minutes'),
     h('p', {}, 'Pick your subject, year and unit. The official Ministry curriculum gives the outline, and your department’s curriculum map gives the sequence.'),
-    h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →'),
+    h('div',{class:'cg-actions'},
+      h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →'),
+      h('button', {class:'cg-ghost',type:'button',onclick:()=>{
+        newGuide(); G.subject='Prep'; G.year=7; save(); renderMain(true);
+      }},'Create a Prep unit  →')),
     h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Private to you'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
   if (work) return [stepper(), workCard()];
   if (G.mapRef && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
-  return [stepper(), bannerEl(), view === 'topic' ? topicCard() : view === 'outline' && hasStatements(G) ? outlineCard() : G.plan ? guideView() : topicCard()];
+  return [stepper(), bannerEl(), view === 'topic' ? topicCard() : view === 'outline' && (hasStatements(G) || isPrepGuide(G)) ? (isPrepGuide(G) ? prepOutlineCard() : outlineCard()) : G.plan ? guideView() : topicCard()];
 }
 
 function workCard() {
@@ -303,6 +322,7 @@ function workCard() {
 }
 
 function topicCard() {
+  if (isPrepGuide(G)) return prepTopicCard();
   const yd = docs.filter(d => (d.years || JUNIOR).includes(G.year));
   // The subject filters the document list: a Science guide only offers the Science document (clear the subject to see everything).
   const subj = (G.subject || '').trim().toLowerCase();
@@ -320,7 +340,7 @@ function topicCard() {
     if (matches[0].learningArea === 'The Arts' && arts) G.discipline = arts;
     save();
   }
-  const subjectNames = [...new Set(yd.flatMap(d => [d.subject, ...(d.subjects || [])]).filter(Boolean))].sort();
+  const subjectNames = [...new Set(['Prep',...yd.flatMap(d => [d.subject, ...(d.subjects || [])]).filter(Boolean)])].sort();
   const areas = [...new Set(shown.map(d => d.learningArea))].sort();
   const doc = docs.find(d => d.id === G.docId);
   const isArts = doc && doc.learningArea === 'The Arts';
@@ -373,11 +393,13 @@ function topicCard() {
     h('div', {class: 'cg-grid'},
       field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => {
           if (G.subject.trim().toLowerCase() !== e.target.value.trim().toLowerCase()) {
+            G.prepLoaded=[]; resetPrepView(G);
             G.statements={knowledge:[],practices:[]}; G.selected={knowledge:[],practices:[]};
             G.bankYears=[]; G.bankLoaded=false; activeStatementYear=Number(G.year);
             if (G.plan) banner={kind:'note',text:'Your previous draft is kept. Find the new subject’s official statements and redraft this unit before using it.'};
           }
           G.subject = e.target.value;
+          if (isPrepGuide(G)) {G.docId=''; G.discipline=''; G.year=G.year===8?8:7; G.stage=''; G.stages=[];}
           const chosenArt = ['Dance','Drama','Music','Visual Arts'].find(x=>x.toLowerCase()===(subjectAlias(G.subject.toLowerCase()) || G.subject.toLowerCase()));
           if (chosenArt) G.discipline = chosenArt;
           else if (docs.find(d=>d.id===G.docId)?.learningArea === 'The Arts') G.discipline = '';
