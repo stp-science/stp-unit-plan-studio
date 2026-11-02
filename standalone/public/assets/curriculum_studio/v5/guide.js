@@ -606,7 +606,12 @@ function prepOutlineCard(){
         onclick:()=>openPrepTab(source.id,level)},'Try loading this tab again')):null,
     !busy&&!prepError?h('input',{type:'search',class:'cg-bank-search',
       'aria-label':'Search this Prep curriculum tab',placeholder:'Search this subject and level…',
-      value:statementFilter,oninput:e=>{statementFilter=e.target.value.toLocaleLowerCase().trim();renderMain();}}):null,
+      value:statementFilter,oninput:e=>{
+        statementFilter=e.target.value.toLocaleLowerCase().trim();
+        document.querySelectorAll('.cg-prep-outline .cg-stmt').forEach(label=>{
+          label.style.display=!statementFilter||label.textContent.toLocaleLowerCase().includes(statementFilter)?'':'none';
+        });
+      }}):null,
     !busy&&!prepError?h('div',{class:'cg-cols'},renderColumn('knowledge','Knowledge'),
       renderColumn('practices','Practices')):null,
     !busy&&!prepError&&!prepRows(G,'knowledge').length&&!prepRows(G,'practices').length?
@@ -815,7 +820,7 @@ async function persistMapStatements(guide) {
   const rows = ['knowledge','practices'].flatMap(key=>guide.statements[key]
     .filter(s=>guide.selected[key].includes(s.id))
     .map(s=>({kind:key==='practices'?'practice':'knowledge',text:s.text,
-      source:s.source||'Ministry curriculum',doc_id:guide.docId||'',confidence:s.confidence??null,selected:1})));
+      source:s.source||'Ministry curriculum',doc_id:s.prepSourceId||guide.docId||'',confidence:s.confidence??null,selected:1})));
   // The curriculum map stores at most 150 statements per unit. Never
   // silently drop cross-year ticks if that limit is reached.
   if (rows.length > 150) throw Error('This map allows up to 150 statements per unit. Untick some statements before saving.');
