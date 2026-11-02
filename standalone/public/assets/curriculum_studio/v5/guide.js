@@ -610,6 +610,9 @@ async function persistMapStatements(guide) {
     .filter(s=>guide.selected[key].includes(s.id))
     .map(s=>({kind:key==='practices'?'practice':'knowledge',text:s.text,
       source:s.source||'Ministry curriculum',doc_id:guide.docId||'',confidence:s.confidence??null,selected:1})));
+  // The curriculum map stores at most 150 statements per unit. Never
+  // silently drop cross-year ticks if that limit is reached.
+  if (rows.length > 150) throw Error('This map allows up to 150 statements per unit. Untick some statements before saving.');
   const response = await fetch('curriculum_map_api.php?action=set-statements',{
     method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({csrf:CS.csrf,department_id:guide.mapRef.department_id,
