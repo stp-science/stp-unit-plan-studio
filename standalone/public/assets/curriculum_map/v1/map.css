@@ -286,3 +286,31 @@ a.cm-txe.cm-txg{display:inline-block;text-decoration:none;background:var(--acc);
  .cm-knowledge-grid{grid-template-columns:1fr}
  .cm-nzc-link{width:100%}
 }
+
+/* Prep curriculum overview: interdisciplinary subject and proficiency tabs. */
+.cm-prep-stm .cm-stmh{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.cm-prep-subjects{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 10px}
+.cm-prep-levels{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.cm-prep-subjects .cm-btn,.cm-prep-levels .cm-btn{
+  border:1px solid #bfd0d8;border-radius:8px;padding:9px 12px;
+  color:#001733;background:#edf4f7;font-weight:700
+}
+.cm-prep-subjects .cm-btn:hover,.cm-prep-levels .cm-btn:hover{background:#dceaf0}
+.cm-prep-subjects .cm-btn.cm-prep-active{
+  color:#fff;background:#001733;border-color:#001733
+}
+.cm-prep-levels .cm-btn.cm-prep-active{
+  color:#fff;background:#cf082b;border-color:#cf082b
+}
+.cm-prep-badge{display:inline-block;background:#fff;color:#001733;border-radius:99px;
+  font-size:11px;font-weight:800;padding:2px 6px;margin-left:6px}
+.cm-prep-status{font-size:13px;margin-bottom:9px}
+.cm-prep-bankrows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px}
+.cm-prep-stm .cm-bank>input[type=search]{width:100%;max-width:100%;box-sizing:border-box}
+.cm-prep-other{margin:16px 0;border:1px solid #d8e3e8;border-radius:10px;padding:11px 14px}
+.cm-prep-other summary{cursor:pointer;font-weight:700;color:#001733}
+.cm-prep-existing{display:flex;align-items:flex-start;gap:8px;margin:10px 0;
+  color:#385165;font-size:12px}
+.cm-prep-existing input{margin-top:3px}
+@media(max-width:700px){.cm-prep-bankrows{grid-template-columns:1fr}
+  .cm-prep-subjects .cm-btn{flex:1 1 140px}}
