@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 // mis/curriculum_map_lib.php - department curriculum maps (2026-10-31).
-// One map per department: years -> terms -> topics (strand colour, assessment type, teacher initials, optional).
+// One map per department: years -> terms -> topics (strand colour, assessment type, optional).
 // Any teacher in the department can view and edit it; it can be built from scratch or imported from an uploaded file.
 
 require_once __DIR__ . '/curriculum_studio_lib.php';
@@ -344,7 +344,7 @@ Rules:
 - Structure: years (e.g. "Year 7") each contain terms (the columns, such as Term 1 to Term 4, Block 1 to Block 4, half-terms or units), each term contains topics. For a term's label, use the label in the file, but if it is only a number such as "Block 5" or "Term 2" return an empty string.
 - Topic title: just the topic name. Remove a trailing assessment code in brackets, trailing teacher initials, and "(if time)" / "(optional)" style notes from the title.
 - assess: the assessment type code from a bracket such as "(T)" or "(E)"; "" if none.
-- owner: the teacher initials/name that follow the topic (such as "KENH" or "AWR"), "" if none. A short all-capitals fragment (2-5 letters) on its own right after a topic, or split from the end of one, is that topic's initials, not a separate topic.
+- owner: always an empty string. Do not record teacher names or initials; they are not needed in the overview. If initials appear in an uploaded topic title, retain only the actual topic title.
 - optional: true when the topic is marked "if time", "optional" or similar; otherwise false.
 - strand: the NAME of the strand/discipline the topic belongs to (for example Biology, Chemistry, Physics). Colours are given as [#rrggbb text]; use a colour key or legend in the file (for example shaded words such as "Biology") to map each colour to a strand name. Use "" if no strand can be determined. Never guess a strand from the topic's subject matter alone.
 - strands: one entry per strand, with its colour as #rrggbb taken from the file's legend or topic shading. If the file has no usable colour, give a sensible light pastel.
@@ -400,7 +400,7 @@ function cm_from_import(array $j, array &$stmts = []): array
                     $seenS[$k] = 1; $list[] = ['kind' => ($s['kind'] ?? '') === 'practice' ? 'practice' : 'knowledge', 'text' => $text];
                 }
                 if ($list) $stmts[$tid] = $list;
-                $topics[] = ['id' => $tid, 'title' => $t['title'] ?? '', 'strand' => $byName[mb_strtolower(cm_str($t['strand'] ?? '', 40))] ?? '', 'assess' => $code, 'owner' => $t['owner'] ?? '', 'optional' => !empty($t['optional'])];
+                $topics[] = ['id' => $tid, 'title' => $t['title'] ?? '', 'strand' => $byName[mb_strtolower(cm_str($t['strand'] ?? '', 40))] ?? '', 'assess' => $code, 'owner' => '', 'optional' => !empty($t['optional'])];
             }
             $blocks[] = ['label' => $b['label'] ?? '', 'topics' => $topics];
         }
