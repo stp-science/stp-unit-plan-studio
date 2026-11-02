@@ -307,3 +307,36 @@ body[data-page="curriculum-studio"] .cg :focus-visible{outline-color:#82adbf}
   padding:15px;margin:14px 0;background:#f2f8fa;color:#001733}
 .cg-year-empty p{margin:0 0 8px}
 @media(max-width:540px){.cg-year-tab{flex-basis:calc(50% - 4px)}}
+
+/* Prep interdisciplinary unit builder: subjects × Year 7/8, Māori Novice 1/2/3. */
+body[data-page="curriculum-studio"] .cg-new-prep{display:block;width:100%;min-height:38px;
+  padding:8px 12px;margin-top:8px;border:1px solid #82adbf;border-radius:9px;
+  background:rgba(130,173,191,.16);color:#f7f5f2;font-weight:720;text-align:center}
+body[data-page="curriculum-studio"] .cg-new-prep:hover{background:rgba(130,173,191,.30)}
+.cg-prep-unit-year{display:grid;gap:8px;margin:18px 0;max-width:560px}
+.cg-prep-label{font-size:13px;font-weight:700;color:var(--ink)}
+.cg-prep-unit-year .cg-mut{margin:0;font-size:13px}
+.cg-prep-outline{min-width:0}
+.cg-prep-subject-tabs{display:flex;flex-wrap:wrap;gap:7px;padding:8px;
+  border-radius:13px;background:#eaf0f2;border:1px solid #d4e2e8;margin-top:15px}
+.cg-prep-subject{display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 12px;flex:1 1 120px;border-radius:9px;border:1px solid transparent;
+  background:transparent;font-weight:700;color:#385165;font-size:13px}
+.cg-prep-subject:hover:not(:disabled){background:#fff;color:#001733}
+.cg-prep-subject.on{background:#001733;color:#fff;border-color:#001733;
+  box-shadow:0 2px 8px rgba(0,23,51,.18)}
+.cg-prep-subject:disabled{opacity:.65;cursor:progress}
+.cg-prep-level-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.cg-prep-level-tabs .cg-year-tab{flex:0 1 180px;border:1px solid #cfdee6;background:#fff}
+.cg-prep-level-tabs .cg-year-tab.on{border-color:#cf082b;color:#cf082b;
+  box-shadow:inset 0 -2px 0 #cf082b}
+.cg-prep-context{font-size:13px;color:#526879;margin:10px 4px 14px}
+.cg-prep-outline .cg-bank-search{width:100%;margin:0 0 12px;box-sizing:border-box}
+.cg-prep-error{margin:14px 0;padding:14px;border:1px solid #dfb2ba;
+  border-radius:10px;background:#fff0f3;color:#9a0021}
+.cg-prep-error p{margin:0 0 8px}
+.cg-prep-column{min-width:0}
+.cg-prep-outline .cg-year-count{background:#cf082b;color:#fff}
+.cg-prep-subject.on .cg-year-count{background:#fff;color:#001733}
+@media(max-width:640px){.cg-prep-subject{flex:1 1 calc(50% - 7px)}
+  .cg-prep-level-tabs .cg-year-tab{flex:1 1 calc(50% - 4px)}}
