@@ -17,6 +17,7 @@ if (!cs_enabled($pdo, $schoolId)) { header('Location: index.php'); exit; }
 if (!isset($_GET['guide']) && !isset($_GET['topic'])) { require __DIR__ . '/curriculum_map.php'; exit; }
 
 $navMode = in_array($_GET['mode'] ?? '', ['overview', 'existing'], true) ? (string)$_GET['mode'] : '';
+$navDepartment = max(0, (int)($_GET['department'] ?? $_GET['dept'] ?? 0));
 $schoolName     = mis_school_name($pdo, $schoolId);
 $isAdmin = mis_is_school_admin($pdo, $teacherId) || mis_is_leadership($pdo, $teacherId);
 $std     = $isAdmin ? cs_school_standard($pdo, $schoolId) : null;
@@ -51,8 +52,8 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
       <span class="stp-nav-name"><strong>St Peter's</strong><small>Curriculum Studio</small></span>
     </a>
     <a href="curriculum_studio.php?guide=1&amp;blank=1" aria-current="page">Single unit plan</a>
-    <a href="curriculum_studio.php?mode=overview"<?= $navMode === 'overview' ? ' aria-current="page"' : '' ?>>Curriculum overview</a>
-    <a href="curriculum_studio.php?mode=existing"<?= $navMode === 'existing' ? ' aria-current="page"' : '' ?>>Existing overview</a>
+    <a href="curriculum_studio.php?mode=overview&amp;department=<?= $navDepartment ?>"<?= $navMode === 'overview' ? ' aria-current="page"' : '' ?>>Curriculum overview</a>
+    <a href="curriculum_studio.php?mode=existing&amp;department=<?= $navDepartment ?>"<?= $navMode === 'existing' ? ' aria-current="page"' : '' ?>>Existing overview</a>
     <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?> &middot; <?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
   </nav>
   <div class="app-shell">
