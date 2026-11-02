@@ -36,10 +36,25 @@ const subjectAlias = name => { const n = String(name || '').trim().toLowerCase()
 let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, saveTimer = 0, saveState = 'saved', closed = new Set(), toastTimer = 0;
 let statementFilter = '';
 let mapSavePromise = Promise.resolve();
+let activeStatementYear = 7;
+let statementYearLoading = 0;
+let statementYearError = '';
+const juniorYearTabs = guide => !!guide && JUNIOR.includes(+guide.year) && !!guide.docId && !guide.pasted && noviceStages(guide).length === 0;
+// A saved suggested match may predate this feature; use the explicit source-year
+// label when present, otherwise associate it with the unit's original year.
+const statementSourceYear = (statement, guide) => {
+  if (JUNIOR.includes(+statement.curriculumYear)) return +statement.curriculumYear;
+  const match = /\bYear\s*(7|8|9|10)\b/i.exec(String(statement.source || ''));
+  return match ? Number(match[1]) : Number(guide.year);
+};
+const yearBankLoaded = (guide, year) => (Array.isArray(guide.bankYears) && guide.bankYears.includes(year)) ||
+  (year === +guide.year && guide.bankLoaded === true);
+const statementsForYear = (guide, key, year) => (guide.statements[key] || []).filter(s =>
+  !juniorYearTabs(guide) || statementSourceYear(s,guide) === year);
 let root, listEl, mainEl, toastEl, sidebarSelect, sidebarSearch;
 let sidebarSubject = 'all', sidebarQuery = '', sidebarGroupsOpen = new Set(), sidebarInitialised = false;
 
-const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
+const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
 const hasStatements = g => g && g.statements.knowledge.length + g.statements.practices.length > 0;
 const hue = s => { let x = 0; for (const c of String(s || 'x')) x = (x * 31 + c.charCodeAt(0)) % 360; return x; };
@@ -189,6 +204,8 @@ function renderList() {
 function open(id) {
   mapSavePromise = Promise.resolve();
   G = guides.find(g => g.id === id) || null;
+  activeStatementYear = G ? Number(G.year) : 7;
+  statementYearLoading = 0; statementYearError = '';
   if (G) sidebarGroupsOpen.add(guideSubject(G).toLocaleLowerCase());
   banner = null; view = !G ? 'topic' : G.plan ? 'guide' : hasStatements(G) ? 'outline' : 'topic';
   renderList(); renderMain(true);
@@ -203,7 +220,7 @@ function open(id) {
     });
   }
 }
-function newGuide() { sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
+function newGuide() { activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
 
 // ---------------------------------------------------------------- timing rules in plain English, with suggestions to click
 const TIMING_IDEAS = ['3 lessons a week', '2 lessons a week', '50-minute lessons', '60-minute lessons', 'about 6 weeks', 'about 14 lessons in total', 'an end-of-unit test in the last lesson', 'one lesson for feedback and reteaching', 'a practical in the middle of the unit', 'fewer lessons in the last week because of events'];
@@ -294,10 +311,10 @@ function topicCard() {
   const matches = pick(subj).length ? pick(subj) : pick(subjectAlias(subj));
   const shown = matches.length ? matches : yd;
   if (matches.length && G.docId && !matches.some(d => d.id === G.docId)) {
-    G.docId = ''; G.bankLoaded = false;
+    G.docId = ''; G.bankLoaded = false; G.bankYears = [];
   }
   if (matches.length === 1 && G.docId !== matches[0].id) {
-    if (G.docId) {G.statements={knowledge:[],practices:[]};G.selected={knowledge:[],practices:[]};G.bankLoaded=false;}
+    if (G.docId) {G.statements={knowledge:[],practices:[]};G.selected={knowledge:[],practices:[]};G.bankLoaded=false;G.bankYears=[];}
     G.docId = matches[0].id;
     const arts = ['Dance', 'Drama', 'Music', 'Visual Arts'].find(a => a.toLowerCase() === (subjectAlias(subj) || subj));
     if (matches[0].learningArea === 'The Arts' && arts) G.discipline = arts;
@@ -347,12 +364,12 @@ function topicCard() {
                     G.statements = {knowledge:[], practices:[]};
                     G.selected = {knowledge:[], practices:[]};
                   }
-                  G.bankLoaded = false;
+                  G.bankLoaded = false; G.bankYears = [];
                   if (G.plan) banner = {kind:'note',text:'Your earlier draft is kept. Find statements again and redraft to use the updated novice levels.'};
                   save(); renderMain();
                 }}),h('span', {},stage))),
             G.mapRef ? h('p', {class:'cg-mut'}, 'Your original map statements stay selected. On the next screen, add statements from these levels; new ticks are saved back to the curriculum map.') : null)
-        : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; G.stage = ''; G.stages = []; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
+        : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; activeStatementYear = y; G.stage = ''; G.stages = []; G.bankLoaded=false; G.bankYears=[]; G.statements={knowledge:[],practices:[]}; G.selected={knowledge:[],practices:[]}; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
       field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value;
           const chosenArt = ['Dance','Drama','Music','Visual Arts'].find(x=>x.toLowerCase()===(subjectAlias(G.subject.toLowerCase()) || G.subject.toLowerCase()));
@@ -364,7 +381,7 @@ function topicCard() {
           if (G.docId !== e.target.value) {
             G.statements = {knowledge:[], practices:[]};
             G.selected = {knowledge:[], practices:[]};
-            G.bankLoaded = false;
+            G.bankLoaded = false; G.bankYears = [];
             if (G.plan) banner = {kind:'note',text:'The curriculum source changed. Your earlier draft is kept; find and select the new source statements before redrafting.'};
           }
           G.docId = e.target.value; const d = docs.find(x => x.id === G.docId); if (d && !G.subject.trim()) G.subject = d.subject; G.stages = d?.learningArea === 'Learning Languages' ? (noviceStages(G).length ? noviceStages(G) : ['Novice 1']) : []; G.stage = G.stages[0] || ''; if (G.stage) G.year = 7; G.discipline = ''; save(); renderMain(); }}, h('option', {value: ''}, 'Choose a document…'),
@@ -571,34 +588,60 @@ async function pullMapStatements(guide) {
   const changed = selectedKey(next,{knowledge:next.knowledge.map(x=>x.id),practices:next.practices.map(x=>x.id)}) !== selectedKey(guide.statements,guide.selected);
   guide.statements = next;
   guide.selected = {knowledge: next.knowledge.map(x => x.id), practices: next.practices.map(x => x.id)};
-  guide.bankLoaded = false;
+  guide.bankLoaded = false; guide.bankYears = [];
   if (changed) { guide.docId = guide.docId || (rows[0] && rows[0].doc_id) || ''; save(); }
   return changed;
 }
 const syncMap = () => {};
 
-// Add every Ministry statement from the selected year, retaining AI-suggested ticks.
-async function expandYearStatements(guide, signal) {
-  if (!JUNIOR.includes(guide.year) || !guide.docId || guide.pasted || guide.mapRef || noviceStages(guide).length) return 0;
-  const query = new URLSearchParams({action:'statement-bank',doc_id:guide.docId,year:String(guide.year),discipline:guide.discipline||''});
-  const response = await fetch(CS.api + '?' + query, {credentials:'same-origin',signal});
+// Load each year independently and preserve all ticks when changing tabs.
+// The same statement can appear in several year tabs (with separate source
+// provenance), but is deduplicated by wording when the guide is generated.
+async function expandYearStatements(guide, signal, requestedYear = +guide.year) {
+  const year = Number(requestedYear);
+  if (!JUNIOR.includes(year) || !juniorYearTabs(guide)) return 0;
+  if (yearBankLoaded(guide, year)) return 0;
+  const query = new URLSearchParams({action:'statement-bank',doc_id:guide.docId,year:String(year),discipline:guide.discipline||''});
+  const response = await fetch(CS.api + '?' + query, {credentials:'same-origin',signal,cache:'no-store'});
   const result = await response.json().catch(()=>({}));
-  if (!response.ok || !result.ok || !Array.isArray(result.records)) throw Error(result.error || 'Full-year Ministry statements are unavailable.');
+  if (!response.ok || !result.ok || !Array.isArray(result.records)) throw Error(result.error || 'Year ' + year + ' Ministry statements are unavailable.');
   const norm = s => String(s||'').trim().replace(/\s+/g,' ').toLowerCase();
   let added = 0;
   for (const [key,kind] of [['knowledge','knowledge'],['practices','practice']]) {
-    const existing = new Set(guide.statements[key].map(s=>norm(s.text)));
+    // Deduplicate within a year only. Year 7 and Year 8 versions of a
+    // shared statement stay accessible under their respective year tabs.
+    const existing = new Set(guide.statements[key]
+      .filter(s => statementSourceYear(s,guide) === year).map(s=>norm(s.text)));
     for (const record of result.records) {
       if (record.kind !== kind || !record.text || existing.has(norm(record.text))) continue;
       existing.add(norm(record.text));
       guide.statements[key].push({id:record.id,text:record.text,subject:record.subject||guide.subject,
-        source:record.source||'Ministry curriculum',link:'unmatched',why:'Available in Year '+guide.year+' curriculum; teacher selection',confidence:null});
+        curriculumYear:year,source:record.source||'Ministry curriculum, Year '+year,
+        link:'unmatched',why:'Available in Year '+year+' curriculum; teacher selection',confidence:null});
       added++;
     }
   }
-  guide.bankLoaded = true;
-  save();
+  guide.bankYears = [...new Set([...(guide.bankYears || []),year])].sort();
+  if (year === +guide.year) guide.bankLoaded = true;
+  if (G === guide) save();
   return added;
+}
+// Open only the year requested, without loading four complete curriculum
+// libraries into the page simultaneously.
+async function switchStatementYear(year) {
+  if (!juniorYearTabs(G) || !JUNIOR.includes(year) || statementYearLoading) return;
+  activeStatementYear = year;
+  statementFilter = '';
+  statementYearError = '';
+  if (yearBankLoaded(G, year)) { renderMain(); return; }
+  const guide = G;
+  statementYearLoading = year;
+  renderMain();
+  try { await expandYearStatements(guide, undefined, year); }
+  catch (error) { if (G === guide) statementYearError = error.message || 'Could not load curriculum statements.'; }
+  finally {
+    if (G === guide) { statementYearLoading = 0; renderMain(); }
+  }
 }
 // Load the full official statement bank for every selected Novice level.
 // Validated source wording is cached on the server, so repeat visits do not
@@ -660,7 +703,7 @@ function browseOfficialStatements() {
     else if (JUNIOR.includes(G.year)) await expandYearStatements(G, signal);
     else throw Error('The full source library is currently available for Years 7–10. For senior subjects, use the topic matcher or paste official curriculum statements.');
     if (!hasStatements(G)) throw Error('No curriculum statements were found for this source. Check the selected subject and document.');
-    statementFilter = '';
+    statementFilter = ''; activeStatementYear = Number(G.year);
     view = 'outline';
     banner = {kind:'note',text:'Official curriculum statements are ready. Nothing has been selected automatically. Tick the Knowledge and Practices this unit will teach.'};
     save();
@@ -671,7 +714,8 @@ function find() {
     const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
     G.statements = {knowledge: r.knowledge, practices: r.practices};
     G.selected = {knowledge: r.knowledge.filter(s => s.link !== 'loose').map(s => s.id), practices: r.practices.filter(s => s.link !== 'loose').map(s => s.id)};
-    G.bankLoaded = false;
+    G.bankLoaded = false; G.bankYears = [];
+    activeStatementYear = Number(G.year);
     statementFilter = '';
     if (noviceStages(G).length && G.docId && !G.pasted && !G.mapRef) {
       try { await expandNoviceStatements(G, signal); }
@@ -862,7 +906,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abor
       const ex = guides.find(g => (g.topic || '').toLowerCase() === topic.toLowerCase() && Number(g.year) === yr && (g.stage || '') === stage && (g.subject || '').toLowerCase() === subj.toLowerCase());
       if (ex) { if (mref && (!ex.mapRef || ex.mapRef.department_id !== mref.department_id || ex.mapRef.topic_id !== mref.topic_id)) { ex.mapRef = mref; G = ex; save(); } open(ex.id); }
       else {
-        newGuide(); G.topic = topic; G.subject = subj; G.year = yr; G.stage = stage; G.stages = stage ? [stage] : []; G.mapRef = mref;
+        newGuide(); G.topic = topic; G.subject = subj; G.year = yr; activeStatementYear = yr; G.stage = stage; G.stages = stage ? [stage] : []; G.mapRef = mref;
         const d = docs.find(x => (x.years || JUNIOR).includes(yr) && [x.subject, x.learningArea].some(n => (n || '').toLowerCase() === subj.toLowerCase())); if (d) G.docId = d.id;
         renderMain();
         if (mref) { const g = G; pullMapStatements(g).then(() => { if (G === g) { if (!lastPull.ok) banner = {kind: 'err', text: lastPull.error + ' Press “Use the statements from the curriculum map” to try again.'}; view = hasStatements(g) ? 'outline' : 'topic'; renderList(); renderMain(); } }); }
