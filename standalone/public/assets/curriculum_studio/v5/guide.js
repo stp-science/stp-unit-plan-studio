@@ -371,7 +371,13 @@ function topicCard() {
             G.mapRef ? h('p', {class:'cg-mut'}, 'Your original map statements stay selected. On the next screen, add statements from these levels; new ticks are saved back to the curriculum map.') : null)
         : h('div', {class: 'cg-seg', role: 'group', 'aria-label': 'Year'}, [7, 8, 9, 10, 11, 12, 13].map(y => h('button', {type: 'button', class: y === G.year ? 'on' : '', 'aria-pressed': y === G.year ? 'true' : 'false', onclick: () => { G.year = y; activeStatementYear = y; G.stage = ''; G.stages = []; G.bankLoaded=false; G.bankYears=[]; G.statements={knowledge:[],practices:[]}; G.selected={knowledge:[],practices:[]}; if (G.docId && !(docs.find(d => d.id === G.docId)?.years || JUNIOR).includes(y)) G.docId = ''; save(); renderMain(); }}, 'Year ' + y)))),
     h('div', {class: 'cg-grid'},
-      field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => { G.subject = e.target.value;
+      field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => {
+          if (G.subject.trim().toLowerCase() !== e.target.value.trim().toLowerCase()) {
+            G.statements={knowledge:[],practices:[]}; G.selected={knowledge:[],practices:[]};
+            G.bankYears=[]; G.bankLoaded=false; activeStatementYear=Number(G.year);
+            if (G.plan) banner={kind:'note',text:'Your previous draft is kept. Find the new subject’s official statements and redraft this unit before using it.'};
+          }
+          G.subject = e.target.value;
           const chosenArt = ['Dance','Drama','Music','Visual Arts'].find(x=>x.toLowerCase()===(subjectAlias(G.subject.toLowerCase()) || G.subject.toLowerCase()));
           if (chosenArt) G.discipline = chosenArt;
           else if (docs.find(d=>d.id===G.docId)?.learningArea === 'The Arts') G.discipline = '';
@@ -386,7 +392,14 @@ function topicCard() {
           }
           G.docId = e.target.value; const d = docs.find(x => x.id === G.docId); if (d && !G.subject.trim()) G.subject = d.subject; G.stages = d?.learningArea === 'Learning Languages' ? (noviceStages(G).length ? noviceStages(G) : ['Novice 1']) : []; G.stage = G.stages[0] || ''; if (G.stage) G.year = 7; G.discipline = ''; save(); renderMain(); }}, h('option', {value: ''}, 'Choose a document…'),
         ...areas.map(a => h('optgroup', {label: a}, ...shown.filter(d => d.learningArea === a).map(d => h('option', {value: d.id, selected: d.id === G.docId}, d.title))))))(), doc && doc.status ? doc.status : 'Official Ministry text, kept word for word.'),
-      isArts ? field('Arts subject', h('select', {onchange: e => { G.discipline = e.target.value; save(); }}, h('option', {value: ''}, 'All'), ...['Dance', 'Drama', 'Music', 'Visual Arts'].map(s => h('option', {value: s, selected: s === G.discipline}, s)))) : null,
+      isArts ? field('Arts subject', h('select', {onchange: e => {
+        if (G.discipline !== e.target.value) {
+          G.statements={knowledge:[],practices:[]};G.selected={knowledge:[],practices:[]};
+          G.bankYears=[];G.bankLoaded=false;activeStatementYear=Number(G.year);
+          if (G.plan) banner={kind:'note',text:'The Arts discipline changed. Find the new official statements and redraft the unit.'};
+        }
+        G.discipline=e.target.value;save();renderMain();
+      }}, h('option', {value: ''}, 'All'), ...['Dance', 'Drama', 'Music', 'Visual Arts'].map(s => h('option', {value: s, selected: s === G.discipline}, s)))) : null,
       ),
     timingField(),
     h('details', {class: 'cg-more', open: !!(G.notes || G.pasted)},
