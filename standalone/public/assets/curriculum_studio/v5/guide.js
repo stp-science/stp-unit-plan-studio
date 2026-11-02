@@ -873,8 +873,8 @@ async function pullMapStatements(guide) {
     const prep = isPrepGuide(guide);
     const source = prep ? PREP_SOURCES.find(s=>s.id===x.doc_id ||
       String(x.source||'').startsWith(s.label+' — ')) : null;
-    const stage = /\\bNovice [123]\\b/.exec(String(x.source||''))?.[0];
-    const fromYear = /\\bYear\\s*(7|8)\\b/i.exec(String(x.source||''))?.[1];
+    const stage = /\bNovice [123]\b/.exec(String(x.source||''))?.[0];
+    const fromYear = /\bYear\s*(7|8)\b/i.exec(String(x.source||''))?.[1];
     return {id:p+(i+1),text:x.text,source:x.source||'',confidence:x.confidence,
       link:'strong',why:'',subject:source?.label||guide.subject||'',
       ...(source?{prepSourceId:source.id}:{}),
