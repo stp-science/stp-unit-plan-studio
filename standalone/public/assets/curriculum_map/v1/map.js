@@ -47,6 +47,16 @@ async function load(deptId, view) {
 }
 const toast = msg => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400); };
 
+// Provision Prep only when a member of staff explicitly chooses it.
+async function selectDepartment(id) {
+  if (id !== 0) {await load(id);return;}
+  S.loading=true;render();
+  try{
+    const result=await post('ensure-prep',{});
+    if(!result.ok)throw Error(result.error||'Prep could not be set up.');
+    await load(result.department_id,S.view);
+  }catch(error){S.loading=false;S.banner={kind:'err',text:error.message};render();}
+}
 // ---------------------------------------------------------------- saving
 function changed() {
   render();
@@ -859,8 +869,8 @@ function mapView() {
 
 // ---------------------------------------------------------------- no map yet: create or import
 function startFromScratch(f) {
-  const novice = isLanguageDept();
-  const first = novice ? 7 : parseInt(f.first, 10), last = novice ? 9 : parseInt(f.last, 10);
+  const novice = isLanguageDept(), prep = S.dept?.name?.toLowerCase()==='prep';
+  const first = prep ? 7 : novice ? 7 : parseInt(f.first, 10), last = prep ? 8 : novice ? 9 : parseInt(f.last, 10);
   if (!(first >= 1 && last >= first && last - first < 13)) return 'Check the first and last year.';
   const per = Math.min(12, Math.max(1, parseInt(f.blocks, 10) || 4));
   let n = 0;
@@ -930,8 +940,8 @@ function startImport(file) {
 }
 
 function startGenerate(f) {
-  const novice = isLanguageDept();
-  const first = novice ? 7 : parseInt(f.first, 10), last = novice ? 9 : parseInt(f.last, 10), per = parseInt(f.blocks, 10);
+  const novice = isLanguageDept(), prep = S.dept?.name?.toLowerCase()==='prep';
+  const first = prep ? 7 : novice ? 7 : parseInt(f.first, 10), last = prep ? 8 : novice ? 9 : parseInt(f.last, 10), per = parseInt(f.blocks, 10);
   if (!(first >= 7 && last <= 13 && last >= first)) return 'Choose years between 7 and 13.';
   if (!(per >= 1 && per <= 8)) return 'Use 1 to 8 planning blocks.';
   mapJob({title: 'Designing your curriculum sequence', source: 'AI', kind: 'ai',
@@ -959,20 +969,22 @@ function uploadState() {
 function emptyState() {
   if (S.view === 'upload') return uploadState();
   const novice = isLanguageDept();
-  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: '10', blocks: '4', strands: '', notes: '', types: ''};
+  const prep = S.dept?.name?.toLowerCase()==='prep';
+  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: '7', last: prep ? '8' : '10', blocks: '4', strands: prep ? 'English, Social Studies, Maths, Health, Te Reo Māori' : '', notes: '', types: ''};
   const err = h('div', {class: 'hint', style: 'color:var(--err);min-height:20px'});
   const inp = (k, o = {}) => h('input', {type: 'text', value: f[k], oninput: e => { f[k] = e.target.value; }, ...o});
   return h('div', {class: 'cm-in'},
     h('div', {class: 'cm-hero'}, h('h2', {}, 'Create ' + S.dept.name + '’s curriculum overview with AI'),
-      h('p', {}, novice ? 'Organise the language curriculum into Novice 1, Novice 2 and Novice 3, following the Ministry teaching sequence rather than student year levels.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to propose a sequence of units, ordered so learning builds over time. You can review and edit the suggested overview.')),
+      h('p', {}, prep ? 'Plan a coherent Year 7–8 Prep curriculum drawing from English, Social Studies, Maths, Health and Te Reo Māori. Each unit can combine several subjects, and Te Reo Māori stages remain Novice 1, 2 and 3.' : novice ? 'Organise the language curriculum into Novice 1, Novice 2 and Novice 3, following the Ministry teaching sequence rather than student year levels.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to propose a sequence of units, ordered so learning builds over time. You can review and edit the suggested overview.')),
     S.banner ? h('div', {class: 'cm-banner ' + S.banner.kind}, S.banner.text) : null,
     h('div', {class: 'cm-setup'},
       h('div', {class: 'cm-card'}, h('h3', {}, 'Tell us what to plan'),
         field('Title', inp('title', {maxlength: '140'})),
+        prep ? h('p',{class:'hint'},'Year groups: Year 7 and Year 8. Te Reo Māori statements can also be chosen from Novice 1, 2 or 3 within each unit.') :
         novice ? h('p', {class:'hint'}, 'Proficiency groups: Novice 1 · Novice 2 · Novice 3') :
         h('div', {class: 'cm-row2'}, field('First year', inp('first', {inputmode: 'numeric'}), '7 to 13'), field('Last year', inp('last', {inputmode: 'numeric'}))),
         field(novice ? 'Planning blocks per novice stage' : 'Terms per year', inp('blocks', {inputmode: 'numeric'}), novice ? 'Units can span several school years. These are sequence blocks, not automatic year allocations.' : 'For example 4 terms, or 6 if you plan in half-terms.'),
-        field('Strands (optional)', inp('strands', {placeholder: 'Enter your department’s strands'}), 'Comma separated. Leave blank and the AI suggests them.'),
+        field('Strands (optional)', inp('strands', {placeholder: 'Enter your subject or learning-area strands'}), prep ? 'These five curriculum subjects are suggested. Edit them if your programme uses broader themes.' : 'Comma separated. Leave blank and the AI suggests them.'),
         field('Assessment types (optional)', inp('types'), 'Enter your department’s own types as Code = meaning, separated by semicolons. Leave blank to choose later.'),
         field('Anything the AI should know (optional)', h('textarea', {rows: 3, placeholder: 'For example: Teach introductory units before advanced ones. Keep two units per term. Allow time for revision and assessment.', oninput: e => { f.notes = e.target.value; }})),
         err, h('div', {style: 'display:flex;gap:10px;flex-wrap:wrap;align-items:center'},
@@ -1003,7 +1015,7 @@ function deptPicker() {
   for (const d of S.depts) { const k = d.faculty || 'Other'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(d); }
   const sel = h('select', {'aria-label': 'Department', style: 'max-width:380px;font-weight:650', onchange: e => {
     const id = parseInt(e.target.value, 10); e.target.value = String(S.dept?.id);
-    if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => load(id)); else load(id);
+    if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => selectDepartment(id)); else selectDepartment(id);
   }}, ...[...groups].map(([f, ds]) => h('optgroup', {label: f}, ...ds.map(d => h('option', {value: d.id, selected: d.id === S.dept?.id}, d.scope === 'faculty' ? d.name + ' (whole faculty)' : d.name)))));
   return h('div', {class: 'cm-depts', style: 'align-items:center'}, h('span', {class: 'cm-meta'}, 'Department'), sel);
 }
@@ -1063,9 +1075,13 @@ function render() {
     if (S.depts.length > 1) body.push(deptPicker());
     else if (false) body.push(h("div", {class: "cm-depts", role: 'tablist'}, ...S.depts.map(d => h('button', {type: 'button', role: 'tab', 'aria-selected': String(d.id === S.dept?.id), class: 'cm-dept' + (d.id === S.dept?.id ? ' on' : ''),
       onclick: () => { if (d.id === S.dept?.id) return; if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => load(d.id)); else load(d.id); }}, d.name))));
-    else if (S.dept) body.push(h('div', {class: 'cm-meta', style: 'margin:0 0 10px'}, 'Department: ', h('b', {}, S.dept.name)));
+    else if (S.dept) body.push(h('div', {class: 'cm-meta', style: 'margin:0 0 10px'}, 'Subject: ', h('b', {}, S.dept.name)));
     if (['map', 'upload'].includes(S.view) && !S.working && !S.draft && !S.review) body.push(h('div', {class: 'cm-backrow'}, h('button', {class: 'cm-btn sm', type: 'button', onclick: () => goBack('start')}, '← Back')));
-    if (S.working) body.push(working());
+    if (S.dept?.scope==='prep-setup') body.push(h('div',{class:'cm-hero'},
+      h('h2',{},'Prep curriculum workspace'),
+      h('p',{},'Create a shared Prep workspace to plan a Year 7–8 interdisciplinary curriculum or import an existing overview. Staff can then choose official English, Social Studies, Maths, Health and Te Reo Māori statements for each unit.'),
+      h('button',{type:'button',class:'cm-btn pri',onclick:()=>selectDepartment(0)},'Enable Prep overview planning')));
+    else if (S.working) body.push(working());
     else if (S.view === 'start') body.push(startView());
     else if (S.map) body.push(S.view === 'coverage' ? coverageView() : mapView());
     else body.push(emptyState());
@@ -1104,7 +1120,10 @@ function startView() {
         ].map(([number,title,description])=>h('div',{class:'cm-knowledge-principle'},
           h('span',{class:'cm-knowledge-number','aria-hidden':'true'},number),
           h('div',{},h('h3',{},title),h('p',{},description))))),
-      h('p',{class:'cm-knowledge-foot'},'Planning prompt: What must students know first, what will they know by the end, and how will you check they have learnt it?')));
+      h('div',{class:'cm-knowledge-foot'},h('b',{},'Planning prompt — the three Is: '),
+        h('b',{},'Intent'),': What knowledge and capabilities should students learn? ',
+        h('b',{},'Implementation'),': How will teaching, practice and sequencing help them learn it? ',
+        h('b',{},'Impact'),': What evidence will show they have remembered and can apply their learning?')));
 }
 
 // ---------------------------------------------------------------- start
