@@ -359,6 +359,12 @@ try {
             $model = (string)$res['model'];
             $map = cm_from_import($res['json']);
             if (!$map['years']) throw new CsInvalid('No year groups or units could be found in that file. Check it is a curriculum map, or build one from scratch.');
+            if (mb_strtolower(trim((string)$dept['name'])) === 'prep') {
+                foreach ($map['years'] as $group) {
+                    if (!in_array(trim((string)$group['label']), ['Year 7','Year 8'], true))
+                        throw new CsInvalid('Prep overviews use Year 7 and Year 8 groups. The uploaded file included a different year or stage, so no map was saved.');
+                }
+            }
             cs_usage_log($pdo, $schoolId, $teacherId, 'map-import', $dept['name'], $model, $usage, time() - $t0, true);
             $emit(['type' => 'result', 'result' => $map + ['importStatements' => (object)$stmts], 'note' => $cutNote ?? '']);
         } catch (Throwable $e) {
