@@ -5,13 +5,13 @@ declare(strict_types=1);
 $public=dirname(__DIR__) . '/public';
 $routes=[
  'Single unit plan' => 'curriculum_studio.php?guide=1&amp;blank=1',
- 'Curriculum overview' => 'curriculum_studio.php?mode=overview',
- 'Existing overview' => 'curriculum_studio.php?mode=existing'
+ 'Curriculum overview' => 'curriculum_studio.php?mode=overview&amp;department=',
+ 'Existing overview' => 'curriculum_studio.php?mode=existing&amp;department='
 ];
 foreach (['curriculum_map.php','curriculum_studio.php'] as $page) {
  $html=(string)file_get_contents($public.'/'.$page);
  foreach ($routes as $label=>$route) {
-  if (!str_contains($html,'href="'.$route.'"') || !str_contains($html,'>'.$label.'</a>'))
+  if (!str_contains($html,'href="'.$route) || !str_contains($html,'>'.$label.'</a>'))
    throw new RuntimeException("$page does not link to mode: $label");
  }
  if (str_contains($html,'>Start</a>') || str_contains($html,'>Unit plans</a>'))
