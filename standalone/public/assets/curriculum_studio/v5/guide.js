@@ -36,7 +36,8 @@ const subjectAlias = name => { const n = String(name || '').trim().toLowerCase()
 let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, saveTimer = 0, saveState = 'saved', closed = new Set(), toastTimer = 0;
 let statementFilter = '';
 let mapSavePromise = Promise.resolve();
-let root, listEl, mainEl, toastEl;
+let root, listEl, mainEl, toastEl, sidebarSelect, sidebarSearch;
+let sidebarSubject = 'all', sidebarQuery = '', sidebarGroupsOpen = new Set(), sidebarInitialised = false;
 
 const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
@@ -84,6 +85,7 @@ function save() {
       await post('save', {guide: G});
       syncMap(G);
       if (!guides.some(x => x.id === G.id)) guides.unshift(G);
+      sidebarGroupsOpen.add(guideSubject(G).toLocaleLowerCase());
       renderList(); setSave('saved');
     } catch (e) { setSave('bad', e.message); }
   }, 700);
@@ -100,16 +102,94 @@ function toast(t) {
 }
 
 // ---------------------------------------------------------------- sidebar
+// Group only the display. Plans remain individually owned and stored unchanged.
+function guideSubject(g) {
+  const raw = String(g.subject || g.discipline || docs.find(d => d.id === g.docId)?.subject || '').trim();
+  if (!raw) return 'Uncategorised';
+  const n = raw.toLowerCase().replace(/\s+/g,' ');
+  const canonical = {
+    'maths':'Mathematics', 'math':'Mathematics', 'mathematics and statistics':'Mathematics',
+    'physical education':'Health & PE', 'health and physical education':'Health & PE',
+    'health & physical education':'Health & PE', 'hpe':'Health & PE',
+    'visual art':'Visual Arts','art':'Visual Arts',
+    'social science':'Social Sciences'
+  };
+  if (canonical[n]) return canonical[n];
+  return raw.replace(/\b[a-z]/g,letter=>letter.toUpperCase());
+}
 function renderList() {
-  listEl.replaceChildren(...(guides.length ? guides.map(g => h('button', {type: 'button', class: 'cg-item' + (G && g.id === G.id ? ' on' : ''), onclick: () => open(g.id), style: '--c:' + colour(g.subject || g.docId)},
-    h('span', {class: 'cg-dot', style: 'background:' + colour(g.subject || g.docId)}),
-    h('span', {style: 'min-width:0'}, h('b', {}, g.topic || 'Untitled unit plan'), h('small', {}, [g.subject, guideStageLabel(g), ago(g.updated)].filter(Boolean).join(' · '))),
-    h('span', {class: 'cg-tag' + (g.plan ? ' done' : '')}, g.plan ? 'Drafted' : hasStatements(g) ? 'Outline' : 'New'))) : [h('p', {class: 'cg-empty-list'}, 'Your unit plans will appear here.')]));
+  const groups = new Map();
+  for (const guide of guides) {
+    const subject = guideSubject(guide), key = subject.toLocaleLowerCase();
+    if (!groups.has(key)) groups.set(key,{name:subject,plans:[]});
+    groups.get(key).plans.push(guide);
+  }
+  const sorted = [...groups.entries()].sort((a,b)=>a[1].name.localeCompare(b[1].name));
+  const keys = sorted.map(([key])=>key);
+  if (sidebarSubject !== 'all' && !groups.has(sidebarSubject)) sidebarSubject = 'all';
+  if (!sidebarInitialised && sorted.length) {
+    sidebarGroupsOpen.add(G ? guideSubject(G).toLocaleLowerCase() : sorted[0][0]);
+    sidebarInitialised = true;
+  }
+  if (sidebarSelect) {
+    const signature = keys.join('|');
+    if (sidebarSelect.dataset.groups !== signature) {
+      sidebarSelect.replaceChildren(h('option',{value:'all'},'All subjects ('+guides.length+')'),
+        ...sorted.map(([key,value])=>h('option',{value:key},value.name+' ('+value.plans.length+')')));
+      sidebarSelect.dataset.groups = signature;
+    } else {
+      const all = sidebarSelect.querySelector('option[value="all"]');
+      if (all) all.textContent = 'All subjects ('+guides.length+')';
+      for (const [key,value] of sorted) {
+        const option = [...sidebarSelect.options].find(o=>o.value===key);
+        if (option) option.textContent = value.name+' ('+value.plans.length+')';
+      }
+    }
+    sidebarSelect.value = sidebarSubject;
+  }
+  const query = sidebarQuery.toLocaleLowerCase().trim();
+  const visible = sorted
+    .filter(([key])=>sidebarSubject==='all'||sidebarSubject===key)
+    .map(([key, group])=>({key,name:group.name,plans:group.plans
+      .filter(g=>!query||[g.topic,g.subject,String(g.year),guideStageLabel(g)].some(v=>String(v||'').toLocaleLowerCase().includes(query)))
+      .sort((a,b)=>String(b.updated||'').localeCompare(String(a.updated||'')))}))
+    .filter(group=>group.plans.length);
+  if (!guides.length) {
+    listEl.replaceChildren(h('p',{class:'cg-empty-list'},'Your unit plans will appear here.'));
+    return;
+  }
+  if (!visible.length) {
+    listEl.replaceChildren(h('p',{class:'cg-empty-list'},'No plans match this subject or search.'));
+    return;
+  }
+  listEl.replaceChildren(...visible.map(({key,name,plans})=>{
+    const expanded = sidebarSubject!=='all' || !!query || sidebarGroupsOpen.has(key);
+    const items = h('div',{class:'cg-subject-items',id:'cg-subject-'+key.replace(/[^a-z0-9]+/g,'-'),hidden:!expanded},
+      ...plans.map(g=>h('button',{type:'button',class:'cg-item'+(G&&g.id===G.id?' on':''),
+        'aria-current':G&&g.id===G.id?'page':null,
+        onclick:()=>open(g.id)},
+        h('span',{class:'cg-dot','aria-hidden':'true'}),
+        h('span',{class:'cg-item-body'},h('b',{},g.topic||'Untitled unit plan'),
+          h('small',{},[guideStageLabel(g),ago(g.updated)].filter(Boolean).join(' · '))),
+        h('span',{class:'cg-tag'+(g.plan?' done':'')},g.plan?'Drafted':hasStatements(g)?'Outline':'New'))));
+    const heading = h('button',{type:'button',class:'cg-subject-heading','aria-expanded':expanded?'true':'false',
+      'aria-controls':items.id,onclick:()=>{
+        if (sidebarGroupsOpen.has(key)) sidebarGroupsOpen.delete(key);
+        else sidebarGroupsOpen.add(key);
+        // An explicit subject/search filter keeps its one result group visible.
+        if (sidebarSubject==='all'&&!query) renderList();
+      }},
+      h('span',{class:'cg-subject-arrow','aria-hidden':'true'},expanded?'▾':'▸'),
+      h('span',{class:'cg-subject-name'},name),
+      h('span',{class:'cg-subject-count'},String(plans.length)));
+    return h('section',{class:'cg-subject-group'},heading,items);
+  }));
 }
 
 function open(id) {
   mapSavePromise = Promise.resolve();
   G = guides.find(g => g.id === id) || null;
+  if (G) sidebarGroupsOpen.add(guideSubject(G).toLocaleLowerCase());
   banner = null; view = !G ? 'topic' : G.plan ? 'guide' : hasStatements(G) ? 'outline' : 'topic';
   renderList(); renderMain(true);
   if (G && G.mapRef) {
@@ -123,7 +203,7 @@ function open(id) {
     });
   }
 }
-function newGuide() { mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
+function newGuide() { sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
 
 // ---------------------------------------------------------------- timing rules in plain English, with suggestions to click
 const TIMING_IDEAS = ['3 lessons a week', '2 lessons a week', '50-minute lessons', '60-minute lessons', 'about 6 weeks', 'about 14 lessons in total', 'an end-of-unit test in the last lesson', 'one lesson for feedback and reteaching', 'a practical in the middle of the unit', 'fewer lessons in the last week because of events'];
@@ -737,7 +817,12 @@ async function download() {
 // ---------------------------------------------------------------- start
 root = document.getElementById('cg-root');
 root.className = 'cg';
-listEl = h('div', {class: 'cg-list'});
+listEl = h('div', {class:'cg-list'});
+sidebarSelect = h('select',{id:'cg-sidebar-filter',class:'cg-subject-select','aria-label':'Filter unit plans by subject',
+  onchange:e=>{sidebarSubject=e.target.value;renderList();}});
+sidebarSearch = h('input',{type:'search',class:'cg-sidebar-search',
+  placeholder:'Search unit plans…','aria-label':'Search saved unit plans',
+  oninput:e=>{sidebarQuery=e.target.value;renderList();}});
 mainEl = h('div', {});
 toastEl = h('div', {class: 'cg-toast', role: 'status'});
 const mapUrl = () => 'curriculum_studio.php' + (G && G.mapRef ? '?department=' + G.mapRef.department_id : '');
@@ -745,7 +830,18 @@ const backBar = h('div', {class: 'cg-backbar'},
   h('a', {class: 'cg-mapbtn', href: 'curriculum_studio.php', onclick: e => { e.preventDefault(); location.href = mapUrl(); }}, h('span', {'aria-hidden': 'true'}, '←'), ' Back to the curriculum map'),
   h('span', {class: 'cg-backhint'}, 'Your department’s year-by-year overview. Open any unit there to build its unit plan.'));
 root.append(backBar);
-root.append(h('div', {class: 'cg-shell'}, h('aside', {class: 'cg-side'}, h('h2', {}, 'My unit plans'), h('button', {class: 'cg-new', type: 'button', onclick: newGuide}, '＋ New unit plan'), listEl), mainEl), toastEl);
+root.append(h('div', {class:'cg-shell'},
+  h('aside',{class:'cg-side','aria-label':'My unit plans'},
+    h('div',{class:'cg-schoolbrand'},h('img',{src:'assets/curriculum_studio/v5/st-peters-logo.webp',
+      alt:"St. Peter's School, Cambridge",class:'cg-school-logo'})),
+    h('h2',{},'My unit plans'),
+    h('button',{class:'cg-new',type:'button',onclick:newGuide},'＋ New unit plan'),
+    h('div',{class:'cg-sidebar-tools'},
+      h('label',{for:'cg-sidebar-filter'},'Subject'),
+      sidebarSelect,
+      sidebarSearch),
+    listEl),
+  mainEl),toastEl);
 addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abort(); });
 (async () => {
   try {
