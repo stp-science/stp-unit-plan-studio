@@ -623,11 +623,15 @@ async function pullMapStatements(guide) {
   if (!guide.docId && JUNIOR.includes(+guide.year) && docs.length) {
     const subject = String(guide.subject || '').toLowerCase().trim();
     const alias = subjectAlias(subject);
-    const matches = docs.filter(d => (d.years || JUNIOR).includes(+guide.year) &&
-      [d.subject,d.learningArea,d.title,...(d.subjects||[])].some(name => {
-        const lower = String(name || '').toLowerCase().trim();
-        return lower && (lower === subject || lower === alias || (subject && (d.subjects||[]).some(s=>String(s).toLowerCase()===subject)));
-      }));
+    const candidates = docs.filter(d => (d.years || JUNIOR).includes(+guide.year));
+    const terms = [subject,alias].filter(Boolean);
+    const names = d => [d.subject,d.learningArea,d.title,...(d.subjects||[])]
+      .map(s=>String(s||'').toLowerCase().trim()).filter(Boolean);
+    const exact = candidates.filter(d=>names(d).some(n=>terms.includes(n)));
+    // Partial matching is a fallback only when exactly one Ministry source
+    // matches, e.g. “Mathematics” → “Mathematics and Statistics”.
+    const matches = exact.length ? exact : subject.length >= 4 ?
+      candidates.filter(d=>names(d).some(n=>terms.some(t=>t.length>=4 && n.includes(t)))) : [];
     if (matches.length === 1) {
       guide.docId = matches[0].id;
       if (matches[0].learningArea === 'The Arts') {
