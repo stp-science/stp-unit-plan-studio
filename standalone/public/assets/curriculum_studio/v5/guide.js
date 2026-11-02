@@ -437,6 +437,189 @@ function topicCard() {
       h('span', {style: 'margin-left:auto'}, resetLink())));
 }
 
+// ---- Prep: interdisciplinary Year 7/8 units across five official sources ----
+// The unit's own year is fixed; the curriculum tabs are independent. Te Reo
+// Māori uses Novice 1/2/3 and never assumes a Novice stage equals a school year.
+const prepActiveSource = () => PREP_SOURCES.find(s=>s.id===prepSourceId) || PREP_SOURCES[0];
+const prepActiveLevel = () => prepActiveSource().novice ? prepActiveStage : prepActiveYear;
+const prepRows = (guide,key,sourceId=prepSourceId,level=prepActiveLevel()) =>
+  (guide.statements[key]||[]).filter(s=>s.prepSourceId===sourceId &&
+    (s.prepStage||s.curriculumYear)===level);
+const prepCount = (guide,sourceId,level) =>
+  ['knowledge','practices'].reduce((n,key)=>n+prepRows(guide,key,sourceId,level)
+    .filter(s=>guide.selected[key].includes(s.id)).length,0);
+async function openPrepTab(sourceId,level) {
+  if (!G || !isPrepGuide(G) || prepLoading) return;
+  const source=PREP_SOURCES.find(s=>s.id===sourceId);
+  if (!source) return;
+  if (source.novice) {
+    if (!NOVICE.includes(level)) level='Novice 1';
+    prepActiveStage=level;
+  } else {
+    if (![7,8].includes(Number(level))) level=Number(G.year);
+    prepActiveYear=Number(level);
+  }
+  prepSourceId=sourceId;
+  statementFilter=''; prepError='';
+  const guide=G, tag=prepLevelKey(sourceId,level);
+  if ((guide.prepLoaded||[]).includes(tag)) {renderMain();return;}
+  prepLoading=source.label+' · '+(source.novice?level:'Year '+level);
+  renderMain();
+  try {
+    let rows=[];
+    if (source.novice) {
+      const query=new URLSearchParams({action:'novice-bank',doc_id:source.id,stage:level});
+      const read=async()=>{
+        const response=await fetch(CS.api+'?'+query,{credentials:'same-origin',cache:'no-store'});
+        const result=await response.json().catch(()=>({}));
+        if (!response.ok||!result.ok) throw Error(result.error||'Could not read '+level+' official statements.');
+        return result;
+      };
+      let bank=await read();
+      for(const chunk of bank.missing||[]) {
+        if (G!==guide) return;
+        await post('novice-bank-build',{doc_id:source.id,stage:level,chunk});
+      }
+      if(!bank.complete) bank=await read();
+      if(!bank.complete) throw Error('The '+level+' curriculum could not be completely loaded. Please retry.');
+      rows=bank.items||[];
+    } else {
+      const query=new URLSearchParams({action:'statement-bank',doc_id:source.id,year:String(level)});
+      const response=await fetch(CS.api+'?'+query,{credentials:'same-origin',cache:'no-store'});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok||!result.ok) throw Error(result.error||'Could not load the official Year '+level+' statements.');
+      rows=(result.records||[]).filter(s=>source.label!=='Health'||s.subject==='Health');
+    }
+    if(!rows.length) throw Error('No verified statements were available for '+source.label+' '+(source.novice?level:'Year '+level)+'.');
+    if(G!==guide) return;
+    const seen={
+      knowledge:new Set(prepRows(guide,'knowledge',sourceId,level).map(s=>s.text.trim().toLocaleLowerCase())),
+      practices:new Set(prepRows(guide,'practices',sourceId,level).map(s=>s.text.trim().toLocaleLowerCase()))
+    };
+    for(const [i,record] of rows.entries()){
+      const key=record.kind==='practice'?'practices':'knowledge';
+      const text=String(record.text||'').trim();
+      if(!text||seen[key].has(text.toLocaleLowerCase()))continue;
+      seen[key].add(text.toLocaleLowerCase());
+      const descriptor=source.label+' — '+(source.novice?level:'Year '+level);
+      guide.statements[key].push({
+        id:'prep:'+sourceId+':'+String(level).replace(/\s+/g,'-')+':'+key+':'+i,
+        text,subject:source.label,prepSourceId:source.id,
+        ...(source.novice?{prepStage:level}:{curriculumYear:Number(level)}),
+        source:descriptor+(record.source?' · '+record.source:''),
+        link:'unmatched',why:'Official '+descriptor+' statement; teacher selection',confidence:null
+      });
+    }
+    guide.prepLoaded=[...new Set([...(guide.prepLoaded||[]),tag])];
+    save();
+  }catch(error){
+    if(G===guide)prepError=error.message||'Failed to load curriculum statements.';
+  }finally{
+    if(G===guide){prepLoading='';renderMain();}
+  }
+}
+function prepTopicCard(){
+  const canStart=!!G.topic.trim();
+  const choose=()=>{if(!G.topic.trim())return;view='outline';renderMain(true);openPrepTab(prepSourceId,prepActiveYear);};
+  return h('section',{class:'cg-card'},
+    h('h2',{},'What are you teaching in Prep?'),
+    h('p',{class:'lead'},'Build one interdisciplinary unit using official curriculum statements from English, Social Studies, Maths, Health and Te Reo Māori.'),
+    h('input',{class:'cg-topic',type:'text',value:G.topic||'',placeholder:'e.g. Our Community','aria-label':'Prep unit title',
+      oninput:e=>{G.topic=e.target.value;save();const button=document.getElementById('cg-prep-begin');if(button)button.disabled=!G.topic.trim();}}),
+    h('div',{class:'cg-prep-unit-year'},
+      h('span',{class:'cg-prep-label'},'Year group for this Prep unit'),
+      h('div',{class:'cg-seg',role:'group','aria-label':'Prep unit year'},
+        [7,8].map(year=>h('button',{type:'button',class:G.year===year?'on':'','aria-pressed':G.year===year?'true':'false',
+          onclick:()=>{G.year=year;prepActiveYear=year;save();renderMain();}},'Year '+year))),
+      h('p',{class:'cg-mut'},'This is the unit’s year. You can choose statements from either Year 7 or Year 8 on the next screen, and any Te Reo Māori Novice level.')),
+    timingField(),
+    field('Context or special requirements',area(G.notes,v=>{G.notes=v;save();},3),
+      'Learner needs, local connections, how the subjects fit together…'),
+    h('div',{class:'cg-actions'},
+      h('button',{id:'cg-prep-begin',class:'cg-btn lg',type:'button',disabled:!canStart,onclick:choose},
+        hasStatements(G)?'Continue choosing statements  →':'Choose curriculum statements  →'),
+      resetLink()));
+}
+function prepOutlineCard(){
+  const source=prepActiveSource(),level=prepActiveLevel();
+  const total=G.selected.knowledge.length+G.selected.practices.length;
+  const selectedSubjects=PREP_SOURCES.filter(s=>['knowledge','practices'].some(key=>
+    (G.statements[key]||[]).some(x=>x.prepSourceId===s.id&&G.selected[key].includes(x.id)))).length;
+  const busy=!!prepLoading;
+  const renderColumn=(key,title)=>{
+    const rows=prepRows(G,key);
+    return h('div',{class:'cg-prep-column'},
+      h('div',{class:'cg-colhead'},h('h3',{},title+' ',h('span',{class:'cg-chip'},
+        rows.filter(s=>G.selected[key].includes(s.id)).length+'/'+rows.length))),
+      ...rows.filter(s=>!statementFilter||[s.text,s.source].join(' ').toLocaleLowerCase().includes(statementFilter))
+        .map(s=>h('label',{class:'cg-stmt'+(G.selected[key].includes(s.id)?' on':'')},
+          h('input',{type:'checkbox',checked:G.selected[key].includes(s.id),onchange:e=>{
+            G.selected[key]=e.target.checked?
+              [...new Set([...G.selected[key],s.id])]:G.selected[key].filter(x=>x!==s.id);
+            save();
+            if(G.mapRef){
+              const guide=G;
+              mapSavePromise=mapSavePromise.catch(()=>{}).then(()=>persistMapStatements(guide));
+              mapSavePromise.catch(error=>{
+                if(G!==guide)return;
+                banner={kind:'err',text:'Your map selection could not be saved: '+error.message};
+                renderMain();
+              });
+            }
+            renderMain();
+          }}),
+          h('div',{},h('p',{},s.text),h('small',{class:'cg-level-tag'},source.label+' · '+(source.novice?level:'Year '+level)),
+            h('small',{},s.source)))));
+  };
+  const switchTo=(s)=>openPrepTab(s.id,s.novice?prepActiveStage:prepActiveYear);
+  return h('section',{class:'cg-prep-outline'},
+    h('div',{class:'cg-outhead'},
+      h('div',{},h('h2',{style:'margin:0 0 4px;font-size:21px'},'Prep curriculum outline'),
+        h('p',{class:'cg-mut'},'Select Knowledge and Practices across all five subjects. Your choices remain ticked when you change tabs.')),
+      h('div',{class:'cg-chips'},h('span',{class:'cg-chip acc'},G.topic),
+        h('span',{class:'cg-chip'},'Year '+G.year+' Prep'),saveBadge())),
+    h('div',{class:'cg-prep-subject-tabs',role:'tablist','aria-label':'Prep curriculum subjects'},
+      ...PREP_SOURCES.map(s=>h('button',{type:'button',role:'tab',
+        'aria-selected':s.id===prepSourceId?'true':'false',
+        class:'cg-prep-subject'+(s.id===prepSourceId?' on':''),
+        disabled:busy,onclick:()=>switchTo(s)},s.label,
+        (['knowledge','practices'].reduce((n,key)=>n+(G.statements[key]||[])
+          .filter(x=>x.prepSourceId===s.id&&G.selected[key].includes(x.id)).length,0)) ?
+          h('span',{class:'cg-year-count'},String(['knowledge','practices'].reduce((n,key)=>n+(G.statements[key]||[])
+            .filter(x=>x.prepSourceId===s.id&&G.selected[key].includes(x.id)).length,0))) : null))),
+    h('div',{class:'cg-prep-level-tabs',role:'tablist',
+      'aria-label':source.novice?'Te Reo Māori proficiency':'Curriculum year'},
+      ...(source.novice?NOVICE:[7,8]).map(l=>h('button',{type:'button',role:'tab',
+        class:'cg-year-tab'+(l===level?' on':''),
+        'aria-selected':l===level?'true':'false',
+        disabled:busy,onclick:()=>openPrepTab(source.id,l)},
+        source.novice?l:'Year '+l,
+        prepCount(G,source.id,l)?h('span',{class:'cg-year-count'},String(prepCount(G,source.id,l))):null))),
+    h('p',{class:'cg-prep-context'},source.novice?
+      'Te Reo Māori is organised by proficiency. Select from Novice 1, 2 and 3 independently of students’ school year.':
+      'Showing '+source.label+' Year '+level+'. Both Year 7 and Year 8 can contribute to this Year '+G.year+' Prep unit.'),
+    busy?h('div',{class:'cg-year-loading',role:'status'},
+      'Loading '+prepLoading+' official statements'+(source.novice?' (uncached sections may use Claude credits)':'')+'…'):null,
+    prepError?h('div',{class:'cg-prep-error',role:'alert'},
+      h('p',{},prepError),h('button',{class:'cg-ghost',type:'button',
+        onclick:()=>openPrepTab(source.id,level)},'Try loading this tab again')):null,
+    !busy&&!prepError?h('input',{type:'search',class:'cg-bank-search',
+      'aria-label':'Search this Prep curriculum tab',placeholder:'Search this subject and level…',
+      value:statementFilter,oninput:e=>{statementFilter=e.target.value.toLocaleLowerCase().trim();renderMain();}}):null,
+    !busy&&!prepError?h('div',{class:'cg-cols'},renderColumn('knowledge','Knowledge'),
+      renderColumn('practices','Practices')):null,
+    !busy&&!prepError&&!prepRows(G,'knowledge').length&&!prepRows(G,'practices').length?
+      h('div',{class:'cg-year-empty'},'No statements loaded for this tab.',
+        h('button',{class:'cg-ghost',type:'button',onclick:()=>openPrepTab(source.id,level)},'Load statements')):null,
+    h('div',{class:'cg-bar'},
+      h('div',{},h('b',{},String(total)),' statements selected across ',String(selectedSubjects),
+        selectedSubjects===1?' subject':' subjects'),
+      h('div',{class:'cg-actions',style:'margin:0'},
+        h('button',{class:'cg-ghost',type:'button',onclick:()=>{view='topic';renderMain(true);}},'← Edit unit'),
+        h('button',{class:'cg-btn',type:'button',disabled:busy||!total,onclick:generate},
+          G.plan?'Redraft Prep unit plan  →':'Draft Prep unit plan  →'),resetLink())));
+}
+
 function outlineCard() {
   const crossYears = juniorYearTabs(G);
   const currentYear = crossYears && JUNIOR.includes(activeStatementYear) ? activeStatementYear : Number(G.year);
