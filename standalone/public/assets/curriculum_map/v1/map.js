@@ -273,6 +273,7 @@ function reviewNext() {
   S.open.add(k.t.id); k.body.hidden = false; paintBar(k.t.id, true); k.wrap.scrollIntoView({block: 'center', behavior: 'smooth'});
 }
 async function matchOne({y, t}, deptId, run) {
+  if (isPrepDepartment()) return recordMatch(t.id,'attention',0,'Prep combines multiple subjects. Open the unit and choose official statements from its subject and level tabs.').then(()=>false);
   const year = yearOf(y.label), stage = noviceOf(y.label); let status = 'attention', found = 0, note = '';
   try {
     if (!(year >= 7 && year <= 13)) throw Error('Statements are available for Years 7 to 13.');
@@ -465,6 +466,7 @@ async function relinkImported(year, info, items) {
 }
 // After a map is imported or generated, get the statements ready for every year on it, quietly.
 async function prefetchBanks() {
+  if (isPrepDepartment()) return;
   const stages = [...new Set((S.map?.years || []).map(y => noviceOf(y.label)).filter(Boolean))];
   const years = [...new Set((S.map?.years || []).map(y => parseInt(yearNum(y.label), 10)).filter(n => n >= 7 && n <= 13))];
   let ready = 0;
@@ -475,9 +477,18 @@ async function prefetchBanks() {
   else if (ready) toast('Curriculum statements are ready to tick for ' + ready + ' year group' + (ready > 1 ? 's' : '') + '.');
 }
 
+const isPrepDepartment = () => S.dept?.name?.trim().toLowerCase()==='prep';
+const PREP_CATALOGUE = [
+ {id:'english-2025',name:'English'},
+ {id:'social-sciences-2026',name:'Social Studies'},
+ {id:'maths-2025',name:'Maths'},
+ {id:'health-pe-2026',name:'Health'},
+ {id:'languages-te-reo-maori-sep-2026',name:'Te Reo Māori',novice:true}
+];
 // The statements a topic uses. All statements for the year and subject are listed under Knowledge and Practices with checkboxes;
 // the AI can suggest ticks (optional), and anything it cannot match stays one click away.
 function statementsPanel(y, t) {
+  if (isPrepDepartment()) return prepMapStatementsPanel(y,t);
   const box = h('div', {class: 'cm-stm'}), head = h('div', {class: 'cm-stmh'}), info = h('div', {class: 'cm-stmi'}), tools = h('div', {class: 'cm-stmt'}), list = h('div', {class: 'cm-bank'});
   box.append(head, info, tools, list);
   const others = new Map(), acked = new Set();   // statement text -> other topics using it; statements the teacher agreed to reuse
@@ -622,6 +633,122 @@ function statementsPanel(y, t) {
     await loadBankNow();
   })();
   return box;
+}
+
+
+/** Prep map selector: each unit can link several Ministry subjects and years.
+ * No automatic guessing from the topic title, and Novice stages are never
+ * mapped to school years. The selected source travels with each saved row.
+ */
+function prepMapStatementsPanel(y,t) {
+  const wrap=h('div',{class:'cm-stm cm-prep-stm'});
+  const heading=h('div',{class:'cm-stmh'}), subjects=h('div',{class:'cm-prep-subjects'}),
+    levels=h('div',{class:'cm-prep-levels'}), status=h('div',{class:'cm-prep-status'}),
+    list=h('div',{class:'cm-bank'}), chosen=h('div',{class:'cm-prep-chosen'});
+  wrap.append(heading,subjects,levels,status,list,chosen);
+  let source=PREP_CATALOGUE[0], year=yearOf(y.label)===8?8:7, novice='Novice 1',
+    rows=null, items=[], loading=false, error='', search='', generation=0;
+  const normal=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const currentLevel=()=>source.novice?novice:year;
+  const label=(s=source,l=currentLevel())=>s.name+' — '+(s.novice?l:'Year '+l);
+  const sourceRows=()=>rows?.filter(r=>r.selected)||[];
+  const exists=(it)=>rows?.find(r=>r.kind===it.kind&&normal(r.text)===normal(it.text))||null;
+  const tabSelected=(s,l)=>sourceRows().filter(r=>r.doc_id===s.id &&
+      String(r.source||'').includes(label(s,l))).length;
+  let persist=Promise.resolve();
+  const saveSelected=()=>{
+    const snapshot=rows.filter(r=>r.selected);
+    if(snapshot.length>150){error='The map allows up to 150 selected curriculum statements per unit. Untick some before adding more.';paint();return;}
+    persist=persist.catch(()=>{}).then(async()=>{
+      await saveStatements(t.id,snapshot);
+      await recordMatch(t.id,snapshot.length?'done':'attention',snapshot.length,snapshot.length?'':'No curriculum statements selected.');
+    }).catch(e=>{error='Could not save selected statements: '+e.message;paint();});
+  };
+  const paint=()=>{
+    heading.replaceChildren(h('h4',{},'Prep curriculum statements'),
+      rows?h('span',{class:'cm-n'},sourceRows().length+' selected across subjects'):null);
+    subjects.replaceChildren(...PREP_CATALOGUE.map(s=>h('button',{type:'button',
+      class:'cm-btn sm'+(s.id===source.id?' cm-prep-active':''),disabled:loading,
+      onclick:()=>{source=s;search='';loadTab();}},s.name,
+      sourceRows().filter(r=>r.doc_id===s.id).length?
+        h('span',{class:'cm-prep-badge'},String(sourceRows().filter(r=>r.doc_id===s.id).length)):null)));
+    levels.replaceChildren(...(source.novice?['Novice 1','Novice 2','Novice 3']:[7,8])
+      .map(l=>h('button',{type:'button',class:'cm-btn sm'+(currentLevel()===l?' cm-prep-active':''),
+        disabled:loading,onclick:()=>{if(source.novice) novice=l;else year=l;search='';loadTab();}},
+        source.novice?l:'Year '+l,
+        tabSelected(source,l)?h('span',{class:'cm-prep-badge'},String(tabSelected(source,l))):null)));
+    status.replaceChildren(h('p',{class:'hint'},loading?
+      'Loading official '+label()+' statements…'+(source.novice?' The first extraction may use Claude API credits.':''):
+      error||'Select knowledge and practices across subjects. Your ticks remain saved when you change tabs. Te Reo Māori is organised by proficiency, not year group.'));
+    if(rows===null||loading){list.replaceChildren(h('p',{class:'hint'},'Loading…'));return;}
+    const searchBox=h('input',{type:'search',placeholder:'Search '+label()+' statements',
+      'aria-label':'Search Prep statements',value:search,oninput:e=>{search=e.target.value;paintItems();}});
+    const result=h('div',{class:'cm-prep-bankrows'});
+    list.replaceChildren(searchBox,result);
+    const paintItems=()=>{
+      const q=normal(search);
+      result.replaceChildren(...['knowledge','practice'].map(kind=>{
+        const entries=items.filter(it=>it.kind===kind&&(!q||normal(it.text).includes(q)));
+        const col=h('div',{class:'cm-col'},h('h5',{class:'cm-sec'},kind==='knowledge'?'Knowledge':'Practices'));
+        if(!entries.length)col.append(h('p',{class:'hint'},'No matching statements.'));
+        for(const it of entries){
+          const already=exists(it),check=h('input',{type:'checkbox',checked:!!already?.selected});
+          check.checked=!!already?.selected;
+          check.onchange=()=>{
+            let row=exists(it);
+            if(check.checked && !row){
+              row={kind:it.kind,text:it.text,source:label()+(it.source?' · '+it.source:''),
+                doc_id:source.id,confidence:null,selected:true};
+              rows.push(row);
+            } else if(row) row.selected=check.checked;
+            error='';saveSelected();paint();
+          };
+          col.append(h('label',{class:'cm-sr'+(check.checked?' on':'')},check,
+            h('div',{},h('p',{},it.text),
+              h('small',{},label()+(it.source?' · '+it.source:'')))));
+        }
+        return col;
+      }));
+    };
+    paintItems();
+    const allBank=new Set(items.map(it=>it.kind+'|'+normal(it.text)));
+    const others=sourceRows().filter(r=>!items.some(it=>it.kind===r.kind&&normal(it.text)===normal(r.text)));
+    chosen.replaceChildren(others.length?h('details',{class:'cm-prep-other'},
+      h('summary',{},'Other selected statements ('+others.length+') — including imported or other subject/level selections'),
+      ...others.map(r=>h('label',{class:'cm-prep-existing'},
+        h('input',{type:'checkbox',checked:true,onchange:e=>{r.selected=e.target.checked;saveSelected();paint();}}),
+        h('span',{},r.text+' · '+(r.source||'Imported statement'))))):null);
+  };
+  const loadTab=async()=>{
+    const request=++generation, selectedSource=source, selectedLevel=currentLevel();
+    loading=true;error='';paint();
+    try{
+      let records=[];
+      if(selectedSource.novice){
+        const bank=await loadBank({department_id:S.dept.id,doc_id:selectedSource.id,
+          year:7,discipline:'',level:selectedLevel});
+        records=bank.items||[];
+      }else{
+        const params=new URLSearchParams({action:'statement-bank',doc_id:selectedSource.id,
+          year:String(selectedLevel)});
+        const response=await fetch(CM.studio+'?'+params,{credentials:'same-origin',cache:'no-store'});
+        const packet=await response.json().catch(()=>({}));
+        if(!response.ok||!packet.ok)throw Error(packet.error||'The curriculum bank did not load.');
+        records=packet.records||[];
+        if(selectedSource.name==='Health')records=records.filter(r=>r.subject==='Health');
+      }
+      if(request!==generation)return;
+      items=records.filter(r=>['knowledge','practice'].includes(r.kind)&&r.text);
+      if(!items.length)error='No official statements were available for '+label()+'. Check the curriculum source.';
+    }catch(e){if(request===generation){items=[];error=e.message||'Could not load statements.';}}
+    finally{if(request===generation){loading=false;paint();}}
+  };
+  paint();
+  loadStatements(t.id).then(saved=>{
+    rows=saved.map(s=>({...s}));
+    paint();loadTab();
+  }).catch(e=>{rows=[];error='Existing statements could not be loaded: '+e.message;paint();});
+  return wrap;
 }
 
 const stageLabel = y => noviceOf(y.label) ? 'Proficiency stage' : 'Year';
