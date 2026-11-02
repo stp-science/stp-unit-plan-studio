@@ -41,6 +41,10 @@ async function load(deptId, view) {
     const d = await get({action: 'state', department_id: deptId || ''});
     if (!d.ok) throw Error(d.error || 'load failed');
     Object.assign(S, {review: false, view: keepView, stmtAll: null, stmtDirty: false, stmtCounts: d.stmtCounts || {}, depts: d.departments, isManager: d.isManager, dept: d.department, map: d.map, version: d.version, updatedAt: d.updatedAt, updatedBy: d.updatedBy, edit: false, draft: false, saveState: 'saved', conflict: false, banner: null});
+    // Preserve the selected header mode after switching departments, including
+    // a first-time Prep setup. Existing mode opens upload if there is no map.
+    if(navigationMode==='existing'&&!S.map) S.view='upload';
+    if(navigationMode==='overview'&&S.map) S.edit=true;
   } catch (e) { S.banner = {kind: 'err', text: 'The curriculum map could not be loaded (' + e.message + '). Refresh to try again; nothing has been changed.'}; S.failed = true; }
   S.loading = false; S.match = {}; S.onlyAttn = false; S.lastRun = null; syncUrl(); render();
   if (S.dept && S.map) { const id = S.dept.id; get({action: 'match-status', department_id: id}).then(r => { if (r.ok && S.dept?.id === id) { S.match = r.match || {}; paintAllBars(); paintStrip(); } }).catch(() => {}); }
