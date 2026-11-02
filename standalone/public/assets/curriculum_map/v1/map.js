@@ -266,9 +266,9 @@ function paintStrip(el) {
     h('div', {class: 'cm-macts'},
       attn ? h('button', {class: 'cm-btn sm', type: 'button', onclick: () => { S.onlyAttn = true; paintAllBars(); paintStrip(); reviewNext(); }}, 'Review units needing attention') : null,
       c.ok ? h('a', {class: 'cm-btn sm', href: CM.guide, title: 'Open the Unit Plan Studio'}, 'Unit plans →') : null,
-      todo ? h('button', {class: 'cm-btn pri sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'todo').map(x => x.t.id))}, '✨ Match all units automatically (' + todo + ')')
-        : attn ? h('button', {class: 'cm-btn sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'attn').map(x => x.t.id))}, 'Retry the ' + attn + ' needing attention') : null)),
-    S.lastRun ? h('p', {class: 'hint cm-mlast'}, S.lastRun) : h('p', {class: 'hint cm-mlast'}, todo ? 'The AI reads the curriculum for each unit’s year group and ticks the statements it is confident belong. You can then review and change any of them.' : attn ? 'These units have no statements ticked. Open one to choose statements yourself, or mark it as done if none apply.' : 'Every unit has its statements. Open a unit to change them.'));
+      !isPrepDepartment() && todo ? h('button', {class: 'cm-btn pri sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'todo').map(x => x.t.id))}, '✨ Match all units automatically (' + todo + ')')
+        : !isPrepDepartment() && attn ? h('button', {class: 'cm-btn sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'attn').map(x => x.t.id))}, 'Retry the ' + attn + ' needing attention') : null)),
+    S.lastRun ? h('p', {class: 'hint cm-mlast'}, S.lastRun) : h('p', {class: 'hint cm-mlast'}, isPrepDepartment() ? 'Prep units combine several learning areas. Open each unit and select official statements using the five subject tabs, Year 7/8 or Te Reo Māori Novice 1–3.' : todo ? 'The AI reads the curriculum for each unit’s year group and ticks the statements it is confident belong. You can then review and change any of them.' : attn ? 'These units have no statements ticked. Open one to choose statements yourself, or mark it as done if none apply.' : 'Every unit has its statements. Open a unit to change them.'));
 }
 function firstNeeding() { const k = [...tiles.values()].find(k => k.wrap.isConnected && ['attn', 'todo'].includes(tileState(k.t.id))); k?.wrap.scrollIntoView({block: 'center', behavior: 'smooth'}); }
 function reviewNext() {
@@ -311,7 +311,7 @@ async function matchOne({y, t}, deptId, run) {
   return status === 'done';
 }
 async function matchAll(ids) {
-  if (S.run || !ids.length) return;
+  if (isPrepDepartment() || S.run || !ids.length) return;
   const deptId = S.dept.id, list = allTopics().filter(x => ids.includes(x.t.id) && eligible(x.y));
   if (!list.length) return;
   curriculumAi.resetBlock();
@@ -899,8 +899,8 @@ function fillTopicStatements(body, y, b, t) {
     const open = () => S.edit ? topicEditor(y, b, t, false) : topicDetails(y, b, t);
     const acts = [h('button', {type: 'button', class: 'cm-txe', onclick: open}, mine.length ? 'Review and change' : 'Choose statements')];
     if (mine.length) acts.push(h('a', {class: 'cm-txe cm-txg', href: guideUrl(y, t), title: 'Start the unit plan for this unit from these statements'}, 'Draft unit plan →'));
-    if (state === 'todo' && eligible(y)) acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, '✨ Match with AI'));
-    if (state === 'attn') acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, 'Try the AI again'), h('button', {type: 'button', class: 'cm-txe', onclick: () => recordMatch(t.id, 'done', 0, 'Reviewed: no statements apply.')}, 'None apply: mark as done'));
+    if (!isPrepDepartment() && state === 'todo' && eligible(y)) acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, '✨ Match with AI'));
+    if (!isPrepDepartment() && state === 'attn') acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, 'Try the AI again'), h('button', {type: 'button', class: 'cm-txe', onclick: () => recordMatch(t.id, 'done', 0, 'Reviewed: no statements apply.')}, 'None apply: mark as done'));
     body.replaceChildren(
       ...(state === 'attn' ? [h('p', {class: 'cm-txn warn'}, '! Needs attention. ' + (rec?.note || 'No statements are ticked for this unit.'))] : []),
       ...(state === 'ok' && !mine.length ? [h('p', {class: 'cm-txn'}, 'Reviewed: no statements apply to this unit.')] : []),
