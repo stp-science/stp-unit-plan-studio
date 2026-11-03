@@ -74,7 +74,8 @@ function cm_departments(PDO $pdo, int $schoolId, int $teacherId): array
     $out = []; $facDone = [];
     foreach ($rows as $r) {
         $did = (int)$r['id']; $fid = $r['faculty_id'] === null ? 0 : (int)$r['faculty_id'];
-        $visible = $isManager || $sharedStaff || isset($mine[$did]) || mb_strtolower(trim((string)$r['name'])) === 'prep';
+        $visible = $isManager || $sharedStaff || isset($mine[$did]) ||
+            in_array(mb_strtolower(trim((string)$r['name'])), ['prep','english as an additional language'], true);
         if (!$visible) continue;
         if ($fid && ($perFaculty[$fid] ?? 0) > 1 && !isset($facDone[$fid])) {   // the whole-faculty map comes first in its group
             $facDone[$fid] = true;
@@ -86,6 +87,10 @@ function cm_departments(PDO $pdo, int $schoolId, int $teacherId): array
     // provisioned, show an inert setup choice; creation requires an explicit click.
     if (!array_filter($out, static fn($d) => mb_strtolower(trim($d['name'])) === 'prep')) {
         $out[] = ['id' => 0, 'name' => 'Prep', 'faculty' => 'Integrated learning', 'scope' => 'prep-setup'];
+    }
+    // EAL is another shared subject workspace, with Stage 1–5 instead of years.
+    if (!array_filter($out, static fn($d) => mb_strtolower(trim($d['name'])) === 'english as an additional language')) {
+        $out[] = ['id' => -1, 'name' => 'English as an Additional Language', 'faculty' => 'Languages', 'scope' => 'eal-setup'];
     }
     return $out;
 }
@@ -525,9 +530,33 @@ function cm_prep_evidence(): array
     return [implode("\n\n", $parts), 'Official English, Social Studies, Maths and Health Years 7–8; Te Reo Māori Novice 1, 2 and 3. The teacher can inspect full original statements for each unit.'];
 }
 
+/** Proficiency-based EAL sources, sampled from EACH strand and stage rather than
+ * mapping stages onto school year columns. Exact curriculum statement selection
+ * remains in the individual unit's Stage 1–5 source picker. */
+function cm_eal_evidence(): array
+{
+    $doc = cs_catalogue_doc('english-as-an-additional-language-stages-2026');
+    if (!$doc) throw new CsInvalid('The October 2026 EAL curriculum has not been installed.');
+    $levels = cm_doc_levels($doc);
+    $parts = [];
+    foreach (['Stage 1','Stage 2','Stage 3','Stage 4','Stage 5'] as $stage) {
+        $pages = $levels[$stage] ?? [];
+        if (!$pages) throw new CsInvalid('Missing official EAL '. $stage . ' text.');
+        $entries = [];
+        foreach ($pages as $p) {
+            $source = trim((string)($p['text'] ?? ''));
+            $entries[] = 'Page ' . $p['page'] . ': ' . mb_substr($source, 0, 1800);
+        }
+        $parts[] = '=== EAL ' . $stage . ' (a proficiency stage, not a year group) ===' . "\n" . implode("\n", $entries);
+    }
+    return [implode("\n\n", $parts),
+        'English as an Additional Language Stage 1–5 is proficiency-based. It is an October 2026 proposed curriculum; assessment and progress guidance is still being developed.'];
+}
+
 function cm_generate_evidence(string $dept, int $y1, int $y2): array
 {
     if (mb_strtolower(trim($dept)) === 'prep') return cm_prep_evidence();
+    if (mb_strtolower(trim($dept)) === 'english as an additional language') return cm_eal_evidence();
     $r = cm_generate_evidence_for($dept, $y1, $y2, true);   // an exact name first (Science finds Science, not Social Sciences)
     if ($r[0] === '') $r = cm_generate_evidence_for($dept, $y1, $y2, false);
     if ($r[0] !== '') return $r;
