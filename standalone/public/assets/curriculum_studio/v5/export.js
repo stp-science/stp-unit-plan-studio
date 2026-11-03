@@ -26,6 +26,25 @@ function fillStatements(doc,cell,value) {
    .map(s=>/^[•●]\s/.test(s)?s:'• '+s);
  fill(doc,cell,lines.join('\n'),true);
 }
+// Emphasise the two original Learning Languages curriculum headings when
+// they are present. EAL uses its own separate curriculum organisation.
+function fillKnowledgeSummary(doc,cell,value){
+ const lines=String(value||'').split(/\r?\n/);
+ const ps=children(cell,'p'),base=ps.at(-1)||ps[0];
+ for(const node of [...cell.childNodes])
+   if(!(node.nodeType===1&&node.localName==='tcPr'))cell.removeChild(node);
+ for(const line of lines){
+   const p=paragraph(doc,base,line,true);
+   if(/^\s*(Linguistic|Cultural and Sociolinguistic)\s*:?\s*$/i.test(line)){
+     const r=children(p,'r')[0];
+     let rp=children(r,'rPr')[0];
+     if(!rp){rp=doc.createElementNS(W,'w:rPr');r.prepend(rp);}
+     for(const el of children(rp,'b'))el.remove();
+     const bold=doc.createElementNS(W,'w:b');bold.setAttributeNS(W,'w:val','1');rp.appendChild(bold);
+   }
+   cell.appendChild(p);
+ }
+}
 function fillOptions(doc,cell,value){
  const selected=new Set(String(value||'').split('\n').filter(Boolean));
  const options=children(cell,'p').filter(p=>text(p).includes('☐')).map(p=>p.cloneNode(true));
@@ -50,7 +69,7 @@ export async function createWord(plan,templateBytes,source={}){
  fill(doc,cell(1,0,0),plan.purpose);
  for(const p of desc(tables[2],'p')){const s=text(p);if(plan.capabilities.some(name=>s.includes(name+' ')))for(const t of desc(p,'t'))if(t.textContent.includes('☐'))t.textContent=t.textContent.replace('☐','☒');}
  fill(doc,cell(3,1,0),plan.prior);fill(doc,cell(3,1,1),plan.future);fill(doc,cell(3,1,2),'');
- fill(doc,cell(4,1,0),plan.knowledgeSummary);fill(doc,cell(4,1,1),plan.practicesSummary);
+ fillKnowledgeSummary(doc,cell(4,1,0),plan.knowledgeSummary);fill(doc,cell(4,1,1),plan.practicesSummary);
  // Keep the first focus's table and the original continuation table. Clone their formatted rows.
  const first=tables[5],continuation=tables[6];const [titleRow,dataRow]=children(first,'tr').map(n=>n.cloneNode(true));
  for(const row of children(first,'tr'))row.remove();for(const row of children(continuation,'tr'))row.remove();
