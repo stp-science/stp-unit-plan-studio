@@ -245,6 +245,10 @@ function open(id) {
 function newPrepGuide() {
   newGuide(); G.subject='Prep'; G.year=7; resetPrepView(G); save(); renderMain(true);
 }
+function newEalGuide() {
+  newGuide(); G.subject='English as an Additional Language'; G.year=11;
+  G.docId=EAL_DOC_ID; resetEalView(G); save(); renderMain(true);
+}
 function newGuide() { resetPrepView({year:7}); resetEalView(null); activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
 
 // ---------------------------------------------------------------- timing rules in plain English, with suggestions to click
@@ -315,7 +319,8 @@ function build() {
     h('p', {}, 'Pick your subject, year and unit. The official Ministry curriculum gives the outline, and your department’s curriculum map gives the sequence.'),
     h('div',{class:'cg-actions'},
       h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →'),
-      h('button', {class:'cg-ghost',type:'button',onclick:newPrepGuide},'Create a Prep unit  →')),
+      h('button', {class:'cg-ghost',type:'button',onclick:newPrepGuide},'Create a Prep unit  →'),
+      h('button', {class:'cg-ghost',type:'button',onclick:newEalGuide},'Create an EAL unit  →')),
     h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Private to you'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
   if (work) return [stepper(), workCard()];
   if (G.mapRef && !isPrepGuide(G) && !isEalGuide(G) && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
@@ -349,7 +354,7 @@ function topicCard() {
     if (matches[0].learningArea === 'The Arts' && arts) G.discipline = arts;
     save();
   }
-  const subjectNames = [...new Set(['Prep',...yd.flatMap(d => [d.subject, ...(d.subjects || [])]).filter(Boolean)])].sort();
+  const subjectNames = [...new Set(['Prep','English as an Additional Language',...yd.flatMap(d => [d.subject, ...(d.subjects || [])]).filter(Boolean)])].sort();
   const areas = [...new Set(shown.map(d => d.learningArea))].sort();
   const doc = docs.find(d => d.id === G.docId);
   const isArts = doc && doc.learningArea === 'The Arts';
@@ -412,7 +417,13 @@ function topicCard() {
           const chosenArt = ['Dance','Drama','Music','Visual Arts'].find(x=>x.toLowerCase()===(subjectAlias(G.subject.toLowerCase()) || G.subject.toLowerCase()));
           if (chosenArt) G.discipline = chosenArt;
           else if (docs.find(d=>d.id===G.docId)?.learningArea === 'The Arts') G.discipline = '';
-          if (isLanguageSubject(G.subject)) { G.stages = noviceStages(G).length ? noviceStages(G) : ['Novice 1']; G.stage = G.stages[0]; G.year = 7; } else { G.stage = ''; G.stages = []; } save(); renderMain(); }}),
+          if (isEalGuide(G)) {
+            G.year=11;G.docId=EAL_DOC_ID;G.stages=[];G.stage='';resetEalView(G);
+          } else if (isLanguageSubject(G.subject)) {
+            G.stages = noviceStages(G).length ? noviceStages(G) : ['Novice 1'];
+            G.stage = G.stages[0]; G.year = 7;
+          } else { G.stage = ''; G.stages = []; }
+          save(); renderMain(); }}),
         h('datalist', {id: 'cg-subjects'}, subjectNames.map(n => h('option', {value: n})))), matches.length ? 'Showing the Ministry documents for ' + G.subject + '. Clear this to see every subject.' : subj ? 'No Ministry document matches “' + G.subject + '”, so all are shown. You can also paste your own curriculum text below.' : 'Shown on the unit plan. Pick one to filter the curriculum documents.'),
       field('Curriculum document', (() => h('select', {onchange: e => {
           if (G.docId !== e.target.value) {
@@ -436,6 +447,7 @@ function topicCard() {
     h('details', {class: 'cg-more', open: !!(G.notes || G.pasted)},
       h('summary', {}, 'Add context or paste your own curriculum text'),
       field('Anything the AI should know', area(G.notes, v => { G.notes = v; save(); }, 2), 'Equipment, what students already know, local focus…'),
+      isLanguage ? languageReferencesField(G) : null,
       field('Paste curriculum text (if your subject is not listed)', area(G.pasted, v => { G.pasted = v; save(); sync(); }, 4), 'Paste the official knowledge and practice statements for this year. They are checked against exactly what you paste.')),
     h('div', {class: 'cg-actions'}, go,
       !G.mapRef && G.docId && !G.pasted && (JUNIOR.includes(G.year) || noviceStages(G).length) ?
@@ -1230,7 +1242,20 @@ function paintLessons() {
   const c = document.getElementById('cg-dchip'); if (c) c.textContent = p.duration || '';
 }
 
-function normalisePlan(p) { if (!Array.isArray(p.capabilities)) p.capabilities = []; return p; }
+function normalisePlan(p) {
+  if (!Array.isArray(p.capabilities)) p.capabilities = [];
+  if (G && (isEalGuide(G) || isLanguageSubject(G.subject))) {
+    const summary=String(p.knowledgeSummary||'').trim();
+    // Keep the model's distinct curriculum categories visible in the Word
+    // plan even if it fails to include one required heading.
+    if(summary && !/^Linguistic\s*[:\n]/im.test(summary)){
+      p.knowledgeSummary='Linguistic\n'+summary+'\n\nCultural and Sociolinguistic\nNot specified in the selected statements';
+    } else if(summary && !/Cultural and Sociolinguistic/i.test(summary)){
+      p.knowledgeSummary=summary+'\n\nCultural and Sociolinguistic\nNot specified in the selected statements';
+    }
+  }
+  return p;
+}
 
 // ---- reset or delete: a dialog that says exactly what each choice removes, never closed by clicking outside it
 let dlg = null;
@@ -1329,6 +1354,7 @@ root.append(h('div', {class:'cg-shell'},
     h('h2',{},'My unit plans'),
     h('button',{class:'cg-new',type:'button',onclick:newGuide},'＋ New unit plan'),
     h('button',{class:'cg-new-prep',type:'button',onclick:newPrepGuide},'＋ New Prep unit'),
+    h('button',{class:'cg-new-prep',type:'button',onclick:newEalGuide},'＋ New EAL unit'),
     h('div',{class:'cg-sidebar-tools'},
       h('label',{for:'cg-sidebar-filter'},'Subject'),
       sidebarSelect,
