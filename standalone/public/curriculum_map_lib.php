@@ -860,6 +860,22 @@ function cm_bank_key(int $year, string $disc, string $level): array
 /** Proficiency levels found in a document: name => [pages], in the order they appear. */
 function cm_doc_levels(array $doc): array
 {
+    // The October 2026 EAL sequence identifies its five stages in page
+    // headings, not in "During Stage..." paragraphs. Use the published page
+    // boundaries, not an inferred relationship to Years 11–13.
+    if (!empty($doc['stagePageRanges']) && is_array($doc['stagePageRanges'])) {
+        $pages = cs_catalogue_content($doc)['pages'] ?? [];
+        $groups = [];
+        foreach ($doc['stagePageRanges'] as $label => $span) {
+            if (!preg_match('/^Stage [1-5]$/', (string)$label) || !is_array($span) || count($span) !== 2) continue;
+            $groups[$label] = array_values(array_filter($pages, static function($pg) use ($span): bool {
+                $page = (int)($pg['page'] ?? 0);
+                return $page >= (int)$span[0] && $page <= (int)$span[1]
+                    && preg_match('/Knowledge|Practices/i', (string)($pg['text'] ?? ''));
+            }));
+        }
+        return $groups;
+    }
     $out = [];
     foreach ((cs_catalogue_content($doc)['pages'] ?? []) as $pg) {
         $t = (string)($pg['text'] ?? '');
