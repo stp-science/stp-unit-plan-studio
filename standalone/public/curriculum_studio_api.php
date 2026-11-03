@@ -239,6 +239,9 @@ try {
             $evidence = 'CURRICULUM EXTRACT — ' . ($doc['title'] ?? $doc['id']) . ' (' . ($doc['version'] ?? '') . '), ' . ($stage ?: cs_phase_label((int)$year)) . ':' . $text;
         }
         $content[] = ['type' => 'input_text', 'text' => $evidence];
+        $languageRef = $str($in['languageReferences'] ?? '', 9000);
+        if ($languageRef !== '') $content[] = ['type' => 'input_text',
+            'text' => "TEACHER-VERIFIED LANGUAGE REFERENCE (supporting context only, NOT additional Ministry statements):\n" . $languageRef];
         $content[] = ['type' => 'input_text', 'text' => "Find the official curriculum statements for this topic.\nLearning stage: " . ($stage ?: 'Year ' . $year) . "\nTopic: $topic\nTeacher's notes: " . ($notes ?: '(none)') . "\nReturn this shape: " . json_encode(cs_find_shape(), JSON_UNESCAPED_UNICODE)];
         $system = CS_FIND_RULES;
         $schema = cs_schema_from_example(cs_find_shape());
