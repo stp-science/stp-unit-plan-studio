@@ -1214,7 +1214,7 @@ function browseOfficialStatements() {
 }
 function find() {
   return run('Finding your curriculum statements', ['Reading the Ministry curriculum…', 'Matching statements to your unit…', 'Checking every word against the source…'], async signal => {
-    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: planStages(G), topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
+    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: planStages(G), topic: G.topic, notes: G.notes, languageReferences: G.languageReferences||'', pasted: G.pasted}, signal);
     G.statements = {knowledge: r.knowledge, practices: r.practices};
     G.selected = {knowledge: r.knowledge.filter(s => s.link !== 'loose').map(s => s.id), practices: r.practices.filter(s => s.link !== 'loose').map(s => s.id)};
     G.bankLoaded = false; G.bankYears = [];
