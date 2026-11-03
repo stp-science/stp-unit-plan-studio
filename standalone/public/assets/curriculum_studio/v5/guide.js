@@ -444,8 +444,8 @@ function topicCard() {
       }}, h('option', {value: ''}, 'All'), ...['Dance', 'Drama', 'Music', 'Visual Arts'].map(s => h('option', {value: s, selected: s === G.discipline}, s)))) : null,
       ),
     timingField(),
-    h('details', {class: 'cg-more', open: !!(G.notes || G.pasted)},
-      h('summary', {}, 'Add context or paste your own curriculum text'),
+    h('details', {class: 'cg-more', open: !!(G.notes || G.pasted || G.languageReferences)},
+      h('summary', {}, 'Add context, teaching references or curriculum text'),
       field('Anything the AI should know', area(G.notes, v => { G.notes = v; save(); }, 2), 'Equipment, what students already know, local focus…'),
       isLanguage ? languageReferencesField(G) : null,
       field('Paste curriculum text (if your subject is not listed)', area(G.pasted, v => { G.pasted = v; save(); sync(); }, 4), 'Paste the official knowledge and practice statements for this year. They are checked against exactly what you paste.')),
@@ -1290,7 +1290,7 @@ function paintLessons() {
 
 function normalisePlan(p) {
   if (!Array.isArray(p.capabilities)) p.capabilities = [];
-  if (G && (isEalGuide(G) || isLanguageSubject(G.subject))) {
+  if (G && !isEalGuide(G) && isLanguageSubject(G.subject)) {
     const summary=String(p.knowledgeSummary||'').trim();
     // Keep the model's distinct curriculum categories visible in the Word
     // plan even if it fails to include one required heading.
