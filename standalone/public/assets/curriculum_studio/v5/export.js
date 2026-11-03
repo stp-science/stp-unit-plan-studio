@@ -18,6 +18,14 @@ function fill(doc,cell,value,keepHeading=false,regular=true){
  if(heading)cell.appendChild(heading);
  for(const line of String(value||'').split('\n'))cell.appendChild(paragraph(doc,base,line,regular));
 }
+// Display the exact teacher-selected Knowledge and Practices as separate bullet
+// points in Word, rather than a dense block of adjacent statements. The bullet
+// is presentation only; it does not modify official statement text in the plan.
+function fillStatements(doc,cell,value) {
+ const lines=String(value||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean)
+   .map(s=>/^[•●]\s/.test(s)?s:'• '+s);
+ fill(doc,cell,lines.join('\n'),true);
+}
 function fillOptions(doc,cell,value){
  const selected=new Set(String(value||'').split('\n').filter(Boolean));
  const options=children(cell,'p').filter(p=>text(p).includes('☐')).map(p=>p.cloneNode(true));
@@ -48,7 +56,11 @@ export async function createWord(plan,templateBytes,source={}){
  for(const row of children(first,'tr'))row.remove();for(const row of children(continuation,'tr'))row.remove();
  plan.focuses.forEach((f,i)=>{const target=i===0?first:continuation;const tr=titleRow.cloneNode(true),dr=dataRow.cloneNode(true);
   fill(doc,children(tr,'tc')[0],`Learning Focus ${i+1}  |  ${f.title}${f.lessons&&f.lessons.trim()?'  |  '+f.lessons.trim():''}`,false,false);
-  Object.keys(focusFields).forEach((key,j)=>fill(doc,children(dr,'tc')[j],f[key],true));
+  Object.keys(focusFields).forEach((key,j)=>{
+    const targetCell=children(dr,'tc')[j];
+    if(key==='knowledge'||key==='practices')fillStatements(doc,targetCell,f[key]);
+    else fill(doc,targetCell,f[key],true);
+  });
   target.append(tr,dr);
  });
  if(plan.focuses.length===1)continuation.remove();
