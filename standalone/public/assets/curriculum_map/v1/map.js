@@ -666,7 +666,7 @@ function prepMapStatementsPanel(y,t) {
   const normal=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
   const currentLevel=()=>source.novice?novice:year;
   const label=(s=source,l=currentLevel())=>s.name+' — '+(s.novice?l:'Year '+l);
-  const sourceRows=()=>rows?.filter(r=>r.selected)||[];
+  const sourceRows=()=>(rows||[]).filter(r=>r.selected);
   const exists=(it)=>rows?.find(r=>r.kind===it.kind&&normal(r.text)===normal(it.text)
     && (!eal || (r.doc_id===source.id && String(r.source||'').includes(label()))))||null;
   const tabSelected=(s,l)=>sourceRows().filter(r=>r.doc_id===s.id &&
