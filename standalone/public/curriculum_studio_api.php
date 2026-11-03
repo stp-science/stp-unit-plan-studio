@@ -324,6 +324,14 @@ try {
                 "\n\nLANGUAGE-SPECIFIC ACCURACY: Preserve foreign-language vocabulary, diacritics and meanings exactly as presented in teacher-provided material or the Ministry source. NEVER translate an unfamiliar word by guessing or by treating a French/Spanish/Māori word as an English cognate. If a translation has no reliable reference, leave it untranslated. Connections to prior and future learning must use confirmed department sequence titles and actual selected curriculum progression; do not invent French or other language topics. If evidence is missing, leave prior/future fields blank rather than inventing suggestions. Use relevant teacher-provided methodology and vocabulary extracts as contextual planning guidance, never as replacement Ministry statements. In the Knowledge Summary use exactly two subheadings, Linguistic and Cultural and Sociolinguistic, followed by concise evidence-grounded descriptions; if no source supports the second heading, write 'Not specified in the selected statements' under it. If the source is EAL, Stage 1–5 are proficiency stages and are not mapped to a fixed school year; preserve listening/speaking/reading/writing distinctions when relevant." : '')
             . ($prep ? "\n\nPREP UNITS: The subject heading is Prep. Write a coherent integrated unit across exactly the teacher-selected subjects. Include all chosen official Knowledge and Practices in the best-fitting learning focuses without paraphrasing. Te Reo Māori Novice 1–3 are proficiency stages and are NOT synonymous with Year 7 or Year 8. The unit header stays Year " . $year . ". Never add unselected curriculum statements." : '') . ($std['additionalGuidance'] !== '' ? "\n\n" . $std['additionalGuidance'] : '') . ($std['priorities'] !== '' ? "\n\nAllowed school priority names (describe provision only where genuine): " . implode(', ', cs_priority_names($std['priorities'])) : '');
         $schema = cs_plan_schema();
+        if ($eal || preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language/i', $subject)) {
+            $schema['properties']['knowledgeSummary']['description'] =
+                'Use exactly two clear subheadings: Linguistic; Cultural and Sociolinguistic. Explain only supported selected knowledge within each. Leave unsupported cultural content as Not specified in the selected statements.';
+            $schema['properties']['prior']['description'] =
+                'Only genuine connections to specifically named confirmed school units; otherwise empty string. For EAL use stage labels, not invented year placement.';
+            $schema['properties']['future']['description'] =
+                'Only genuine connections to specifically named confirmed school units; otherwise empty string. No guessed French translations or curriculum unit titles.';
+        }
         $maxTokens = 12000;
         $detail = 'guide Y' . $year;
     }
@@ -378,6 +386,31 @@ try {
                 $result['year'] = $stage ?: ('Year ' . $year);
                 $result['phase'] = $stage ?: cs_phase_label($year);
                 $result['title'] = $topic;
+                // A Language model has no licence to invent school course titles.
+                // Retain prior/future links only when their named unit actually
+                // exists in the school's saved department sequence. The teacher can
+                // supply links manually after verifying them.
+                $langUnit = $eal || (bool)preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language/i', $subject);
+                if ($langUnit) {
+                    $titles = [];
+                    foreach (($mapCtx['sequence'] ?? []) as $row) {
+                        $name = trim((string)($row['unit'] ?? ''));
+                        if ($name !== '' && mb_strtolower($name) !== mb_strtolower($topic)) $titles[] = $name;
+                    }
+                    foreach (['prior','future'] as $key) {
+                        $confirmed = [];
+                        foreach (preg_split('/\\R/u', trim((string)($result[$key] ?? ''))) ?: [] as $line) {
+                            if (trim($line) === '') continue;
+                            foreach ($titles as $name) {
+                                if (mb_stripos($line, $name) !== false) {
+                                    $confirmed[] = trim($line);
+                                    break;
+                                }
+                            }
+                        }
+                        $result[$key] = implode("\n", array_unique($confirmed));
+                    }
+                }
                 // Lesson allocation: the AI suggests a whole number of lessons per focus. Totals, labels and the duration line are worked out here so they always agree.
                 $total = null;
                 if ($duration !== '') {   // the teacher gave timing rules: the allocation must add up to the total they imply
