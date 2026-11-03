@@ -269,9 +269,10 @@ function paintStrip(el) {
     h('div', {class: 'cm-macts'},
       attn ? h('button', {class: 'cm-btn sm', type: 'button', onclick: () => { S.onlyAttn = true; paintAllBars(); paintStrip(); reviewNext(); }}, 'Review units needing attention') : null,
       c.ok ? h('a', {class: 'cm-btn sm', href: CM.guide, title: 'Open the Unit Plan Studio'}, 'Unit plans →') : null,
-      !isPrepDepartment() && todo ? h('button', {class: 'cm-btn pri sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'todo').map(x => x.t.id))}, '✨ Match all units automatically (' + todo + ')')
-        : !isPrepDepartment() && attn ? h('button', {class: 'cm-btn sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'attn').map(x => x.t.id))}, 'Retry the ' + attn + ' needing attention') : null)),
-    S.lastRun ? h('p', {class: 'hint cm-mlast'}, S.lastRun) : h('p', {class: 'hint cm-mlast'}, isPrepDepartment() ? 'Prep units combine several learning areas. Open each unit and select official statements using the five subject tabs, Year 7/8 or Te Reo Māori Novice 1–3.' : todo ? 'The AI reads the curriculum for each unit’s year group and ticks the statements it is confident belong. You can then review and change any of them.' : attn ? 'These units have no statements ticked. Open one to choose statements yourself, or mark it as done if none apply.' : 'Every unit has its statements. Open a unit to change them.'));
+      !isPrepDepartment() && !isEalDept() && todo ? h('button', {class: 'cm-btn pri sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'todo').map(x => x.t.id))}, '✨ Match all units automatically (' + todo + ')')
+        : !isPrepDepartment() && !isEalDept() && attn ? h('button', {class: 'cm-btn sm', type: 'button', onclick: () => matchAll(allTopics().filter(x => tileState(x.t.id) === 'attn').map(x => x.t.id))}, 'Retry the ' + attn + ' needing attention') : null)),
+    S.lastRun ? h('p', {class: 'hint cm-mlast'}, S.lastRun) : h('p', {class: 'hint cm-mlast'}, isEalDept() ? 'EAL is proficiency-based. Open each unit to select official statements from Stage 1–5; do not equate stages with school years.' :
+      isPrepDepartment() ? 'Prep units combine several learning areas. Open each unit and select official statements using the five subject tabs, Year 7/8 or Te Reo Māori Novice 1–3.' : todo ? 'The AI reads the curriculum for each unit’s year group and ticks the statements it is confident belong. You can then review and change any of them.' : attn ? 'These units have no statements ticked. Open one to choose statements yourself, or mark it as done if none apply.' : 'Every unit has its statements. Open a unit to change them.'));
 }
 function firstNeeding() { const k = [...tiles.values()].find(k => k.wrap.isConnected && ['attn', 'todo'].includes(tileState(k.t.id))); k?.wrap.scrollIntoView({block: 'center', behavior: 'smooth'}); }
 function reviewNext() {
@@ -280,7 +281,9 @@ function reviewNext() {
   S.open.add(k.t.id); k.body.hidden = false; paintBar(k.t.id, true); k.wrap.scrollIntoView({block: 'center', behavior: 'smooth'});
 }
 async function matchOne({y, t}, deptId, run) {
-  if (isPrepDepartment()) return recordMatch(t.id,'attention',0,'Prep combines multiple subjects. Open the unit and choose official statements from its subject and level tabs.').then(()=>false);
+  if (isPrepDepartment() || isEalDept()) return recordMatch(t.id,'attention',0,
+    isEalDept()?'EAL is proficiency-based. Open the unit and choose Stage 1–5 statements manually.':
+      'Prep combines multiple subjects. Open the unit and choose official statements from its subject and level tabs.').then(()=>false);
   const year = yearOf(y.label), stage = noviceOf(y.label); let status = 'attention', found = 0, note = '';
   try {
     if (!(year >= 7 && year <= 13)) throw Error('Statements are available for Years 7 to 13.');
@@ -314,7 +317,7 @@ async function matchOne({y, t}, deptId, run) {
   return status === 'done';
 }
 async function matchAll(ids) {
-  if (isPrepDepartment() || S.run || !ids.length) return;
+  if (isPrepDepartment() || isEalDept() || S.run || !ids.length) return;
   const deptId = S.dept.id, list = allTopics().filter(x => ids.includes(x.t.id) && eligible(x.y));
   if (!list.length) return;
   curriculumAi.resetBlock();
@@ -473,7 +476,7 @@ async function relinkImported(year, info, items) {
 }
 // After a map is imported or generated, get the statements ready for every year on it, quietly.
 async function prefetchBanks() {
-  if (isPrepDepartment()) return;
+  if (isPrepDepartment() || isEalDept()) return;
   const stages = [...new Set((S.map?.years || []).map(y => noviceOf(y.label)).filter(Boolean))];
   const years = [...new Set((S.map?.years || []).map(y => parseInt(yearNum(y.label), 10)).filter(n => n >= 7 && n <= 13))];
   let ready = 0;
@@ -485,6 +488,9 @@ async function prefetchBanks() {
 }
 
 const isPrepDepartment = () => S.dept?.name?.trim().toLowerCase()==='prep';
+const EAL_CATALOGUE = [{id:'english-as-an-additional-language-stages-2026',
+  name:'English as an Additional Language',novice:true,eal:true}];
+const EAL_STAGES = ['Stage 1','Stage 2','Stage 3','Stage 4','Stage 5'];
 const PREP_CATALOGUE = [
  {id:'english-2025',name:'English'},
  {id:'social-sciences-2026',name:'Social Studies'},
@@ -495,7 +501,7 @@ const PREP_CATALOGUE = [
 // The statements a topic uses. All statements for the year and subject are listed under Knowledge and Practices with checkboxes;
 // the AI can suggest ticks (optional), and anything it cannot match stays one click away.
 function statementsPanel(y, t) {
-  if (isPrepDepartment()) return prepMapStatementsPanel(y,t);
+  if (isPrepDepartment() || isEalDept()) return prepMapStatementsPanel(y,t);
   const box = h('div', {class: 'cm-stm'}), head = h('div', {class: 'cm-stmh'}), info = h('div', {class: 'cm-stmi'}), tools = h('div', {class: 'cm-stmt'}), list = h('div', {class: 'cm-bank'});
   box.append(head, info, tools, list);
   const others = new Map(), acked = new Set();   // statement text -> other topics using it; statements the teacher agreed to reuse
@@ -653,13 +659,16 @@ function prepMapStatementsPanel(y,t) {
     levels=h('div',{class:'cm-prep-levels'}), status=h('div',{class:'cm-prep-status'}),
     list=h('div',{class:'cm-bank'}), chosen=h('div',{class:'cm-prep-chosen'});
   wrap.append(heading,subjects,levels,status,list,chosen);
-  let source=PREP_CATALOGUE[0], year=yearOf(y.label)===8?8:7, novice='Novice 1',
+  const eal=isEalDept(),catalogue=eal?EAL_CATALOGUE:PREP_CATALOGUE;
+  let source=catalogue[0], year=yearOf(y.label)===8?8:7,
+    novice=eal?(ealStageOf(y.label)||'Stage 1'):'Novice 1',
     rows=null, items=[], loading=false, error='', search='', generation=0;
   const normal=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
   const currentLevel=()=>source.novice?novice:year;
   const label=(s=source,l=currentLevel())=>s.name+' — '+(s.novice?l:'Year '+l);
   const sourceRows=()=>rows?.filter(r=>r.selected)||[];
-  const exists=(it)=>rows?.find(r=>r.kind===it.kind&&normal(r.text)===normal(it.text))||null;
+  const exists=(it)=>rows?.find(r=>r.kind===it.kind&&normal(r.text)===normal(it.text)
+    && (!eal || (r.doc_id===source.id && String(r.source||'').includes(label()))))||null;
   const tabSelected=(s,l)=>sourceRows().filter(r=>r.doc_id===s.id &&
       String(r.source||'').includes(label(s,l))).length;
   let persist=Promise.resolve();
@@ -672,21 +681,22 @@ function prepMapStatementsPanel(y,t) {
     }).catch(e=>{error='Could not save selected statements: '+e.message;paint();});
   };
   const paint=()=>{
-    heading.replaceChildren(h('h4',{},'Prep curriculum statements'),
+    heading.replaceChildren(h('h4',{},eal?'EAL curriculum statements':'Prep curriculum statements'),
       rows?h('span',{class:'cm-n'},sourceRows().length+' selected across subjects'):null);
-    subjects.replaceChildren(...PREP_CATALOGUE.map(s=>h('button',{type:'button',
+    subjects.replaceChildren(...catalogue.map(s=>h('button',{type:'button',
       class:'cm-btn sm'+(s.id===source.id?' cm-prep-active':''),disabled:loading,
       onclick:()=>{source=s;search='';loadTab();}},s.name,
       sourceRows().filter(r=>r.doc_id===s.id).length?
         h('span',{class:'cm-prep-badge'},String(sourceRows().filter(r=>r.doc_id===s.id).length)):null)));
-    levels.replaceChildren(...(source.novice?['Novice 1','Novice 2','Novice 3']:[7,8])
+    levels.replaceChildren(...(source.eal?EAL_STAGES:source.novice?['Novice 1','Novice 2','Novice 3']:[7,8])
       .map(l=>h('button',{type:'button',class:'cm-btn sm'+(currentLevel()===l?' cm-prep-active':''),
         disabled:loading,onclick:()=>{if(source.novice) novice=l;else year=l;search='';loadTab();}},
         source.novice?l:'Year '+l,
         tabSelected(source,l)?h('span',{class:'cm-prep-badge'},String(tabSelected(source,l))):null)));
     status.replaceChildren(h('p',{class:'hint'},loading?
       'Loading official '+label()+' statements…'+(source.novice?' The first extraction may use Claude API credits.':''):
-      error||'Select knowledge and practices across subjects. Your ticks remain saved when you change tabs. Te Reo Māori is organised by proficiency, not year group.'));
+      error||(eal?'Select official knowledge and practice statements from Stage 1–5. These are proficiency levels, not school years. Your selections remain saved when switching stages.':
+        'Select knowledge and practices across subjects. Your ticks remain saved when you change tabs. Te Reo Māori is organised by proficiency, not year group.')));
     if(rows===null||loading){list.replaceChildren(h('p',{class:'hint'},'Loading…'));return;}
     const searchBox=h('input',{type:'search',placeholder:'Search '+label()+' statements',
       'aria-label':'Search Prep statements',value:search,oninput:e=>{search=e.target.value;paintItems();}});
@@ -719,7 +729,8 @@ function prepMapStatementsPanel(y,t) {
     };
     paintItems();
     const allBank=new Set(items.map(it=>it.kind+'|'+normal(it.text)));
-    const others=sourceRows().filter(r=>!items.some(it=>it.kind===r.kind&&normal(it.text)===normal(r.text)));
+    const others=sourceRows().filter(r=>!items.some(it=>it.kind===r.kind&&normal(it.text)===normal(r.text)
+      && (!eal||(r.doc_id===source.id&&String(r.source||'').includes(label())))));
     chosen.replaceChildren(others.length?h('details',{class:'cm-prep-other'},
       h('summary',{},'Other selected statements ('+others.length+') — including imported or other subject/level selections'),
       ...others.map(r=>h('label',{class:'cm-prep-existing'},
@@ -731,7 +742,26 @@ function prepMapStatementsPanel(y,t) {
     loading=true;error='';paint();
     try{
       let records=[];
-      if(selectedSource.novice){
+      if(selectedSource.eal) {
+        const read = async()=> {
+          const query=new URLSearchParams({action:'novice-bank',doc_id:selectedSource.id,stage:selectedLevel});
+          const reply=await fetch(CM.studio+'?'+query,{credentials:'same-origin',cache:'no-store'});
+          const data=await reply.json().catch(()=>({}));
+          if(!reply.ok||!data.ok)throw Error(data.error||'Could not read '+selectedLevel+' from the EAL source.');
+          return data;
+        };
+        let bank=await read();
+        for(const chunk of bank.missing||[]){
+          const reply=await fetch(CM.studio+'?action=novice-bank-build',{method:'POST',
+            credentials:'same-origin',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({csrf:CM.csrf,doc_id:selectedSource.id,stage:selectedLevel,chunk})});
+          const result=await reply.json().catch(()=>({}));
+          if(!reply.ok||!result.ok)throw Error(result.error||'Could not extract EAL '+selectedLevel+' source section.');
+        }
+        if(!bank.complete)bank=await read();
+        if(!bank.complete)throw Error('The EAL '+selectedLevel+' source is incomplete.');
+        records=bank.items||[];
+      }else if(selectedSource.novice){
         const bank=await loadBank({department_id:S.dept.id,doc_id:selectedSource.id,
           year:7,discipline:'',level:selectedLevel});
         records=bank.items||[];
@@ -902,8 +932,8 @@ function fillTopicStatements(body, y, b, t) {
     const open = () => S.edit ? topicEditor(y, b, t, false) : topicDetails(y, b, t);
     const acts = [h('button', {type: 'button', class: 'cm-txe', onclick: open}, mine.length ? 'Review and change' : 'Choose statements')];
     if (mine.length) acts.push(h('a', {class: 'cm-txe cm-txg', href: guideUrl(y, t), title: 'Start the unit plan for this unit from these statements'}, 'Draft unit plan →'));
-    if (!isPrepDepartment() && state === 'todo' && eligible(y)) acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, '✨ Match with AI'));
-    if (!isPrepDepartment() && state === 'attn') acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, 'Try the AI again'), h('button', {type: 'button', class: 'cm-txe', onclick: () => recordMatch(t.id, 'done', 0, 'Reviewed: no statements apply.')}, 'None apply: mark as done'));
+    if (!isPrepDepartment() && !isEalDept() && state === 'todo' && eligible(y)) acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, '✨ Match with AI'));
+    if (!isPrepDepartment() && !isEalDept() && state === 'attn') acts.push(h('button', {type: 'button', class: 'cm-txe', disabled: !!S.run, onclick: () => matchAll([t.id])}, 'Try the AI again'), h('button', {type: 'button', class: 'cm-txe', onclick: () => recordMatch(t.id, 'done', 0, 'Reviewed: no statements apply.')}, 'None apply: mark as done'));
     body.replaceChildren(
       ...(state === 'attn' ? [h('p', {class: 'cm-txn warn'}, '! Needs attention. ' + (rec?.note || 'No statements are ticked for this unit.'))] : []),
       ...(state === 'ok' && !mine.length ? [h('p', {class: 'cm-txn'}, 'Reviewed: no statements apply to this unit.')] : []),
