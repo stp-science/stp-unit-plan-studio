@@ -592,9 +592,48 @@ async function openEalStage(stage){
   finally{if(G===guide){ealLoading='';renderMain();}}
 }
 function languageReferencesField(guide){
+  const notes=area(guide.languageReferences||'',v=>{guide.languageReferences=v.slice(0,12000);save();},5);
+  notes.placeholder='Paste verified vocabulary/meaning pairs, frequency lists or brief excerpts from teaching guidance…';
+  const status=h('span',{class:'cg-mut',role:'status'});
+  const input=h('input',{type:'file',accept:'.docx,.txt,.csv,.tsv',
+    'aria-label':'Import supporting language reference document',
+    onchange:async event=>{
+      const file=event.target.files?.[0];if(!file)return;
+      if(file.size>2*1024*1024){status.textContent='Choose a file smaller than 2 MB.';input.value='';return;}
+      status.textContent='Reading '+file.name+'…';
+      try{
+        let extracted='';
+        if(/\.docx$/i.test(file.name)){
+          if(typeof JSZip==='undefined')throw Error('Word document reader was not loaded.');
+          const zip=await JSZip.loadAsync(file);
+          const doc=zip.file('word/document.xml');
+          if(!doc)throw Error('This does not contain a readable Word document.');
+          const xml=new DOMParser().parseFromString(await doc.async('string'),'application/xml');
+          if(xml.getElementsByTagName('parsererror').length)throw Error('The Word file could not be read.');
+          const nodes=[...xml.getElementsByTagNameNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main','p')];
+          extracted=nodes.map(p=>[...p.getElementsByTagNameNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main','t')]
+            .map(n=>n.textContent).join('')).filter(Boolean).join('\n');
+        }else if(/\.(txt|csv|tsv)$/i.test(file.name))extracted=await file.text();
+        else throw Error('Use Word (.docx) or plain text; paste PDF excerpts into the box.');
+        extracted=extracted.trim();
+        if(!extracted)throw Error('No usable text was found.');
+        const prefix='\n\n[Supporting reference: '+file.name.replace(/[\r\n\[\]]/g,'').slice(0,120)+']\n';
+        const old=guide.languageReferences||'';
+        if(old.length+prefix.length+extracted.length>12000)
+          throw Error('This reference is too long. Select a shorter excerpt (maximum 12,000 characters across all references).');
+        guide.languageReferences=(old+prefix+extracted).trim();
+        notes.value=guide.languageReferences;fit(notes);save();
+        status.textContent='Reference added to this unit. It has not trained or changed the AI model.';
+      }catch(error){status.textContent=error.message||'Could not read this reference.';}
+      input.value='';
+    }});
   return field('Supporting methodology / vocabulary references',
-    area(guide.languageReferences||'',v=>{guide.languageReferences=v;save();},5),
-    'Optional: paste short extracts from approved teaching guidance, vocabulary lists, or exact language/meaning pairs. These inform planning but are not curriculum statements. Do not include student information or confidential material.');
+    h('div',{class:'cg-language-sources'},
+      h('p',{class:'cg-mut'},'Optional: provide teacher-approved teaching-method guidance, high-frequency vocabulary or verified language/meaning pairs. The tool uses these as reference material for this unit, not as official curriculum statements.'),
+      notes,
+      h('label',{class:'cg-source-upload'},'Add Word/text reference (DOCX, TXT, CSV)',input),
+      status,
+      h('p',{class:'cg-mut'},'PDF: paste a short relevant extract above. Do not include personal student data. References are saved with this unit; they are not used to train the underlying model.')));
 }
 function ealTopicCard(){
   const canStart=!!G.topic.trim();
