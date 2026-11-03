@@ -383,7 +383,7 @@ try {
             } else {
                 cs_validate_plan($result);
                 $result['subject'] = $subject;
-                $result['year'] = $stage ?: ('Year ' . $year);
+                $result['year'] = $eal ? ('Year ' . $year) : ($stage ?: ('Year ' . $year));
                 $result['phase'] = $stage ?: cs_phase_label($year);
                 $result['title'] = $topic;
                 // A Language model has no licence to invent school course titles.
