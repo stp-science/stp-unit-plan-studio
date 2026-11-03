@@ -340,3 +340,15 @@ body[data-page="curriculum-studio"] .cg-new-prep:hover{background:rgba(130,173,1
 .cg-prep-subject.on .cg-year-count{background:#fff;color:#001733}
 @media(max-width:640px){.cg-prep-subject{flex:1 1 calc(50% - 7px)}
   .cg-prep-level-tabs .cg-year-tab{flex:1 1 calc(50% - 4px)}}
+
+/* Language methodology/vocabulary extracts are optional planning references,
+   never official statements or a model-training facility. */
+.cg-language-sources{display:grid;gap:9px}
+.cg-source-upload{display:flex;align-items:center;justify-content:center;gap:9px;
+ border:1px dashed #82adbf;border-radius:9px;background:#eef5f8;
+ color:#001733;font-size:13px;font-weight:700;padding:11px 14px;cursor:pointer}
+.cg-source-upload:hover{background:#ddecf2}
+.cg-source-upload input[type=file]{width:100%;font-size:12px;max-width:260px}
+.cg-language-sources [role=status]{font-size:12px}
+.cg-eal-tabs .cg-year-tab{flex:1 1 130px;white-space:nowrap}
+@media(max-width:600px){.cg-source-upload{flex-direction:column;align-items:stretch}}
