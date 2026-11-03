@@ -1,8 +1,8 @@
 {
-  "version": "2026-10-30-junior-2",
+  "version": "2026-11-04-EAL-stages",
   "sourceIndex": "https://newzealandcurriculum.tahurangi.education.govt.nz/new-zealand-curriculum-online/new-zealand-curriculum/learning-areas/5637165582.c",
   "checkedOn": "2026-10-30",
-  "scope": "All eight Years 0–10 NZC learning areas are represented. Learning Languages includes teaching sequences for five supplied languages only. Supporting references are labelled separately.",
+  "scope": "All eight Years 0–10 NZC learning areas are represented. Learning Languages includes teaching sequences for five supplied languages only. Supporting references are labelled separately. Added English as an Additional Language Stages 1–5 as a separate proficiency-based subject.",
   "complete": false,
   "documents": [
     {
@@ -449,6 +449,63 @@
       "kind": "curriculum",
       "availableForCurriculum": true,
       "coreLearningArea": true
+    },
+    {
+      "id": "english-as-an-additional-language-stages-2026",
+      "learningArea": "English as an Additional Language",
+      "subject": "English as an Additional Language",
+      "subjects": [
+        "English as an Additional Language",
+        "EAL"
+      ],
+      "title": "The New Zealand Curriculum — English as an Additional Language Stages 1–5",
+      "sourceUrl": "",
+      "status": "ready",
+      "version": "October 2026",
+      "checkedOn": "2026-11-04",
+      "yearRange": "Stages 1–5 (proficiency-based; not aligned to school years)",
+      "years": [
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "kind": "curriculum",
+      "availableForAi": true,
+      "availableForCurriculum": true,
+      "coreLearningArea": false,
+      "sourceFormat": "PDF page text",
+      "sourceFilename": "EnglishasanAdditionalLanguage-Years11-13-Oct26 (1).pdf",
+      "acquisition": "October 2026 Ministry EAL PDF supplied by the user",
+      "pageCount": 33,
+      "attribution": "Ministry of Education, Crown copyright",
+      "licence": "Source terms apply",
+      "contentPath": "english-additional-language-stages-1-5-oct-2026.json",
+      "progressionBasis": "Stage 1, Stage 2, Stage 3, Stage 4 and Stage 5; proficiency-based, not tied to year level.",
+      "stagePageRanges": {
+        "Stage 1": [
+          8,
+          13
+        ],
+        "Stage 2": [
+          14,
+          18
+        ],
+        "Stage 3": [
+          19,
+          23
+        ],
+        "Stage 4": [
+          24,
+          28
+        ],
+        "Stage 5": [
+          29,
+          33
+        ]
+      },
+      "publicationStatus": "October 2026 proposed curriculum; progress and assessment information in development. Not yet a statutory National Curriculum Statement."
     }
   ],
   "learningAreaCount": 8,
