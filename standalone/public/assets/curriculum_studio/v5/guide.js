@@ -34,10 +34,17 @@ let prepSourceId = PREP_SOURCES[0].id, prepActiveYear = 7, prepActiveStage = 'No
 let prepLoading = '', prepError = '';
 const resetPrepView = guide => {prepSourceId=PREP_SOURCES[0].id;prepActiveYear=Number(guide?.year)||7;prepActiveStage='Novice 1';prepLoading='';prepError='';statementFilter='';};
 const NOVICE = ['Novice 1', 'Novice 2', 'Novice 3'];
+const EAL_DOC_ID = 'english-as-an-additional-language-stages-2026';
+const EAL_STAGES = ['Stage 1','Stage 2','Stage 3','Stage 4','Stage 5'];
+const isEalGuide = g => /^(english as an additional language|eal)$/i.test(String(g?.subject||'').trim());
+const ealStages = g => EAL_STAGES.filter(s=>Array.isArray(g?.stages)&&g.stages.includes(s));
+const planStages = g => isEalGuide(g) ? ealStages(g) : noviceStages(g);
+let ealActiveStage = 'Stage 1', ealLoading = '', ealError = '';
+const resetEalView = g => {ealActiveStage=ealStages(g)[0]||'Stage 1';ealLoading='';ealError='';};
 const isLanguageSubject = name => /french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i.test(String(name || ''));
 // New plans store an array; legacy single-stage plans continue to open unchanged.
 const noviceStages = g => Array.isArray(g.stages) ? NOVICE.filter(s => g.stages.includes(s)) : NOVICE.includes(g.stage) ? [g.stage] : [];
-const guideStageLabel = g => noviceStages(g).length ? noviceStages(g).join(' + ') : 'Year ' + g.year;
+const guideStageLabel = g => planStages(g).length ? planStages(g).join(' + ') : 'Year ' + g.year;
 // Department names that sit inside a broader Ministry learning area, so Art finds the Visual Arts document, Geography the Social Sciences one, and so on.
 const SUBJECT_ALIAS = {
   'visual arts': ['art', 'visual art', 'art: design', 'art: photography', 'art design', 'art photography', 'painting', 'printmaking', 'design'],
@@ -68,7 +75,7 @@ const statementsForYear = (guide, key, year) => (guide.statements[key] || []).fi
 let root, listEl, mainEl, toastEl, sidebarSelect, sidebarSearch;
 let sidebarSubject = 'all', sidebarQuery = '', sidebarGroupsOpen = new Set(), sidebarInitialised = false;
 
-const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], docId: '', discipline: '', duration: '', notes: '', pasted: '',
+const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], ealLoaded: [], languageReferences: '', docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
 const hasStatements = g => g && g.statements.knowledge.length + g.statements.practices.length > 0;
 const hue = s => { let x = 0; for (const c of String(s || 'x')) x = (x * 31 + c.charCodeAt(0)) % 360; return x; };
@@ -218,7 +225,7 @@ function renderList() {
 function open(id) {
   mapSavePromise = Promise.resolve();
   G = guides.find(g => g.id === id) || null;
-  resetPrepView(G);
+  resetPrepView(G); resetEalView(G);
   activeStatementYear = G ? Number(G.year) : 7;
   statementYearLoading = 0; statementYearError = '';
   if (G) sidebarGroupsOpen.add(guideSubject(G).toLocaleLowerCase());
@@ -238,7 +245,7 @@ function open(id) {
 function newPrepGuide() {
   newGuide(); G.subject='Prep'; G.year=7; resetPrepView(G); save(); renderMain(true);
 }
-function newGuide() { resetPrepView({year:7}); activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
+function newGuide() { resetPrepView({year:7}); resetEalView(null); activeStatementYear=7; statementYearLoading=0; statementYearError=''; sidebarSubject='all'; sidebarQuery=''; if(sidebarSearch) sidebarSearch.value=''; mapSavePromise = Promise.resolve(); G = blank(); banner = null; view = 'topic'; renderList(); renderMain(true); setTimeout(() => document.querySelector('.cg-topic')?.focus(), 50); }
 
 // ---------------------------------------------------------------- timing rules in plain English, with suggestions to click
 const TIMING_IDEAS = ['3 lessons a week', '2 lessons a week', '50-minute lessons', '60-minute lessons', 'about 6 weeks', 'about 14 lessons in total', 'an end-of-unit test in the last lesson', 'one lesson for feedback and reteaching', 'a practical in the middle of the unit', 'fewer lessons in the last week because of events'];
@@ -311,8 +318,8 @@ function build() {
       h('button', {class:'cg-ghost',type:'button',onclick:newPrepGuide},'Create a Prep unit  →')),
     h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Private to you'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
   if (work) return [stepper(), workCard()];
-  if (G.mapRef && !isPrepGuide(G) && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
-  return [stepper(), bannerEl(), view === 'topic' ? topicCard() : view === 'outline' && (hasStatements(G) || isPrepGuide(G)) ? (isPrepGuide(G) ? prepOutlineCard() : outlineCard()) : G.plan ? guideView() : topicCard()];
+  if (G.mapRef && !isPrepGuide(G) && !isEalGuide(G) && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
+  return [stepper(), bannerEl(), view === 'topic' ? topicCard() : view === 'outline' && (hasStatements(G) || isPrepGuide(G) || isEalGuide(G)) ? (isPrepGuide(G) ? prepOutlineCard() : isEalGuide(G) ? ealOutlineCard() : outlineCard()) : G.plan ? guideView() : topicCard()];
 }
 
 function workCard() {
@@ -324,6 +331,7 @@ function workCard() {
 
 function topicCard() {
   if (isPrepGuide(G)) return prepTopicCard();
+  if (isEalGuide(G)) return ealTopicCard();
   const yd = docs.filter(d => (d.years || JUNIOR).includes(G.year));
   // The subject filters the document list: a Science guide only offers the Science document (clear the subject to see everything).
   const subj = (G.subject || '').trim().toLowerCase();
@@ -394,7 +402,7 @@ function topicCard() {
     h('div', {class: 'cg-grid'},
       field('Subject', h('div', {}, h('input', {type: 'text', list: 'cg-subjects', value: G.subject || '', placeholder: 'e.g. Science', 'aria-label': 'Subject', onchange: e => {
           if (G.subject.trim().toLowerCase() !== e.target.value.trim().toLowerCase()) {
-            G.prepLoaded=[]; resetPrepView(G);
+            G.prepLoaded=[]; G.ealLoaded=[]; resetPrepView(G); resetEalView(G);
             G.statements={knowledge:[],practices:[]}; G.selected={knowledge:[],practices:[]};
             G.bankYears=[]; G.bankLoaded=false; activeStatementYear=Number(G.year);
             if (G.plan) banner={kind:'note',text:'Your previous draft is kept. Find the new subject’s official statements and redraft this unit before using it.'};
@@ -519,6 +527,144 @@ async function openPrepTab(sourceId,level) {
     if(G===guide){prepLoading='';renderMain();}
   }
 }
+// ---- English as an Additional Language (EAL), 2026 Stage 1–5 curriculum ----
+// Stages are proficiency markers; never infer stage from the school year.
+const ealRows=(guide,key,stage=ealActiveStage)=>(guide.statements[key]||[]).filter(s=>
+  s.ealStage===stage || (s.source?.includes('Stage '+stage.slice(-1)) &&
+    (s.ealStage==null||s.ealStage===stage)));
+const ealCount=(guide,stage)=>['knowledge','practices'].reduce((sum,key)=>
+  sum+ealRows(guide,key,stage).filter(s=>guide.selected[key].includes(s.id)).length,0);
+const updateEalSelectedStages=guide=>{
+  guide.stages=EAL_STAGES.filter(stage=>ealCount(guide,stage)>0);
+  guide.stage=guide.stages[0]||'';
+};
+async function openEalStage(stage){
+  if(!isEalGuide(G)||!EAL_STAGES.includes(stage)||ealLoading)return;
+  ealActiveStage=stage;statementFilter='';ealError='';
+  const guide=G;
+  if((guide.ealLoaded||[]).includes(stage)){renderMain();return;}
+  ealLoading=stage;renderMain();
+  try{
+    const read=async()=>{
+      const query=new URLSearchParams({action:'novice-bank',doc_id:EAL_DOC_ID,stage});
+      const response=await fetch(CS.api+'?'+query,{credentials:'same-origin',cache:'no-store'});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||!data.ok)throw Error(data.error||'Could not retrieve '+stage+' statements.');
+      return data;
+    };
+    let bank=await read();
+    for(const part of bank.missing||[]){
+      if(G!==guide)return;
+      await post('novice-bank-build',{doc_id:EAL_DOC_ID,stage,chunk:part});
+    }
+    if(!bank.complete)bank=await read();
+    if(!bank.complete)throw Error('The '+stage+' list is incomplete; retry this stage.');
+    if(G!==guide)return;
+    const byKind={
+      knowledge:new Set(ealRows(guide,'knowledge',stage).map(s=>s.text.trim().toLocaleLowerCase())),
+      practices:new Set(ealRows(guide,'practices',stage).map(s=>s.text.trim().toLocaleLowerCase()))
+    };
+    for(const [i,r] of (bank.items||[]).entries()){
+      const key=r.kind==='practice'?'practices':'knowledge',phrase=String(r.text||'').trim();
+      if(!phrase||byKind[key].has(phrase.toLocaleLowerCase()))continue;
+      byKind[key].add(phrase.toLocaleLowerCase());
+      guide.statements[key].push({id:'eal:'+stage.replace(' ','-')+':'+key+':'+i,
+        text:phrase,subject:'English as an Additional Language',
+        ealStage:stage,source:'EAL '+stage+(r.source?' · '+r.source:''),
+        why:'Official '+stage+' statement selected by the teacher',
+        link:'unmatched',confidence:null});
+    }
+    guide.ealLoaded=[...new Set([...(guide.ealLoaded||[]),stage])];
+    save();
+  }catch(error){if(G===guide)ealError=error.message||'Could not read '+stage+'.';}
+  finally{if(G===guide){ealLoading='';renderMain();}}
+}
+function languageReferencesField(guide){
+  return field('Supporting methodology / vocabulary references',
+    area(guide.languageReferences||'',v=>{guide.languageReferences=v;save();},5),
+    'Optional: paste short extracts from approved teaching guidance, vocabulary lists, or exact language/meaning pairs. These inform planning but are not curriculum statements. Do not include student information or confidential material.');
+}
+function ealTopicCard(){
+  const canStart=!!G.topic.trim();
+  const begin=()=>{
+    if(!G.topic.trim())return;
+    G.docId=EAL_DOC_ID;view='outline';renderMain(true);openEalStage(ealActiveStage);
+  };
+  return h('section',{class:'cg-card'},
+    h('h2',{},'English as an Additional Language (EAL)'),
+    h('p',{class:'lead'},'Use the October 2026 curriculum. Browse Stage 1–5 independently of year level and combine stages for mixed-proficiency classes.'),
+    h('input',{class:'cg-topic',type:'text',value:G.topic||'',placeholder:'e.g. Everyday conversations and short texts',
+      'aria-label':'EAL unit title',oninput:e=>{G.topic=e.target.value;save();const button=document.getElementById('cg-eal-begin');if(button)button.disabled=!G.topic.trim();}}),
+    h('div',{class:'cg-prep-unit-year'},
+      h('span',{class:'cg-prep-label'},'Class year (administrative only; not an EAL stage)'),
+      h('div',{class:'cg-seg',role:'group','aria-label':'Year of EAL class'},
+        [9,10,11,12,13].map(y=>h('button',{type:'button',class:G.year===y?'on':'',
+          'aria-pressed':G.year===y?'true':'false',onclick:()=>{G.year=y;save();renderMain();}},'Year '+y))),
+      h('p',{class:'cg-mut'},'Stage selection is separate. A student may be at different stages in reading, writing, listening and speaking.')),
+    timingField(),
+    field('Unit context / teacher notes',area(G.notes,v=>{G.notes=v;save();},3)),
+    languageReferencesField(G),
+    h('div',{class:'cg-actions'},
+      h('button',{id:'cg-eal-begin',class:'cg-btn lg',type:'button',disabled:!canStart,onclick:begin},
+        hasStatements(G)?'Continue selecting EAL statements  →':'Choose Stage 1–5 statements  →'),
+      resetLink()));
+}
+function ealOutlineCard(){
+  const stage=ealActiveStage,busy=!!ealLoading;
+  const count=G.selected.knowledge.length+G.selected.practices.length;
+  const column=(key,title)=>h('div',{class:'cg-prep-column'},
+    h('div',{class:'cg-colhead'},h('h3',{},title+' ',
+      h('span',{class:'cg-chip'},ealRows(G,key,stage).filter(s=>G.selected[key].includes(s.id)).length+'/'+ealRows(G,key,stage).length))),
+    ...ealRows(G,key,stage).filter(s=>!statementFilter||s.text.toLocaleLowerCase().includes(statementFilter))
+      .map(s=>h('label',{class:'cg-stmt'+(G.selected[key].includes(s.id)?' on':'')},
+        h('input',{type:'checkbox',checked:G.selected[key].includes(s.id),onchange:e=>{
+          G.selected[key]=e.target.checked?[...new Set([...G.selected[key],s.id])]:
+            G.selected[key].filter(id=>id!==s.id);
+          updateEalSelectedStages(G);save();
+          if(G.mapRef){
+            const guide=G;
+            mapSavePromise=mapSavePromise.catch(()=>{}).then(()=>persistMapStatements(guide));
+            mapSavePromise.catch(error=>{
+              if(G!==guide)return;
+              banner={kind:'err',text:'Could not save EAL map statements: '+error.message};
+              renderMain();
+            });
+          }
+          renderMain();
+        }}),
+        h('div',{},h('p',{},s.text),h('small',{},'EAL · '+stage)),
+      )));
+  return h('section',{class:'cg-prep-outline cg-eal-outline'},
+    h('div',{class:'cg-outhead'},
+      h('div',{},h('h2',{},'EAL curriculum outline'),
+        h('p',{class:'cg-mut'},'Choose official Knowledge and Practices from any of the five proficiency stages. Your selections remain checked across tabs.')),
+      h('div',{class:'cg-chips'},h('span',{class:'cg-chip acc'},G.topic),
+        h('span',{class:'cg-chip'},'Class Year '+G.year))),
+    h('div',{class:'cg-prep-level-tabs cg-eal-tabs',role:'tablist','aria-label':'EAL stages'},
+      ...EAL_STAGES.map(s=>h('button',{type:'button',role:'tab',
+        'aria-selected':s===stage?'true':'false',class:'cg-year-tab'+(s===stage?' on':''),
+        disabled:busy,onclick:()=>openEalStage(s)},s,
+        ealCount(G,s)?h('span',{class:'cg-year-count'},String(ealCount(G,s))):null))),
+    h('p',{class:'cg-prep-context'},'The selected curriculum is proficiency-based, not Year 11–13 by stage. The stages are not automatically mapped to a school year.'),
+    busy?h('div',{class:'cg-year-loading',role:'status'},'Loading '+ealLoading+' official curriculum statements. Uncached sections may use Claude credits.'):null,
+    ealError?h('div',{class:'cg-prep-error',role:'alert'},
+      h('p',{},ealError),
+      h('button',{type:'button',class:'cg-ghost',onclick:()=>openEalStage(stage)},'Try loading '+stage+' again')):null,
+    !busy&&!ealError?h('input',{type:'search',class:'cg-bank-search',
+      placeholder:'Search '+stage+' statements…','aria-label':'Search EAL stage',
+      value:statementFilter,oninput:e=>{statementFilter=e.target.value.trim().toLocaleLowerCase();renderMain();}}):null,
+    !busy&&!ealError?h('div',{class:'cg-cols'},column('knowledge','Knowledge'),column('practices','Practices')):null,
+    !busy&&!ealError&&!ealRows(G,'knowledge').length&&!ealRows(G,'practices').length?
+      h('div',{class:'cg-year-empty'},h('p',{},'No official '+stage+' statements loaded.'),
+        h('button',{type:'button',class:'cg-ghost',onclick:()=>openEalStage(stage)},'Load this stage')):null,
+    h('div',{class:'cg-bar'},
+      h('div',{},h('b',{},String(count)),' selected across '+(G.stages||[]).length+' stages'),
+      h('div',{class:'cg-actions',style:'margin:0'},
+        h('button',{type:'button',class:'cg-ghost',onclick:()=>{view='topic';renderMain(true);}},'← Edit EAL unit'),
+        h('button',{class:'cg-btn',type:'button',disabled:busy||!count,onclick:generate},
+          G.plan?'Redraft EAL unit  →':'Draft EAL unit  →'),resetLink())));
+}
+
 function prepTopicCard(){
   const canStart=!!G.topic.trim();
   const choose=()=>{if(!G.topic.trim())return;view='outline';renderMain(true);openPrepTab(prepSourceId,prepActiveYear);};
@@ -1010,7 +1156,7 @@ function browseOfficialStatements() {
 }
 function find() {
   return run('Finding your curriculum statements', ['Reading the Ministry curriculum…', 'Matching statements to your unit…', 'Checking every word against the source…'], async signal => {
-    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
+    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: planStages(G), topic: G.topic, notes: G.notes, pasted: G.pasted}, signal);
     G.statements = {knowledge: r.knowledge, practices: r.practices};
     G.selected = {knowledge: r.knowledge.filter(s => s.link !== 'loose').map(s => s.id), practices: r.practices.filter(s => s.link !== 'loose').map(s => s.id)};
     G.bankLoaded = false; G.bankYears = [];
@@ -1037,7 +1183,7 @@ function find() {
 function generate() {
   return run('Drafting your unit plan', ['Reading your selected statements…', 'Planning the learning focuses…', 'Checking the wording matches the curriculum…'], async signal => {
     if (G.mapRef) await mapSavePromise;
-    const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, statements: G.statements, selected: G.selected, prep: isPrepGuide(G), existingPlan: G.plan, mapRef: G.mapRef}}, signal);
+    const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, languageReferences: G.languageReferences||'', statements: G.statements, selected: G.selected, prep: isPrepGuide(G), existingPlan: G.plan, mapRef: G.mapRef}}, signal);
     const notice = r.statementNotice; delete r.statementNotice;
     G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear();
     banner = notice ? {kind: 'note', text: 'Your draft is ready. ' + notice} : {kind: 'ok', text: 'Your draft is ready. Review it, edit anything, then download it.'};
