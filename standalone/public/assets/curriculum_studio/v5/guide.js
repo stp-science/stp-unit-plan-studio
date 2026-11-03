@@ -1032,12 +1032,14 @@ async function pullMapStatements(guide) {
     const source = prep ? PREP_SOURCES.find(s=>s.id===x.doc_id ||
       String(x.source||'').startsWith(s.label+' — ')) : null;
     const stage = /\bNovice [123]\b/.exec(String(x.source||''))?.[0];
+    const ealStage = /\bStage [1-5]\b/.exec(String(x.source||''))?.[0];
     const fromYear = /\bYear\s*(7|8)\b/i.exec(String(x.source||''))?.[1];
     return {id:p+(i+1),text:x.text,source:x.source||'',confidence:x.confidence,
       link:'strong',why:'',subject:source?.label||guide.subject||'',
       ...(source?{prepSourceId:source.id}:{}),
       ...(source?.novice && stage?{prepStage:stage}:{}),
-      ...(source && !source.novice && fromYear?{curriculumYear:Number(fromYear)}:{})};
+      ...(source && !source.novice && fromYear?{curriculumYear:Number(fromYear)}:{}),
+      ...(isEalGuide(guide)&&ealStage?{ealStage}: {})};
   });
   const next = {knowledge: mk('knowledge', 'k'), practices: mk('practice', 'p')};
   const selectedKey = (st,chosen) => ['knowledge','practices'].flatMap(k=>st[k].filter(x=>chosen[k].includes(x.id)).map(x=>x.text)).join('\n');
@@ -1046,6 +1048,11 @@ async function pullMapStatements(guide) {
   guide.selected = {knowledge: next.knowledge.map(x => x.id), practices: next.practices.map(x => x.id)};
   guide.bankLoaded = false; guide.bankYears = [];
   if (isPrepGuide(guide)) guide.prepLoaded = [];
+  if (isEalGuide(guide)) {
+    guide.docId = EAL_DOC_ID;
+    guide.ealLoaded = [];
+    updateEalSelectedStages(guide);
+  }
   if (changed || resolvedSource) { guide.docId = guide.docId || (rows[0] && rows[0].doc_id) || ''; if (G === guide) save(); }
   return changed;
 }
@@ -1372,13 +1379,15 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abor
     const q = new URLSearchParams(location.search);
     if (q.get('blank')) { history.replaceState(null, '', location.pathname + '?guide=1'); newGuide(); }
     else if (q.get('topic')) {   // arriving from the curriculum map: reopen the guide for that topic, or start one with the topic filled in
-      const subj = q.get('subject') || '', yr = parseInt(q.get('year'), 10) || 7, stage = NOVICE.includes(q.get('stage')) ? q.get('stage') : '', topic = q.get('topic');
+      const subj = q.get('subject') || '', yr = parseInt(q.get('year'), 10) || 7,
+        stage = [...NOVICE,...EAL_STAGES].includes(q.get('stage')) ? q.get('stage') : '', topic = q.get('topic');
       history.replaceState(null, '', location.pathname + '?guide=1');
       const mref = q.get('dept') && q.get('mt') ? {department_id: parseInt(q.get('dept'), 10), topic_id: q.get('mt')} : null;
       const ex = guides.find(g => (g.topic || '').toLowerCase() === topic.toLowerCase() && Number(g.year) === yr && (g.stage || '') === stage && (g.subject || '').toLowerCase() === subj.toLowerCase());
       if (ex) { if (mref && (!ex.mapRef || ex.mapRef.department_id !== mref.department_id || ex.mapRef.topic_id !== mref.topic_id)) { ex.mapRef = mref; G = ex; save(); } open(ex.id); }
       else {
         newGuide(); G.topic = topic; G.subject = subj; G.year = yr; activeStatementYear = yr; G.stage = stage; G.stages = stage ? [stage] : []; G.mapRef = mref;
+        if(isEalGuide(G)){G.docId=EAL_DOC_ID;G.year=yr>=9&&yr<=13?yr:11;resetEalView(G);}
         const d = docs.find(x => (x.years || JUNIOR).includes(yr) && [x.subject, x.learningArea].some(n => (n || '').toLowerCase() === subj.toLowerCase())); if (d) G.docId = d.id;
         renderMain();
         if (mref) { const g = G; pullMapStatements(g).then(() => { if (G === g) { if (!lastPull.ok) banner = {kind: 'err', text: lastPull.error + ' Press “Use the statements from the curriculum map” to try again.'}; view = hasStatements(g) ? 'outline' : 'topic'; renderList(); renderMain(); } }); }
