@@ -1416,7 +1416,9 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abor
     for (const g of guides) if (g.plan) normalisePlan(g.plan);
     renderList(); renderMain();
     const q = new URLSearchParams(location.search);
-    if (q.get('blank')) { history.replaceState(null, '', location.pathname + '?guide=1'); newGuide(); }
+    if (q.get('new-eal')) { history.replaceState(null, '', location.pathname + '?guide=1'); newEalGuide(); }
+    else if (q.get('new-prep')) { history.replaceState(null, '', location.pathname + '?guide=1'); newPrepGuide(); }
+    else if (q.get('blank')) { history.replaceState(null, '', location.pathname + '?guide=1'); newGuide(); }
     else if (q.get('topic')) {   // arriving from the curriculum map: reopen the guide for that topic, or start one with the topic filled in
       const subj = q.get('subject') || '', yr = parseInt(q.get('year'), 10) || 7,
         stage = [...NOVICE,...EAL_STAGES].includes(q.get('stage')) ? q.get('stage') : '', topic = q.get('topic');
