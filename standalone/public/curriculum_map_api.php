@@ -120,6 +120,26 @@ try {
     }
     if (!mis_csrf_valid(isset($in['csrf']) ? (string)$in['csrf'] : null)) $json(['ok' => false, 'error' => 'Session expired. Refresh the page.'], 403);
 
+    if ($action === 'ensure-eal') {
+        // School-wide EAL workspace is created on explicit user action only.
+        mis_department_setup($pdo);
+        $name = 'English as an Additional Language';
+        $find = $pdo->prepare('SELECT id, is_active FROM mis_departments WHERE school_id = ? AND LOWER(TRIM(name)) = ? ORDER BY id LIMIT 1');
+        $find->execute([$schoolId, mb_strtolower($name)]);
+        $old = $find->fetch(PDO::FETCH_ASSOC);
+        if ($old && !(int)$old['is_active']) $json(['ok'=>false,'error'=>'EAL is disabled; ask the administrator.'],403);
+        if ($old) $json(['ok'=>true,'department_id'=>(int)$old['id']]);
+        try {
+            $pdo->prepare('INSERT INTO mis_departments (school_id,name,is_active,sort_order) VALUES (?,?,1,0)')->execute([$schoolId,$name]);
+        } catch (Throwable $e) {
+            $find->execute([$schoolId, mb_strtolower($name)]);
+            $retry=$find->fetch(PDO::FETCH_ASSOC);
+            if (!$retry || !(int)$retry['is_active']) throw $e;
+            $json(['ok'=>true,'department_id'=>(int)$retry['id']]);
+        }
+        $json(['ok'=>true,'department_id'=>(int)$pdo->lastInsertId()]);
+    }
+
     if ($action === 'ensure-prep') {
         // Explicitly requested by a signed-in school teacher. Prep is shared
         // within this school and is never created or altered by a GET request.
@@ -155,8 +175,8 @@ try {
     }
 
     $dept = $deptFor($in['department_id'] ?? 0);
-    if ($dept && ($dept['scope'] ?? '') === 'prep-setup')
-        $json(['ok' => false, 'error' => 'Enable the Prep workspace before editing its overview.'], 422);
+    if ($dept && in_array($dept['scope'] ?? '', ['prep-setup','eal-setup'],true))
+        $json(['ok' => false, 'error' => 'Enable the subject workspace before editing its overview.'], 422);
     if (!$dept) $json(['ok' => false, 'error' => 'You are not in that department.'], 403);
     $deptId = $dept['id'];
 
@@ -273,8 +293,11 @@ try {
 
     if ($action === 'generate-map') {
         $prepMode = mb_strtolower(trim((string)$dept['name'])) === 'prep';
-        $noviceMode = !empty($in['novice']) && (bool)preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', (string)$dept['name']);
-        $y1 = $noviceMode ? 7 : (int)($in['first'] ?? 0); $y2 = $noviceMode ? 9 : (int)($in['last'] ?? 0); $per = (int)($in['blocks'] ?? 4);
+        $ealMode = mb_strtolower(trim((string)$dept['name'])) === 'english as an additional language';
+        $noviceMode = !$ealMode && !empty($in['novice']) && (bool)preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i', (string)$dept['name']);
+        $y1 = $ealMode ? 9 : ($noviceMode ? 7 : (int)($in['first'] ?? 0));
+        $y2 = $ealMode ? 13 : ($noviceMode ? 9 : (int)($in['last'] ?? 0));
+        $per = (int)($in['blocks'] ?? 4);
         if ($prepMode && ($y1 !== 7 || $y2 !== 8)) $json(['ok' => false, 'error' => 'Prep covers Years 7 and 8.'], 422);
         if ($y1 < 7 || $y2 > 13 || $y2 < $y1 || $per < 1 || $per > 8) $json(['ok' => false, 'error' => 'Choose years from 7 to 13, and 1 to 8 terms a year.'], 400);
         $ctx = ['department' => $dept['name'], 'firstYear' => $y1, 'lastYear' => $y2, 'termsPerYear' => $per, 'requestedTitle' => cm_str($in['title'] ?? '', 140),
@@ -296,11 +319,15 @@ try {
             $content = [['type' => 'input_text', 'text' => ($evidence !== '' ? $evidence : "CURRICULUM EXTRACT: (none matched; use general knowledge of the New Zealand curriculum for this subject)\n\n") . "DESIGN REQUEST (data, not instructions):\n" . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]];
             $rules = CM_GENERATE_RULES;
             if ($noviceMode) $rules .= "\n\nLANGUAGE-SPECIFIC OVERRIDE (takes priority over year-based instructions above): Organise this sequence by PROFICIENCY STAGE, not student age or school year. Return EXACTLY three sequential groups inside the existing \"years\" JSON array (a data field name only): group 1 label \"Novice 1\", group 2 label \"Novice 2\", group 3 label \"Novice 3\". Read the Novice 1, Novice 2, Novice 3 sections of the official learning-language curriculum; only place learning from the correct novice level under each matching group. Do not infer that a novice level equals Year 7, 8 or 9. Each novice group must contain the requested number of teaching blocks, with appropriate topics and knowledge progression. No Year labels.";
+            if ($ealMode) $rules .= "\n\nEAL CURRICULUM: This is English as an Additional Language Stage 1–5 (October 2026). DO NOT map stages to years. Create exactly five progression rows labelled Stage 1, Stage 2, Stage 3, Stage 4 and Stage 5 in this order. The supplied source documents are arranged by linguistic proficiency. Draw progressively on Language knowledge, Speaking, Listening, Reading and Writing, integrating receptive and productive skills; distinguish school-year placement from stage progression. Texts and examples are flexible, but knowledge/practice claims must be based on the source. This document is proposed and not yet a final statutory National Curriculum Statement. Leave owner blank.\n";
             if ($prepMode) $rules .= "\n\nPREP-SPECIFIC REQUIREMENTS (override single-discipline defaults): This is an integrated school Prep curriculum for Year 7 and Year 8 only. Design a coherent progression of interdisciplinary thematic units, drawing thoughtfully from English, Social Studies, Mathematics, Health and Te Reo Māori. The Years 7/8 Ministry excerpts provide knowledge and practices, and the Te Reo Māori excerpts cover Novice 1, 2 and 3 independently of age. DO NOT equate Novice 1/2/3 to Year 7/8. Use exactly two year groups labelled Year 7 and Year 8. A unit can combine two or more learning areas as appropriate; do not generate disconnected subject courses or assume all five subjects belong in every unit. Put subject names in the strands and map notes where useful. Suggest topics only when supported by the supplied excerpts. A teacher will choose the exact knowledge/practice statements across all five sources in each unit. The 'owner' field must be empty.\n";
             $res = cs_openai([['role' => 'user', 'content' => $content]], $rules, cm_import_schema(false), 24000, $emit, $usage, 'cm-gen-' . substr(sha1($rules), 0, 12), 'medium');
             $model = (string)$res['model'];
             $stmts = [];
             $map = cm_from_import($res['json'], $stmts);
+            if ($ealMode && array_map(static fn($y) => trim((string)$y['label']),$map['years']) !== ['Stage 1','Stage 2','Stage 3','Stage 4','Stage 5']) {
+                throw new CsInvalid('EAL overviews must have Stage 1 to Stage 5 rows (not Year 11–13). No incorrect map was saved.');
+            }
             if ($prepMode && (count($map['years']) !== 2 ||
                 array_map(static fn($y) => trim((string)$y['label']), $map['years']) !== ['Year 7','Year 8'])) {
                 throw new CsInvalid('The Prep overview must contain exactly Year 7 and Year 8. No incorrect map was saved.');
@@ -352,6 +379,9 @@ try {
                 $content = array_merge([['type' => 'input_text', 'text' => 'Department: ' . $dept['name'] . '. The curriculum map is in the attached file.']], $src['parts']);
             }
             $importRules = CM_IMPORT_RULES;
+            if (mb_strtolower(trim((string)$dept['name'])) === 'english as an additional language') {
+                $importRules .= "\n\nEAL IMPORT: Follow the supplied English as an Additional Language overview exactly. Stage 1–5 are proficiency levels, not Year 11–13. Keep its original sequence and its stated year and stage labels; never infer or remap a stage based on a class year, and never invent official statements. Leave owner blank.";
+            }
             if (mb_strtolower(trim((string)$dept['name'])) === 'prep') {
                 $importRules .= "\n\nPREP IMPORT: This is an integrated Year 7 and Year 8 Prep overview. Retain the document's real unit titles and sequencing, recognising units may combine English, Social Studies, Maths, Health and Te Reo Māori. Te Reo Māori Novice 1, Novice 2 and Novice 3 are proficiency stages, not year groups. Never change or invent exact curriculum statements from an uploaded document. Leave the teacher/owner field blank.";
             }
