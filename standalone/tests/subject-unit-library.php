@@ -11,12 +11,14 @@ foreach ([
  'function libraryView()',
  "class:'cg-library-tile'",
  'function backToLibrary()',
- "shellEl.classList.add('is-full')",
+ "shellEl.classList.toggle('is-full',!!G)",
  "librarySubject=st.subject||null",
  'pendingSaveTimers = new Map()',
- 'function subjectDirectoryView()',
- "class:'cg-subject-card'",
- "class:'cg-subject-directory'"
+ "class:'cg-side-subject'",
+ "class:'cg-side-subjects'",
+ "if (!G) return [libraryView()]",
+ "class:'cg-shell'",
+ "function libraryView()"
 ] as $required) {
     if (!str_contains($js,$required))
         throw new RuntimeException('Subject library regression: '.$required);
@@ -28,9 +30,9 @@ foreach ([
  'three-column desktop tile grid' => '/\\.cg-library-grid\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(3\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
  'two-column medium-screen grid' => '/@media\\s*\\(max-width\\s*:\\s*1080px\\)[^{]*\\{\\s*\\.cg-library-grid\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(2\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
  'single-column small-screen grid' => '/@media\\s*\\(max-width\\s*:\\s*640px\\)[^{]*\\{\\s*\\.cg-library-grid\\s*\\{[^}]*grid-template-columns\\s*:\\s*minmax\\(0\\s*,\\s*1fr\\)/s',
- 'three-column subject directory' => '/\\.cg-subject-directory\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(3\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
- 'two-column subject directory' => '/@media\\s*\\(max-width\\s*:\\s*1000px\\)[^{]*\\{\\s*\\.cg-subject-directory\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(2\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
- 'single-column mobile subjects' => '/@media\\s*\\(max-width\\s*:\\s*640px\\)[^{]*\\{\\s*\\.cg-subject-directory\\s*\\{[^}]*grid-template-columns\\s*:\\s*minmax\\(0\\s*,\\s*1fr\\)/s',
+ 'three-column sidebar subjects' => '/\\.cg-side-subjects\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(3\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
+ 'two-column mobile sidebar' => '/@media\\s*\\(max-width\\s*:\\s*470px\\)[^{]*\\{\\s*\\.cg-side-subjects\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(2\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
+ 'left column remains visible' => '/\\.cg-shell:not\\(\\.is-full\\)\\s*\\{[^}]*grid-template-columns\\s*:\\s*395px\\s+minmax\\(0\\s*,\\s*1fr\\)/s',
 ] as $label => $pattern) {
     if (!preg_match($pattern, $css))
         throw new RuntimeException('Responsive layout regression: '.$label);
@@ -52,4 +54,4 @@ foreach ([
 }
 if (str_contains($js,"sidebarGroupsOpen") || str_contains($js,"cg-subject-items"))
     throw new RuntimeException('Cramped expand-all sidebar has returned.');
-echo "Three-column responsive subject directory, full-width unit plan tiles, navigation and autosave checks passed.\n";
+echo "Persistent three-column subject sidebar, right-side unit tiles, no blank landing page, responsive layout and autosave checks passed.\n";
