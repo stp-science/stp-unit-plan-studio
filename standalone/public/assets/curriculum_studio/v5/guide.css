@@ -370,3 +370,45 @@ body[data-page="curriculum-studio"] .cg-new-prep:hover{background:rgba(130,173,1
 .cg-focus .cg-chev{min-width:35px;min-height:35px;border:1px solid #d6e0e4;color:#001733;background:#f2f6f8}
 .cg-focus .cg-chev:hover{background:#e2edf2}
 @media(max-width:680px){.cg-review-list{grid-template-columns:1fr}.cg-review{padding:15px}}
+
+/* Saved-plan library: subject/count navigation, then spacious tile list. */
+.cg-shell.is-full{grid-template-columns:minmax(0,1fr);gap:0}
+.cg-shell.is-full .cg-side{display:none!important}
+.cg-shell.is-full>div:last-child{min-width:0;width:100%}
+.cg-library-page{min-width:0}
+.cg-library-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:3px 0 18px}
+.cg-library-head h1{font-size:clamp(23px,2.2vw,31px);line-height:1.25;color:#001733;margin:10px 0 4px}
+.cg-library-head p{color:#526879;font-size:14px;margin:0;line-height:1.5}
+.cg-library-back{display:inline-flex;padding:6px 0;border:0;background:transparent;color:#9a0021;font-size:13px;font-weight:750}
+.cg-library-back:hover{text-decoration:underline}
+.cg-library-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 18px}
+.cg-library-search{min-width:200px;max-width:480px;flex:1;padding:12px 15px;border:1px solid #bfced6;border-radius:10px;font-size:14px;color:#001733;background:#fff}
+.cg-library-search:focus-visible{outline:3px solid #82adbf;outline-offset:2px}
+.cg-library-results{font-size:13px;color:#526879;margin:0}
+.cg-library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.cg-library-tile{display:flex;flex-direction:column;align-items:stretch;gap:14px;min-width:0;min-height:190px;text-align:left;
+  padding:20px;border:1px solid #d3e0e7;border-top:4px solid #82adbf;border-radius:13px;background:#fff;
+  box-shadow:0 3px 13px rgba(0,23,51,.07);color:#001733;transition:border-color .15s,box-shadow .15s,transform .15s}
+.cg-library-tile:hover{border-color:#cf082b;box-shadow:0 8px 22px rgba(0,23,51,.12);transform:translateY(-2px)}
+.cg-library-tile-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.cg-library-year{font-size:12px;color:#001733;background:#e5f0f4;border-radius:99px;font-weight:700;padding:5px 9px}
+.cg-library-status{font-size:11px;color:#6e4d00;background:#fff4d8;border-radius:99px;padding:5px 9px;font-weight:700}
+.cg-library-status.drafted{background:#e6f4eb;color:#165b37}
+.cg-library-tile strong{font-size:18px;line-height:1.32;overflow-wrap:anywhere}
+.cg-library-tile-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px;margin-top:auto}
+.cg-library-tile-bottom small{color:#526879;font-size:12px}
+.cg-library-tile-bottom>span{color:#b30a2a;font-size:13px;font-weight:800}
+.cg-library-empty{grid-column:1/-1;padding:24px;border:1px dashed #abc5d2;border-radius:12px;color:#526879;background:#f2f7f9}
+.cg-editor-back{margin:0 0 15px}
+body[data-page="curriculum-studio"] .cg-list{overflow:auto;min-height:0}
+body[data-page="curriculum-studio"] .cg-library-subject{border:1px solid rgba(130,173,191,.28);border-radius:9px;background:rgba(255,255,255,.055);min-height:49px;margin-bottom:7px;padding:10px 13px}
+body[data-page="curriculum-studio"] .cg-library-subject:hover{background:rgba(130,173,191,.19)}
+body[data-page="curriculum-studio"] .cg-library-subject .cg-subject-name{font-size:13.5px;white-space:normal;overflow-wrap:anywhere}
+body[data-page="curriculum-studio"] .cg-library-subject .cg-subject-count{min-width:30px;font-size:12px;padding:4px 8px}
+body[data-page="curriculum-studio"] .cg-library-subject .cg-subject-arrow{font-size:19px;width:auto;line-height:1}
+@media(max-width:1080px){.cg-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.cg-library-grid{grid-template-columns:minmax(0,1fr)}
+  .cg-library-head .cg-btn{width:100%;justify-content:center}
+  .cg-library-tile{min-height:155px;padding:17px}
+  .cg-library-toolbar{align-items:stretch}.cg-library-search{min-width:0;max-width:none;flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.cg-library-tile{transition:none}.cg-library-tile:hover{transform:none}}
