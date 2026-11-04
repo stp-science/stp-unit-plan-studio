@@ -74,7 +74,8 @@ function cm_audit_xlsx(array $report): string
     $tmp=tempnam(sys_get_temp_dir(),'cm-audit-');
     if($tmp===false)throw new RuntimeException('Could not create temporary export.');
     $zip=new ZipArchive();
-    if($zip->open($tmp,ZipArchive::OVERWRITE)!==true){@unlink($tmp);throw new RuntimeException('Cannot create audit workbook.');}
+    if($zip->open($tmp,ZipArchive::CREATE|ZipArchive::OVERWRITE)!==true){@unlink($tmp);throw new RuntimeException('Cannot create audit workbook.');}
+    $closed=false;
     try{
         foreach([
             '[Content_Types].xml'=>$types,
@@ -85,9 +86,10 @@ function cm_audit_xlsx(array $report): string
             'xl/worksheets/sheet1.xml'=>$sheet1,
             'xl/worksheets/sheet2.xml'=>$sheet2,
         ] as $p=>$xml)$zip->addFromString($p,$xml);
-        $zip->close();
+        if(!$zip->close())throw new RuntimeException('Could not complete Excel export.');
+        $closed=true;
         $data=file_get_contents($tmp);
         if(!is_string($data))throw new RuntimeException('Could not read completed Excel workbook.');
         return $data;
-    }finally{if($zip->status===ZipArchive::ER_OK)$zip->close();@unlink($tmp);}
+    }finally{if(!$closed)$zip->close();@unlink($tmp);}
 }
