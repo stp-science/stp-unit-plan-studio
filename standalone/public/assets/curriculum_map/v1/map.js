@@ -1216,7 +1216,15 @@ function working() {
 // many departments: one picker grouped by faculty instead of a row of tabs
 function deptPicker() {
   const groups = new Map();
-  for (const d of S.depts) { const k = d.faculty || 'Other'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(d); }
+  // EAL is a distinct subject under the same faculty heading as English.
+  // Prep remains a separate subject, selectable in the normal department list.
+  const englishGroup = S.depts.find(d => d.name.trim().toLowerCase() === 'english')?.faculty || 'English';
+  for (const d of S.depts) {
+    const isEal = d.name.trim().toLowerCase() === 'english as an additional language';
+    const k = isEal ? englishGroup : (d.faculty || 'Other');
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(d);
+  }
   const sel = h('select', {'aria-label': 'Department', style: 'max-width:380px;font-weight:650', onchange: e => {
     const id = parseInt(e.target.value, 10); e.target.value = String(S.dept?.id);
     if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => selectDepartment(id)); else selectDepartment(id);
@@ -1453,18 +1461,6 @@ function startView() {
   const card = (cls, icon, title, text, tag, attrs) => h(attrs.href ? 'a' : 'button', {class: 'cm-start ' + cls, ...attrs, ...(attrs.href ? {} : {type: 'button'})},
     h('span', {class: 'cm-sico', 'aria-hidden': 'true'}, icon), h('b', {}, title), h('span', {class: 'cm-stext'}, text), tag ? h('span', {class: 'cm-stag'}, tag) : null);
   return h('div', {class: 'cm-in'},
-    h('div', {class: 'cm-hero'}, h('h2', {}, 'What would you like to do?'),
-      h('p', {}, 'Choose where to start. You can always come back here, and the Back button takes you to the last screen you were on.'),
-      !isPrepDepartment() ? h('button',{type:'button',class:'cm-btn sm cm-prep-shortcut',
-        onclick:()=>{const prep=S.depts.find(d=>d.name.trim().toLowerCase()==='prep');
-          if(prep)selectDepartment(prep.id);
-        }},'Switch to Prep curriculum planning') :
-        h('p',{class:'hint'},'Prep is selected. You can create a unit, build the Year 7–8 overview or import an existing Prep overview.'),
-      !isEalDept() ? h('button',{type:'button',class:'cm-btn sm cm-prep-shortcut',
-        onclick:()=>{const eal=S.depts.find(d=>d.name.toLowerCase()==='english as an additional language');
-          if(eal)selectDepartment(eal.id);
-        }},'Switch to EAL curriculum planning') :
-        h('p',{class:'hint'},'EAL is selected. Build or import the Stage 1–5 sequence and choose statements for each unit.')),
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + (isEalDept()?'?guide=1&new-eal=1':isPrepDepartment()?'?guide=1&new-prep=1':'?guide=1&blank=1')}),
       card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
