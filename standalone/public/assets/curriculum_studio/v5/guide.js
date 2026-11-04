@@ -73,7 +73,7 @@ const yearBankLoaded = (guide, year) => (Array.isArray(guide.bankYears) && guide
 const statementsForYear = (guide, key, year) => (guide.statements[key] || []).filter(s =>
   !juniorYearTabs(guide) || statementSourceYear(s,guide) === year);
 let root, listEl, mainEl, shellEl, toastEl;
-let librarySubject = null, libraryQuery = '';
+let librarySubject = null, libraryQuery = '', directoryQuery = '';
 
 const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], ealLoaded: [], languageReferences: '', docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
@@ -146,7 +146,7 @@ function toast(t) {
 }
 
 // ---------------------------------------------------------------- subject library
-// The sidebar shows only subjects and plan counts, never cramped lists of units.
+// The subject directory shows department tiles in three columns; unit plans open on their own page.
 function guideSubject(g) {
   const raw = String(g.subject || g.discipline || docs.find(d => d.id === g.docId)?.subject || '').trim();
   if (!raw) return 'Uncategorised';
@@ -178,7 +178,7 @@ function guideGroups() {
   return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name));
 }
 function returnToSubjects() {
-  G=null; librarySubject=null; libraryQuery=''; view='topic'; banner=null;
+  G=null; librarySubject=null; libraryQuery=''; directoryQuery=''; view='topic'; banner=null;
   renderList(); renderMain(true);
 }
 function showSubjectLibrary(key) {
@@ -195,18 +195,34 @@ function startSubjectGuide(name) {
   renderMain(true);
 }
 function renderList() {
-  const groups=guideGroups();
-  if (!groups.length) {
-    listEl.replaceChildren(h('p',{class:'cg-empty-list'},'Your subjects will appear here.'));
-    return;
-  }
+  const query=directoryQuery.trim().toLocaleLowerCase();
+  const groups=guideGroups().filter(group=>!query||group.name.toLocaleLowerCase().includes(query));
   listEl.replaceChildren(...groups.map(group=>h('button',{
-      type:'button',class:'cg-subject-heading cg-library-subject',
-      'aria-label':group.name+', '+group.plans.length+' unit plans',
+      type:'button',class:'cg-subject-card',
+      'aria-label':'View '+group.name+': '+group.plans.length+' saved unit plans',
       onclick:()=>showSubjectLibrary(group.key)},
-    h('span',{class:'cg-subject-name'},group.name),
-    h('span',{class:'cg-subject-count'},String(group.plans.length)),
-    h('span',{class:'cg-subject-arrow','aria-hidden':'true'},'›'))));
+    h('span',{class:'cg-subject-card-head'},
+      h('strong',{},group.name),
+      h('span',{class:'cg-subject-count'},String(group.plans.length))),
+    h('span',{class:'cg-subject-card-foot'},
+      h('span',{},group.plans.length+' saved unit plan'+(group.plans.length===1?'':'s')),
+      h('span',{'aria-hidden':'true'},'View plans →')))));
+  if (!groups.length) listEl.append(h('p',{class:'cg-library-empty'},
+    query?'No subjects match your search.':'Your subjects will appear here.'));
+}
+function subjectDirectoryView() {
+  const count=guideGroups().length;
+  const search=h('input',{type:'search',class:'cg-library-search cg-directory-search',
+    placeholder:'Find a subject…',value:directoryQuery,'aria-label':'Search subjects',
+    oninput:e=>{directoryQuery=e.target.value;renderList();}});
+  return h('section',{class:'cg-subject-directory-page'},
+    h('div',{class:'cg-subject-directory-head'},
+      h('div',{},h('h1',{},'Saved unit plans'),
+        h('p',{},'Choose a subject to see its saved unit plans. Plans open in a spacious editor.')),
+      h('button',{class:'cg-btn',type:'button',onclick:newGuide},'+ New unit plan')),
+    h('div',{class:'cg-library-toolbar'},search,
+      h('span',{class:'cg-library-results'},count+' subjects')),
+    listEl);
 }
 function libraryView() {
   const group=guideGroups().find(g=>g.key===librarySubject);
@@ -345,7 +361,7 @@ addEventListener('popstate', e => {
 
 function renderMain(top) {
   mainEl.classList.toggle('cg-animate', !!top);
-  shellEl.classList.toggle('is-full',!!G || !!librarySubject);
+  shellEl.classList.add('is-full');
   mainEl.replaceChildren(...(G&&!work?[editorLibraryBack()]:[]),...build().filter(Boolean));
   if (top) window.scrollTo?.({top: 0}), mainEl.closest('.workspace')?.scrollTo?.({top: 0});
   const mb = document.querySelector('.cg-mapbtn'); if (mb && mb.lastChild) mb.lastChild.textContent = G && G.mapRef ? ' Back to the curriculum map' : ' Back to start';
@@ -354,12 +370,7 @@ function renderMain(top) {
 
 function build() {
   if (!G && librarySubject) return [libraryView()];
-  if (!G) return [h('section', {class: 'cg-card cg-hero'}, h('h2', {}, 'Choose a subject from the list'),
-
-    h('p', {}, 'Choose a subject on the left to view its unit plans as tiles, or start a new unit plan.'),
-    h('div',{class:'cg-actions'},
-      h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →')),
-    h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Saved in this staff workspace'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
+  if (!G) return [subjectDirectoryView()];
   if (work) return [stepper(), workCard()];
   if (G.mapRef && !isPrepGuide(G) && !isEalGuide(G) && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
   return [stepper(), bannerEl(), view === 'topic' ? topicCard() : view === 'outline' && (hasStatements(G) || isPrepGuide(G) || isEalGuide(G)) ? (isPrepGuide(G) ? prepOutlineCard() : isEalGuide(G) ? ealOutlineCard() : outlineCard()) : G.plan ? guideView() : topicCard()];
@@ -1456,7 +1467,7 @@ async function download() {
 // ---------------------------------------------------------------- start
 root = document.getElementById('cg-root');
 root.className = 'cg';
-listEl = h('div', {class:'cg-list'});
+listEl = h('div', {class:'cg-subject-directory'});
 mainEl = h('div', {});
 toastEl = h('div', {class: 'cg-toast', role: 'status'});
 const mapUrl = () => 'curriculum_studio.php' + (G && G.mapRef ? '?department=' + G.mapRef.department_id : '');
@@ -1464,17 +1475,7 @@ const backBar = h('div', {class: 'cg-backbar'},
   h('a', {class: 'cg-mapbtn', href: 'curriculum_studio.php', onclick: e => { e.preventDefault(); location.href = mapUrl(); }}, h('span', {'aria-hidden': 'true'}, '←'), ' Back to the curriculum map'),
   h('span', {class: 'cg-backhint'}, 'Your department’s year-by-year overview. Open any unit there to build its unit plan.'));
 root.append(backBar);
-shellEl = h('div', {class:'cg-shell'},
-  h('aside',{class:'cg-side','aria-label':'Saved unit plans'},
-    h('div',{class:'cg-schoolbrand'},
-      h('img',{src:'assets/stp-crest.svg',
-        alt:"St Peter's Cambridge school crest",class:'cg-school-logo',referrerpolicy:'no-referrer',loading:'lazy'}),
-      h('span',{class:'cg-schoolwordmark'},"St. Peter's"),
-      h('span',{class:'cg-schoollocation'},'CAMBRIDGE, N.Z.')),
-    h('h2',{},'Saved unit plans'),
-    h('button',{class:'cg-new',type:'button',onclick:newGuide},'＋ New unit plan'),
-    listEl),
-  mainEl);
+shellEl = h('div', {class:'cg-shell is-full'}, mainEl);
 root.append(shellEl,toastEl);
 addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abort(); });
 (async () => {
