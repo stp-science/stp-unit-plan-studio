@@ -44,7 +44,7 @@ $checks=[
  ['EAL plan stage tabs',$guide,'function ealOutlineCard()'],
  ['EAL plan source data',$guide,'EAL_DOC_ID'],
  ['Language reference field',$guide,'Add Word/text reference'],
- ['No invented school links',$guideApi,"foreach (['prior','future'] as \\$key)"],
+ ['No invented school links',$guideApi,'foreach ([\'prior\',\'future\'] as $key)'],
  ['Knowledge summary categories',$guideApi,'Cultural and Sociolinguistic'],
  ['Word statement bullet formatting',$export,'fillStatements(doc,targetCell,f[key])']
 ];
