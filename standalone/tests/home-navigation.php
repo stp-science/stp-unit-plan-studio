@@ -39,5 +39,19 @@ if (str_contains($map,'Switch to Prep curriculum planning') ||
 if (!str_contains($map,"const englishGroup = S.depts.find(") ||
     !str_contains($map,"const k = isEal ? englishGroup"))
  throw new RuntimeException('EAL should be grouped with English subjects.');
+// A page without an explicit subject must not silently show English.
+foreach ([
+  "h('option', {value: '', selected: !S.dept, disabled: true}, 'Choose subject')",
+  "if (!deptId && keepView === 'start')",
+  "Object.assign(S, {dept: null, map: null",
+  "if (!S.dept) {",
+  "if (S.depts.length > 1 || !S.dept)",
+  "{disabled: !S.dept, onclick:"
+] as $required) {
+  if (!str_contains($map, $required))
+    throw new RuntimeException('Default subject selection regression: '.$required);
+}
+if (!str_contains($css,'.cm-choose-hint') || !str_contains($css,'.cm-start:disabled'))
+  throw new RuntimeException('Missing subject-selection guidance and disabled-action styling.');
 if (!str_contains($css,'.cm-knowledge-grid')) throw new RuntimeException('Missing homepage guidance layout.');
 echo "Passed three distinct header modes on both pages, home routing, Ministry link and knowledge-rich curriculum guidance. No API calls.\n";
