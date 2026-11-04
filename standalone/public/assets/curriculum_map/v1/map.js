@@ -1398,7 +1398,7 @@ function render() {
   else if (S.failed) body.push(h('div', {class: 'cm-banner err'}, S.banner.text));
   else if (!S.depts.length) body.push(noDepartment());
   else {
-    if (S.depts.length > 1) body.push(deptPicker());
+    if (S.depts.length > 1 || !S.dept) body.push(deptPicker());
     else if (false) body.push(h("div", {class: "cm-depts", role: 'tablist'}, ...S.depts.map(d => h('button', {type: 'button', role: 'tab', 'aria-selected': String(d.id === S.dept?.id), class: 'cm-dept' + (d.id === S.dept?.id ? ' on' : ''),
       onclick: () => { if (d.id === S.dept?.id) return; if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => load(d.id)); else load(d.id); }}, d.name))));
     else if (S.dept) body.push(h('div', {class: 'cm-meta', style: 'margin:0 0 10px'}, 'Subject: ', h('b', {}, S.dept.name)));
