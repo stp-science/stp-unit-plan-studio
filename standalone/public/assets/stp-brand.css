@@ -88,9 +88,14 @@ body[data-page="curriculum-map"] .cm-card,
 body[data-page="curriculum-map"] .cm-modal{border-color:#dce4e6}
 body[data-page="curriculum-map"] .cm-drop{background:#eef5f7;border-color:#82adbf}
 body[data-page="curriculum-map"] .cm-drop.over{background:#dcecf3}
-body[data-page="curriculum-map"] .cm-chip{color:#001733}
-/* Keep strand-specific curriculum map chip colours: they communicate learning strands. */
-body[data-page="curriculum-map"] .cm-legend .cm-pill{color:#001733}
+/* Use a computed high-contrast foreground for every chosen strand colour.
+   The map supplies --on-c as white on dark colours and navy/black on light colours. */
+body[data-page="curriculum-map"] .cm-chip,
+body[data-page="curriculum-map"] .cm-legend .cm-pill,
+body[data-page="curriculum-map"] .cm-pill,
+body[data-page="curriculum-map"] .cm-tchip{color:var(--on-c,#001733)}
+/* Optional unit titles are on a white inner label, never white text on white. */
+body[data-page="curriculum-map"] .cm-chip.opt b{color:#001733}
 /* The unit-plan editor uses the same accent system and cards. */
 body[data-page="curriculum-studio"] .cg{
   --ink:#001733;--mut:#526b79;--line:#dce4e6;--line2:#eaf0f2;
