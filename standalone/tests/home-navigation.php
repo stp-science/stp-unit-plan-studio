@@ -4,7 +4,7 @@ declare(strict_types=1);
 // resources. No authentication, server writes or external/API requests.
 $public=dirname(__DIR__) . '/public';
 $routes=[
- 'Single unit plan' => 'curriculum_studio.php?guide=1&amp;blank=1',
+ 'Single unit plan' => 'curriculum_studio.php?guide=1',
  'Curriculum overview' => 'curriculum_studio.php?mode=overview&amp;department=',
  'Existing overview' => 'curriculum_studio.php?mode=existing&amp;department='
 ];
@@ -60,6 +60,10 @@ foreach ([
   if (!str_contains($map, $required))
     throw new RuntimeException('Default subject selection regression: '.$required);
 }
+// The homepage opens saved plans for the selected subject instead of
+// automatically creating a blank unit plan.
+if (!str_contains($map,"CM.guide + '?guide=1' + (S.dept?'&subject='+encodeURIComponent(S.dept.name):'')"))
+ throw new RuntimeException('Single unit plan should open the saved-plan library.');
 if (!str_contains($css,'.cm-choose-hint') || !str_contains($css,'.cm-start:disabled'))
   throw new RuntimeException('Missing subject-selection guidance and disabled-action styling.');
 if (!str_contains($css,'.cm-knowledge-grid')) throw new RuntimeException('Missing homepage guidance layout.');
