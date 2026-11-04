@@ -314,3 +314,46 @@ a.cm-txe.cm-txg{display:inline-block;text-decoration:none;background:var(--acc);
 .cm-prep-existing input{margin-top:3px}
 @media(max-width:700px){.cm-prep-bankrows{grid-template-columns:1fr}
   .cm-prep-subjects .cm-btn{flex:1 1 140px}}
+
+/* Simplified Ministry statement checklist — clear gaps and a single action. */
+.cm-audit-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
+  margin:15px 0 18px}
+.cm-audit-metric{display:flex;flex-direction:column;gap:5px;
+  padding:18px;border-radius:12px;background:#f4f7f9;border:1px solid #d8e3e8}
+.cm-audit-metric b{font-size:30px;line-height:1.15;color:#001733}
+.cm-audit-metric span{font-size:13px;color:#526879}
+.cm-audit-metric.attention{background:#fff3f3;border-color:#e9bbc5}
+.cm-audit-metric.attention b{color:#b30c31}
+.cm-audit-complete{padding:12px 16px;border:1px solid #82adbf;
+  border-radius:9px;background:#edf5f8;color:#001733;font-weight:650}
+.cm-audit-pending{padding:15px 17px;border:1px solid #e4b5b9;
+  background:#fff6f5;border-radius:11px;margin:16px 0}
+.cm-audit-pending>b{color:#9b1530}
+.cm-audit-pending p{font-size:13px;color:#67555b;margin:5px 0 12px}
+.cm-audit-pending-row{padding:9px 0;display:flex;justify-content:space-between;
+  gap:9px;align-items:center;border-top:1px solid #f2d3d4;font-size:13px}
+.cm-audit-pending-row .cm-btn{flex:0 0 auto}
+.cm-audit-controls{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0 12px}
+.cm-audit-controls input{flex:2 1 220px;min-width:170px}
+.cm-audit-controls select{flex:1 1 140px;min-width:120px}
+.cm-audit-results{font-size:13px;font-weight:600;color:#546977;margin:8px 0 13px}
+.cm-audit-row{padding:17px 19px;background:#fff;border:1px solid #dce4e7;
+  border-radius:11px;margin-bottom:10px}
+.cm-audit-row-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.cm-audit-status{padding:3px 9px;border-radius:40px;font-size:11px;font-weight:800}
+.cm-audit-status.missing{background:#ffe9ee;color:#a80026}
+.cm-audit-status.covered{background:#e7f2f5;color:#00405b}
+.cm-audit-source{font-size:12px;color:#526879}
+.cm-audit-statement{font-size:14px;line-height:1.58;color:#001733;margin:11px 0 7px}
+.cm-audit-cite{font-size:11px;color:#72818b;margin:0 0 8px}
+.cm-audit-assign{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
+.cm-audit-assign select{flex:2 1 270px;min-width:190px}
+.cm-audit-assign button{flex:0 0 auto}
+.cm-audit-more{margin:10px auto 20px;display:block}
+@media(max-width:660px){
+ .cm-audit-summary{grid-template-columns:1fr 1fr}
+ .cm-audit-metric{padding:12px}
+ .cm-audit-summary .cm-audit-metric:first-child{grid-column:1/-1}
+ .cm-audit-pending-row{align-items:flex-start;flex-direction:column}
+ .cm-audit-assign button{width:100%}
+}
