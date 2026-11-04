@@ -373,3 +373,10 @@ a.cm-txe.cm-txg{display:inline-block;text-decoration:none;background:var(--acc);
 @media(max-width:820px){.cm-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.cm-dashboard{padding:14px}.cm-dashboard-head .cm-btn{width:100%;justify-content:center}.cm-dash-metric{padding:10px}.cm-dash-metric b{font-size:24px}}
 @media print{.cm-dashboard-actions,.cm-dashboard-head>.cm-btn{display:none!important}}
+
+/* Start with an explicit subject choice; do not imply a default department. */
+.cm-choose-hint{margin:0 0 15px;padding:11px 14px;background:#edf5f8;border:1px solid #c7dbe5;border-radius:10px;color:#274c64;font-size:14px;line-height:1.5}
+.cm-start:disabled,.cm-start:disabled:hover{opacity:.53;cursor:not-allowed;transform:none;box-shadow:var(--sh);border-color:var(--line)}
+.cm-depts label.cm-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-weight:650;color:var(--ink)}
+.cm-depts label.cm-meta select{min-width:min(340px,100%);border:1px solid #c8d5dc;border-radius:9px;background:#fff;color:#001733;padding:10px 12px;font:inherit}
+.cm-depts label.cm-meta select:focus-visible{outline:3px solid #82adbf;outline-offset:2px}
