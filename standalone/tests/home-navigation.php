@@ -43,7 +43,7 @@ if (!str_contains($map,"const englishGroup = S.depts.find(") ||
 foreach ([
  "const prep = S.depts.find(d => d.name.trim().toLowerCase() === 'prep')",
  "if (d.name.trim().toLowerCase() === 'prep') continue;",
- "prep ? h('option', {value: prep.id, selected: prep.id === S.dept?.id}, 'Prep') : null"
+ "prep ? h('optgroup', {label: 'Prep'}, h('option', {value: prep.id, selected: prep.id === S.dept?.id}, 'Prep')) : null"
 ] as $required) {
  if (!str_contains($map,$required))
   throw new RuntimeException('Prep standalone subject regression: '.$required);
