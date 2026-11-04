@@ -1239,6 +1239,7 @@ async function fetchCoverage(){
     if(!report.ok)throw Error(report.error||'Could not check Ministry statements.');
     if(S.dept?.id!==deptId)return;
     cov.report=report;cov.err='';
+    S.dashboardCoverage=report;S.dashboardCoverageError='';
     S.stmtAll=null;
   }catch(error){cov.err=error.message||'Could not load the checklist.';}
   if(S.view==='coverage')render();
