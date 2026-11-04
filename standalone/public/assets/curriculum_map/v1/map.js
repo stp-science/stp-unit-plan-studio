@@ -39,7 +39,7 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 const ago = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(iso).toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'}); };
 
-const S = {review: false, view: 'map', stmtCounts: {}, importStmts: null, importResult: null, match: {}, run: null, lastRun: null, onlyAttn: false, open: new Set(), stmtAll: null, stmtDirty: false, depts: [], isManager: false, dept: null, map: null, version: 0, updatedAt: '', updatedBy: '', edit: false, draft: false, source: '', saveState: 'saved', conflict: false, working: null, banner: null, loading: true};
+const S = {review: false, view: 'map', stmtCounts: {}, importStmts: null, importResult: null, match: {}, run: null, lastRun: null, onlyAttn: false, open: new Set(), stmtAll: null, stmtDirty: false, depts: [], isManager: false, dept: null, map: null, version: 0, updatedAt: '', updatedBy: '', edit: false, draft: false, source: '', saveState: 'saved', conflict: false, working: null, banner: null, loading: true, dashboardCoverage: null, dashboardCoverageError: ''};
 let root, toastEl, toastTimer = 0, saveTimer = 0;
 
 // ---------------------------------------------------------------- api
@@ -66,7 +66,22 @@ async function load(deptId, view) {
     if(navigationMode==='existing'&&!S.map) S.view='upload';
     if(navigationMode==='overview'&&S.map) S.edit=true;
   } catch (e) { S.banner = {kind: 'err', text: 'The curriculum map could not be loaded (' + e.message + '). Refresh to try again; nothing has been changed.'}; S.failed = true; }
-  S.loading = false; S.match = {}; S.onlyAttn = false; S.lastRun = null; syncUrl(); render();
+  S.loading = false; S.match = {}; S.onlyAttn = false; S.lastRun = null;
+  S.dashboardCoverage = null; S.dashboardCoverageError = '';
+  syncUrl(); render();
+  if (S.dept && S.map) {
+    const dashboardDept = S.dept.id;
+    get({action:'coverage-audit',department_id:dashboardDept}).then(report=>{
+      if (S.dept?.id !== dashboardDept || !S.map) return;
+      if (!report.ok) throw Error(report.error || 'Could not check the Ministry statements.');
+      S.dashboardCoverage=report; S.dashboardCoverageError='';
+      paintDashboard();
+    }).catch(error=>{
+      if(S.dept?.id!==dashboardDept)return;
+      S.dashboardCoverageError=error.message||'Could not check Ministry coverage.';
+      paintDashboard();
+    });
+  }
   if (S.dept && S.map) { const id = S.dept.id; get({action: 'match-status', department_id: id}).then(r => { if (r.ok && S.dept?.id === id) { S.match = r.match || {}; paintAllBars(); paintStrip(); } }).catch(() => {}); }
 }
 const toast = msg => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400); };
@@ -1028,6 +1043,7 @@ function mapView() {
       S.draft ? null : h('a', {class: 'cm-btn', href: CM.api + '?' + new URLSearchParams({action: 'export-docx', department_id: S.dept.id}), download: '', title: 'Every year group, term and unit with its selected curriculum statements, as one Word document'}, 'Download as Word (.docx)'),
       h('button', {class: 'cm-btn', type: 'button', onclick: () => print()}, 'Print'),
       h('button', {class: 'cm-btn ' + (S.edit ? 'pri' : ''), type: 'button', onclick: () => { S.edit = !S.edit; if (!S.edit && S.saveState === 'saving') save(); render(); }}, S.edit ? 'Done editing' : 'Edit map'))));
+  el.append(dashboardContent());
   el.append(h('div', {class: 'cm-legend'},
     ...S.map.strands.map(s => h('span', {class: 'cm-pill', style: strandStyle(s.color)}, s.name)),
     S.edit && !S.map.strands.length ? h('button', {class: 'cm-btn sm', type: 'button', onclick: strandsEditor}, '＋ Add strands (for example Biology, Chemistry, Physics)') : null,
@@ -1385,6 +1401,42 @@ function render() {
 }
 
 // ---------------------------------------------------------------- start screen: where do you want to begin?
+// Compact department dashboard. Assignment is not evidence of teaching or approval.
+function dashboardContent() {
+  const units = S.map ? S.map.years.flatMap(y=>y.blocks.flatMap(b=>b.topics)) : [];
+  const assigned = units.filter(t=>(S.stmtCounts[t.id]||0)>0).length;
+  const summary = S.dashboardCoverage?.summary;
+  const complete = !!summary?.complete && (summary.sourceCount||0)>0;
+  const gaps = !S.map ? '—' : summary ? String(summary.missing) : '…';
+  const auditLabel = !S.map ? 'Create or import an overview to check Ministry coverage.' :
+    S.dashboardCoverageError ? 'Coverage check unavailable: '+S.dashboardCoverageError :
+    !summary ? 'Checking the official Ministry statement lists…' :
+    !complete ? 'Some source lists are not ready. Open the checklist before treating coverage as complete.' :
+    summary.missing ? 'Official statements still need to be assigned to units.' :
+    'All available official statements are assigned; teacher review is still required.';
+  const metric = (value,label) => h('div',{class:'cm-dash-metric'},
+    h('b',{},String(value)),h('span',{},label));
+  return h('section',{class:'cm-dashboard',id:'cm-dashboard','aria-label':'Department planning dashboard'},
+    h('div',{class:'cm-dashboard-head'},
+      h('div',{},h('h2',{},(S.dept?.name||'Department')+' planning dashboard'),
+        h('p',{class:'cm-meta'},'See your progress and choose what to work on next. Browse other departments using the Department selector above.')),
+      S.map ? h('button',{type:'button',class:'cm-btn sm',onclick:()=>{S.edit=false;showView('map');}},'Open curriculum map') : null),
+    h('div',{class:'cm-dashboard-metrics'},
+      metric(units.length,'Units in overview'),
+      metric(assigned,'Units with statements'),
+      metric(units.length-assigned,'Units needing statement selection'),
+      metric(gaps,'Official statements missing')),
+    h('p',{class:'cm-dashboard-note'},auditLabel),
+    h('div',{class:'cm-dashboard-actions'},
+      S.map ? h('button',{type:'button',class:'cm-btn pri sm',onclick:openCoverage},'Check missing statements') :
+        h('button',{type:'button',class:'cm-btn pri sm',onclick:()=>{navigationMode='overview';showView('map');}},'Create an overview'),
+      h('a',{class:'cm-btn sm',href:CM.guide+'?guide=1'},'Open saved unit plans')));
+}
+function paintDashboard(){
+  const current=document.getElementById('cm-dashboard');
+  if(current)current.replaceWith(dashboardContent());
+}
+
 function startView() {
   const has = !!S.map, name = S.dept?.name || 'your department';
   const card = (cls, icon, title, text, tag, attrs) => h(attrs.href ? 'a' : 'button', {class: 'cm-start ' + cls, ...attrs, ...(attrs.href ? {} : {type: 'button'})},
@@ -1402,6 +1454,7 @@ function startView() {
           if(eal)selectDepartment(eal.id);
         }},'Switch to EAL curriculum planning') :
         h('p',{class:'hint'},'EAL is selected. Build or import the Stage 1–5 sequence and choose statements for each unit.')),
+    dashboardContent(),
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + (isEalDept()?'?guide=1&new-eal=1':isPrepDepartment()?'?guide=1&new-prep=1':'?guide=1&blank=1')}),
       card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
