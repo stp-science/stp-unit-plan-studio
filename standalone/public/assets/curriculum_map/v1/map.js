@@ -1189,45 +1189,147 @@ function deptPicker() {
 }
 
 // ---------------------------------------------------------------- every statement in use, and which topics use it
-let cov = {rows: null, q: '', kind: '', sort: 'used', err: ''};
-function openCoverage() {
-  cov = {rows: null, q: '', kind: '', sort: 'used', err: ''}; showView('coverage'); fetchCoverage();
+// Simplified audit: official source statements versus teacher-ticked entries.
+let cov={report:null,q:'',kind:'',status:'Missing',source:'',err:'',busy:'',limit:160};
+function openCoverage(){
+  cov={report:null,q:'',kind:'',status:'Missing',source:'',err:'',busy:'',limit:160};
+  showView('coverage');fetchCoverage();
 }
-function fetchCoverage() {
-  get({action: 'statements', department_id: S.dept.id}).then(r => { if (!r.ok) throw Error(r.error); cov.rows = r.statements; }).catch(e => { cov.rows = []; cov.err = e.message; }).then(() => { if (S.view === 'coverage') render(); });
+async function fetchCoverage(){
+  const deptId=S.dept?.id;
+  if(!deptId)return;
+  try{
+    const report=await get({action:'coverage-audit',department_id:deptId});
+    if(!report.ok)throw Error(report.error||'Could not check Ministry statements.');
+    if(S.dept?.id!==deptId)return;
+    cov.report=report;cov.err='';
+    S.stmtAll=null;
+  }catch(error){cov.err=error.message||'Could not load the checklist.';}
+  if(S.view==='coverage')render();
 }
-function coverageView() {
-  const el = h('div', {class: 'cm-in'});
-  const back = h('button', {class: 'cm-btn', type: 'button', onclick: () => goBack('map')}, '← Back');
-  el.append(h('div', {class: 'cm-bar'}, h('div', {}, h('h2', {}, 'Curriculum coverage'), h('div', {class: 'cm-meta'}, S.dept.name + ': every curriculum statement in use, and the units that use it.')), h('div', {class: 'cm-acts'}, back)));
-  if (cov.rows === null) { el.append(h('div', {class: 'cm-card cm-work'}, h('div', {class: 'cm-spin'}), h('p', {class: 'hint'}, 'Loading the statements…'))); return el; }
-  if (cov.err) el.append(h('div', {class: 'cm-banner err'}, cov.err));
-  const groups = new Map();
-  for (const r of cov.rows) {
-    if (!findTopic(r.topic_id)) continue;
-    const k = r.kind + '|' + r.text.toLowerCase();
-    if (!groups.has(k)) groups.set(k, {kind: r.kind, text: r.text, source: r.source, topics: []});
-    groups.get(k).topics.push({id: r.topic_id, confidence: r.confidence});
+async function addCoverageStatement(rowId,topicId){
+  if(!topicId)return;
+  cov.busy=rowId;cov.err='';render();
+  try{
+    const r=await post('coverage-audit-assign',{department_id:S.dept.id,
+      statement_id:rowId,topic_id:topicId});
+    if(!r.ok)throw Error(r.error||'Could not add the official statement.');
+    S.stmtAll=null;S.stmtCounts[topicId]=(S.stmtCounts[topicId]||0)+1;
+    cov.busy='';await fetchCoverage();
+  }catch(error){cov.err=error.message||'Could not save the statement.';cov.busy='';render();}
+}
+async function prepareCoverageSource(spec){
+  if(cov.busy)return;
+  const permission=window.confirm('This official '+spec.display+' statement list has not been fully prepared. Preparing it may use Claude API credits. Continue?');
+  if(!permission)return;
+  cov.busy='prepare';cov.err='';render();
+  try{
+    if(!spec.total)throw Error('This source is not available for extraction. Contact the administrator to check the curriculum document.');
+    for(let chunk=0;chunk<spec.total;chunk++){
+      const result=await post('bank-build',{department_id:S.dept.id,
+        doc_id:spec.doc_id,year:spec.year,discipline:spec.discipline||'',
+        level:spec.level||'',chunk});
+      if(!result.ok)throw Error(result.error||'Could not prepare the official statements.');
+    }
+    cov.busy='';await fetchCoverage();
+  }catch(error){cov.err=error.message||'Unable to prepare official statements.';cov.busy='';render();}
+}
+function coverageView(){
+  const el=h('div',{class:'cm-in cm-audit'});
+  const top=h('div',{class:'cm-bar'},
+    h('div',{},h('h2',{},'Curriculum statement checklist'),
+      h('p',{class:'cm-meta'},S.dept.name+' · Every official statement accounted for, or clearly flagged as missing.')),
+    h('div',{class:'cm-acts'},
+      h('button',{type:'button',class:'cm-btn',onclick:()=>goBack('map')},'← Back'),
+      cov.report?h('a',{class:'cm-btn pri',href:CM.api+'?action=coverage-audit-xlsx&department_id='+encodeURIComponent(S.dept.id)},
+        'Download Excel checklist'):null));
+  el.append(top);
+  if(cov.err)el.append(h('div',{class:'cm-banner err',role:'alert'},cov.err));
+  if(cov.report===null){
+    el.append(h('div',{class:'cm-card cm-work'},h('div',{class:'cm-spin'}),
+      h('p',{class:'hint'},'Checking the official Ministry source statements…')));
+    return el;
   }
-  let list = [...groups.values()];
-  const topicsUsing = new Set(list.flatMap(g => g.topics.map(t => t.id)));
-  const q = cov.q.trim().toLowerCase();
-  list = list.filter(g => (!cov.kind || g.kind === cov.kind) && (!q || g.text.toLowerCase().includes(q) || g.topics.some(t => (findTopic(t.id)?.t.title || '').toLowerCase().includes(q))));
-  list.sort((a, b) => cov.sort === 'az' ? a.text.localeCompare(b.text) : b.topics.length - a.topics.length || a.text.localeCompare(b.text));
-  const mapTopics = S.map.years.reduce((n, y) => n + y.blocks.reduce((m, b) => m + b.topics.length, 0), 0);
-  el.append(h('div', {class: 'cm-foot', style: 'margin:0 0 12px'}, h('b', {}, groups.size + ' statements'), ' linked across ', h('b', {}, topicsUsing.size + ' of ' + mapTopics + ' units'), '. Units with no statements yet can be filled from their details panel or by opening their unit plan.'));
-  const search = h('input', {type: 'text', value: cov.q, placeholder: 'Search statements or units', 'aria-label': 'Search', style: 'max-width:300px'});
-  search.addEventListener('input', e => { cov.q = e.target.value; const pos = e.target.selectionStart; render(); const n = document.querySelector('.cm-cov-f input'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
-  const sel = (opts, cur, fn, label) => h('select', {'aria-label': label, style: 'width:auto', onchange: e => fn(e.target.value)}, ...opts.map(([v, l]) => h('option', {value: v, selected: v === cur}, l)));
-  el.append(h('div', {class: 'cm-cov-f', style: 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px'}, search,
-    sel([['', 'Knowledge and practices'], ['knowledge', 'Knowledge only'], ['practice', 'Practices only']], cov.kind, v => { cov.kind = v; render(); }, 'Type'),
-    sel([['used', 'Most used first'], ['az', 'A to Z']], cov.sort, v => { cov.sort = v; render(); }, 'Sort')));
-  if (!list.length) el.append(h('p', {class: 'hint'}, groups.size ? 'Nothing matches that search.' : 'No statements are linked to units yet. Open a unit and press “Find statements with AI”, or open its unit plan.'));
-  for (const g of list) el.append(h('div', {class: 'cm-cov'},
-    h('div', {class: 'cm-covh'}, h('span', {class: 'cm-ktag ' + g.kind}, g.kind === 'practice' ? 'Practice' : 'Knowledge'), h('span', {class: 'cm-used'}, 'used in ' + g.topics.length + (g.topics.length === 1 ? ' unit' : ' units'))),
-    h('p', {}, g.text), g.source ? h('small', {class: 'hint'}, g.source) : null,
-    h('div', {class: 'cm-tchips'}, ...g.topics.map(tp => { const f = findTopic(tp.id), st = strandOf(f.t.strand);
-      return h('button', {type: 'button', class: 'cm-tchip', style: st ? '--c:' + st.color : '', onclick: () => topicDetails(f.y, f.b, f.t), title: 'Open this unit'}, f.y.label + ' · ' + f.t.title, tp.confidence != null ? h('i', {}, tp.confidence + '%') : null); }))));
+  const report=cov.report,summary=report.summary;
+  el.append(h('div',{class:'cm-audit-summary'},
+    h('div',{class:'cm-audit-metric'},h('b',{},String(summary.total)),h('span',{},'Official statements checked')),
+    h('div',{class:'cm-audit-metric'},h('b',{},String(summary.covered)),h('span',{},'Included in units')),
+    h('div',{class:'cm-audit-metric'+(summary.missing?' attention':'')},h('b',{},String(summary.missing)),h('span',{},'Missing from units'))));
+  if(summary.complete&&summary.missing===0){
+    el.append(h('p',{class:'cm-audit-complete'},'All statements in the selected Ministry sources are assigned to units. Staff should still review the planning and official sources.'));
+  }
+  if(!summary.sourceCount)el.append(h('div',{class:'cm-banner err'},
+    'No Ministry source has been configured for this subject. The checklist cannot confirm coverage. Ask the administrator to link the correct document.'));
+  if(report.pending.length){
+    const note=h('div',{class:'cm-audit-pending'},
+      h('b',{},'Some official statement lists are not ready.'),
+      h('p',{},'Results above cover only the completed sources. Do not treat this as 100% coverage until the following sources have been prepared:'));
+    for(const spec of report.pending){
+      note.append(h('div',{class:'cm-audit-pending-row'},
+        h('span',{},spec.display+' — '+(spec.reason||'Source unavailable')),
+        spec.total?h('button',{type:'button',class:'cm-btn sm',disabled:!!cov.busy,
+          onclick:()=>prepareCoverageSource(spec)},cov.busy==='prepare'?'Preparing…':'Prepare source list'):null));
+    }
+    el.append(note);
+  }
+  el.append(h('p',{class:'hint'},
+    'A statement counts as included only when it is ticked in a saved unit. Matches use the official statement wording, not AI guesses. This checks planning, not whether a statement has been taught.'));
+  const sel=(items,value,change,label)=>h('select',{'aria-label':label,
+    onchange:e=>{change(e.target.value);cov.limit=160;render();}},
+    ...items.map(([v,n])=>h('option',{value:v,selected:value===v},n)));
+  const choices=[['Missing','Missing only'],['All','All statements'],['Covered','Covered only']];
+  const sourceItems=[['','All sources'],...(report.scope||[]).map(s=>[s,s])];
+  const finder=h('input',{type:'search',value:cov.q,placeholder:'Search statements or units',
+    'aria-label':'Search official statements',
+    oninput:e=>{
+      cov.q=e.target.value;cov.limit=160;
+      const pos=e.target.selectionStart;render();
+      const replacement=document.querySelector('.cm-audit-controls input[type=search]');
+      if(replacement){replacement.focus();replacement.setSelectionRange(pos,pos);}
+    }});
+  el.append(h('div',{class:'cm-audit-controls'},
+    finder,sel(choices,cov.status,v=>cov.status=v,'Coverage status'),
+    sel([['','Knowledge and practices'],['knowledge','Knowledge'],['practice','Practices']],
+      cov.kind,v=>cov.kind=v,'Statement type'),
+    sel(sourceItems,cov.source,v=>cov.source=v,'Ministry source')));
+  const text=cov.q.trim().toLowerCase();
+  const filtered=(report.rows||[]).filter(r=>
+    (cov.status==='All'||r.status===cov.status)&&
+    (!cov.kind||cov.kind===r.kind)&&(!cov.source||cov.source===r.source)&&
+    (!text||[r.source,r.text,r.citation,...r.units.map(u=>u.display)].join(' ').toLowerCase().includes(text)));
+  el.append(h('p',{class:'cm-audit-results'},filtered.length+' matching statement'+(filtered.length===1?'':'s')+'.'));
+  if(!filtered.length)el.append(h('p',{class:'hint'},
+    summary.total===0?'No verified Ministry statements have loaded yet.':
+      'No statements match these filters. Choose “All statements” to review the complete list.'));
+  for(const r of filtered.slice(0,cov.limit)){
+    const isMissing=r.status==='Missing';
+    const line=h('div',{class:'cm-audit-row'},
+      h('div',{class:'cm-audit-row-head'},
+        h('span',{class:'cm-audit-status'+(isMissing?' missing':' covered')},r.status),
+        h('span',{class:'cm-ktag '+r.kind},r.kind==='practice'?'Practice':'Knowledge'),
+        h('small',{class:'cm-audit-source'},r.source)),
+      h('p',{class:'cm-audit-statement'},r.text),
+      r.citation?h('p',{class:'cm-audit-cite'},r.citation):null);
+    if(isMissing){
+      if(report.topics.length){
+        const picker=h('select',{'aria-label':'Choose unit for missing statement'},
+          h('option',{value:''},'Choose a unit…'),
+          ...report.topics.map(t=>h('option',{value:t.id},t.display)));
+        const btn=h('button',{type:'button',class:'cm-btn pri sm',disabled:true,
+          onclick:()=>addCoverageStatement(r.id,picker.value)},'Add to unit');
+        picker.addEventListener('change',()=>{btn.disabled=!picker.value||!!cov.busy;});
+        line.append(h('div',{class:'cm-audit-assign'},picker,btn));
+      }else line.append(h('p',{class:'hint'},'Add a unit to the overview before assigning this statement.'));
+    }else{
+      line.append(h('div',{class:'cm-tchips'},...r.units.map(u=>
+        h('button',{type:'button',class:'cm-tchip',
+          onclick:()=>{const t=findTopic(u.id);if(t)topicDetails(t.y,t.b,t.t);}},
+          u.display))));
+    }
+    el.append(line);
+  }
+  if(filtered.length>cov.limit)el.append(h('button',{type:'button',class:'cm-btn cm-audit-more',
+    onclick:()=>{cov.limit+=160;render();}},'Show more ('+(filtered.length-cov.limit)+' remaining)'));
   return el;
 }
 
@@ -1324,7 +1426,7 @@ toastEl = h('div', {class: 'cm-toast', role: 'status'});
   S.view = requestedMode ? 'map' :
     !(wantDept > 0) && !q.get('go') ? 'start' :
     ['coverage', 'upload'].includes(q.get('view')) ? q.get('view') : 'map';
-  if (S.view === 'coverage') cov = {rows: null, q: '', kind: '', sort: 'used', err: ''};
+  if (S.view === 'coverage') cov = {report:null,q:'',kind:'',status:'Missing',source:'',err:'',busy:'',limit:160};
   load(wantDept, S.view).then(() => {
     if (S.failed || !S.dept) return;
     if (requestedMode === 'overview' && S.map) { S.edit = true; render(); }
