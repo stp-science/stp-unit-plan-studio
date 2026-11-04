@@ -136,7 +136,11 @@ function cm_audit_report(PDO $pdo,int $schoolId,int $deptId,string $department,a
         $assigned[$key][$statement['topic_id']]=$topics[$statement['topic_id']];
         // Older imports have no source identifier, but can still be matched
         // by exact wording and type; the source ambiguity remains reviewable.
-        if($doc==='')$assigned[cm_audit_key('*',(string)$statement['kind'],(string)$statement['text'])][$statement['topic_id']]=$topics[$statement['topic_id']];
+        // The same official wording may appear in two Ministry year tables
+        // or learning areas. A genuinely ticked, verbatim statement counts
+        // once for each identical official entry; the audit still shows the
+        // original source separately for teacher review.
+        $assigned[cm_audit_key('*',(string)$statement['kind'],(string)$statement['text'])][$statement['topic_id']]=$topics[$statement['topic_id']];
     }
     $rows=[];$pending=[];$seen=[];
     foreach($specs as $spec) {
@@ -169,8 +173,11 @@ function cm_audit_report(PDO $pdo,int $schoolId,int $deptId,string $department,a
         }
     }
     usort($rows,static function($a,$b){
-        $v=strcmp($a['status'],$b['status']);
-        return $v!==0?$v:strcmp($a['source'],$b['source'])?:strcmp($a['kind'],$b['kind'])?:strcmp($a['text'],$b['text']);
+        foreach(['status','source','kind','text'] as $field){
+            $comparison=strcmp($a[$field],$b[$field]);
+            if($comparison!==0)return $comparison;
+        }
+        return 0;
     });
     $total=count($rows);$covered=count(array_filter($rows,static fn($x)=>$x['status']==='Covered'));
     return [
