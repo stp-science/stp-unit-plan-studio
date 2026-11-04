@@ -18,7 +18,8 @@ foreach ([
  "class:'cg-side-subjects'",
  "if (!G) return [libraryView()]",
  "class:'cg-shell'",
- "function libraryView()"
+ "requestedSubject=guideSubject({subject:q.get('subject')})",
+ "const all=selected?[...group.plans]:[...guides]"
 ] as $required) {
     if (!str_contains($js,$required))
         throw new RuntimeException('Subject library regression: '.$required);
@@ -43,15 +44,15 @@ foreach ([
  'const name = guideSubject(guide), key = subjectKey(name)',
  'groups.get(key).plans.push(guide)',
  'const groups=guideGroups()',
- 'const plans=[...group.plans].sort',
+ 'const all=selected?[...group.plans]:[...guides]',
  'onclick:()=>showSubjectLibrary(group.key)',
  'onclick:()=>open(g.id)',
  "'english as an additional language':'English as an Additional Language'",
- "for (const name of ['Prep','English as an Additional Language'])"
+ "for (const name of ['Prep','English as an Additional Language',requestedSubject].filter(Boolean))"
 ] as $required) {
     if (!str_contains($js, $required))
         throw new RuntimeException('All-subject navigation regression: '.$required);
 }
 if (str_contains($js,"sidebarGroupsOpen") || str_contains($js,"cg-subject-items"))
     throw new RuntimeException('Cramped expand-all sidebar has returned.');
-echo "Persistent three-column subject sidebar, right-side unit tiles, no blank landing page, responsive layout and autosave checks passed.\n";
+echo "Three-column subject sidebar, visible saved plans, selected-subject link, full-width plan editor and autosave checks passed.\n";
