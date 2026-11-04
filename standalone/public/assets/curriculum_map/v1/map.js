@@ -61,9 +61,14 @@ async function load(deptId, view) {
     const d = await get({action: 'state', department_id: deptId || ''});
     if (!d.ok) throw Error(d.error || 'load failed');
     Object.assign(S, {review: false, view: keepView, stmtAll: null, stmtDirty: false, stmtCounts: d.stmtCounts || {}, depts: d.departments, isManager: d.isManager, dept: d.department, map: d.map, version: d.version, updatedAt: d.updatedAt, updatedBy: d.updatedBy, edit: false, draft: false, saveState: 'saved', conflict: false, banner: null});
+    // The API offers a first department for legacy callers. On the normal
+    // start screen, no subject has been chosen, so do not silently show it.
+    if (!deptId && keepView === 'start') {
+      Object.assign(S, {dept: null, map: null, version: 0, stmtCounts: {}, updatedAt: '', updatedBy: ''});
+    }
     // Preserve the selected header mode after switching departments, including
     // a first-time Prep setup. Existing mode opens upload if there is no map.
-    if(navigationMode==='existing'&&!S.map) S.view='upload';
+    if(navigationMode==='existing'&&S.dept&&!S.map) S.view='upload';
     if(navigationMode==='overview'&&S.map) S.edit=true;
   } catch (e) { S.banner = {kind: 'err', text: 'The curriculum map could not be loaded (' + e.message + '). Refresh to try again; nothing has been changed.'}; S.failed = true; }
   S.loading = false; S.match = {}; S.onlyAttn = false; S.lastRun = null;
@@ -88,12 +93,14 @@ const toast = msg => { toastEl.textContent = msg; toastEl.classList.add('show');
 
 // Provision Prep only when a member of staff explicitly chooses it.
 async function selectDepartment(id) {
-  if (id !== 0 && id !== -1) {await load(id);return;}
+  if (!Number.isFinite(id)) return;
+  const nextView = navigationMode === 'overview' || navigationMode === 'existing' ? 'map' : undefined;
+  if (id !== 0 && id !== -1) {await load(id,nextView);return;}
   S.loading=true;render();
   try{
     const result=await post(id===-1?'ensure-eal':'ensure-prep',{});
     if(!result.ok)throw Error(result.error||'Prep could not be set up.');
-    await load(result.department_id,S.view);
+    await load(result.department_id,nextView || S.view);
   }catch(error){S.loading=false;S.banner={kind:'err',text:error.message};render();}
 }
 // ---------------------------------------------------------------- saving
@@ -1225,11 +1232,15 @@ function deptPicker() {
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(d);
   }
-  const sel = h('select', {'aria-label': 'Department', style: 'max-width:380px;font-weight:650', onchange: e => {
-    const id = parseInt(e.target.value, 10); e.target.value = String(S.dept?.id);
+  const sel = h('select', {'aria-label': 'Choose subject', style: 'max-width:380px;font-weight:650', onchange: e => {
+    const id = parseInt(e.target.value, 10);
+    e.target.value = S.dept ? String(S.dept.id) : '';
+    if (!Number.isFinite(id)) return;
     if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => selectDepartment(id)); else selectDepartment(id);
-  }}, ...[...groups].map(([f, ds]) => h('optgroup', {label: f}, ...ds.map(d => h('option', {value: d.id, selected: d.id === S.dept?.id}, d.scope === 'faculty' ? d.name + ' (whole faculty)' : d.name)))));
-  return h('div', {class: 'cm-depts', style: 'align-items:center'}, h('span', {class: 'cm-meta'}, 'Department'), sel);
+  }},
+  h('option', {value: '', selected: !S.dept, disabled: true}, 'Choose subject'),
+  ...[...groups].map(([f, ds]) => h('optgroup', {label: f}, ...ds.map(d => h('option', {value: d.id, selected: d.id === S.dept?.id}, d.scope === 'faculty' ? d.name + ' (whole faculty)' : d.name)))));
+  return h('div', {class: 'cm-depts', style: 'align-items:center'}, h('label', {class: 'cm-meta'}, 'Subject', sel));
 }
 
 // ---------------------------------------------------------------- every statement in use, and which topics use it
@@ -1391,6 +1402,12 @@ function render() {
     else if (false) body.push(h("div", {class: "cm-depts", role: 'tablist'}, ...S.depts.map(d => h('button', {type: 'button', role: 'tab', 'aria-selected': String(d.id === S.dept?.id), class: 'cm-dept' + (d.id === S.dept?.id ? ' on' : ''),
       onclick: () => { if (d.id === S.dept?.id) return; if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => load(d.id)); else load(d.id); }}, d.name))));
     else if (S.dept) body.push(h('div', {class: 'cm-meta', style: 'margin:0 0 10px'}, 'Subject: ', h('b', {}, S.dept.name)));
+    if (!S.dept) {
+      body.push(startView());
+      root.replaceChildren(...body, toastEl);
+      if (keep) root.append(keep);
+      return;
+    }
     if (['map', 'upload'].includes(S.view) && !S.working && !S.draft && !S.review) body.push(h('div', {class: 'cm-backrow'}, h('button', {class: 'cm-btn sm', type: 'button', onclick: () => goBack('start')}, '← Back')));
     if (S.dept?.scope==='eal-setup') body.push(h('div',{class:'cm-hero'},
       h('h2',{},'English as an Additional Language workspace'),
@@ -1461,10 +1478,11 @@ function startView() {
   const card = (cls, icon, title, text, tag, attrs) => h(attrs.href ? 'a' : 'button', {class: 'cm-start ' + cls, ...attrs, ...(attrs.href ? {} : {type: 'button'})},
     h('span', {class: 'cm-sico', 'aria-hidden': 'true'}, icon), h('b', {}, title), h('span', {class: 'cm-stext'}, text), tag ? h('span', {class: 'cm-stag'}, tag) : null);
   return h('div', {class: 'cm-in'},
+    !S.dept ? h('p', {class: 'cm-choose-hint'}, 'Choose a subject above to create or upload its curriculum overview. You can still create an individual unit plan without an overview.') : null,
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + (isEalDept()?'?guide=1&new-eal=1':isPrepDepartment()?'?guide=1&new-prep=1':'?guide=1&blank=1')}),
-      card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
-      card('c', '▶', 'Create unit plans from an existing overview', has ? 'Open your department’s overview, choose a unit and draft its unit plan using the selected curriculum statements.' : 'Upload an overview or scheme of work you already use. Check the imported units and curriculum statements, then choose a unit to create its unit plan.', has ? 'Choose a unit' : 'Upload your overview', {onclick: () => { navigationMode='existing'; S.edit = false; showView(has ? 'map' : 'upload'); }})),
+      card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {disabled: !S.dept, onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
+      card('c', '▶', 'Create unit plans from an existing overview', has ? 'Open your department’s overview, choose a unit and draft its unit plan using the selected curriculum statements.' : 'Upload an overview or scheme of work you already use. Check the imported units and curriculum statements, then choose a unit to create its unit plan.', has ? 'Choose a unit' : 'Upload your overview', {disabled: !S.dept, onclick: () => { navigationMode='existing'; S.edit = false; showView(has ? 'map' : 'upload'); }})),
     h('section',{class:'cm-knowledge-guide','aria-label':'Curriculum design guidance'},
       h('div',{class:'cm-knowledge-head'},
         h('div',{},
@@ -1502,14 +1520,14 @@ toastEl = h('div', {class: 'cm-toast', role: 'status'});
   const wantDept = CM.department || parseInt(q.get('department'), 10) || 0;
   const requestedMode = ['overview','existing'].includes(q.get('mode')) ? q.get('mode') : '';
   navigationMode = requestedMode;
-  S.view = requestedMode ? 'map' :
-    !(wantDept > 0) && !q.get('go') ? 'start' :
+  S.view = !wantDept && !q.get('go') ? 'start' :
+    requestedMode ? 'map' :
     ['coverage', 'upload'].includes(q.get('view')) ? q.get('view') : 'map';
   if (S.view === 'coverage') cov = {report:null,q:'',kind:'',status:'Missing',source:'',err:'',busy:'',limit:160};
   load(wantDept, S.view).then(() => {
     if (S.failed || !S.dept) return;
     if (requestedMode === 'overview' && S.map) { S.edit = true; render(); }
-    if (requestedMode === 'existing' && !S.map) { S.view = 'upload'; syncUrl(); render(); }
+    if (requestedMode === 'existing' && S.dept && !S.map) { S.view = 'upload'; syncUrl(); render(); }
     if (S.view === 'coverage' && S.map) fetchCoverage();
   });
 }
