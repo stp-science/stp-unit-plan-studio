@@ -54,6 +54,27 @@ try {
             }
             $json(['ok' => true] + $b);
         }
+        if ($action === 'coverage-audit' || $action === 'coverage-audit-xlsx') {
+            $department=$deptFor($_GET['department_id'] ?? 0);
+            if (!$department || in_array($department['scope'] ?? '', ['prep-setup','eal-setup'],true))
+                $json(['ok'=>false,'error'=>'Choose an enabled subject workspace.'],403);
+            $saved=cm_load($pdo,$schoolId,$department['id']);
+            if (!$saved)$json(['ok'=>false,'error'=>'Create or open a curriculum overview before checking coverage.'],404);
+            require_once __DIR__ . '/curriculum_coverage.php';
+            $audit=cm_audit_report($pdo,$schoolId,$department['id'],(string)$department['name'],$saved['map']);
+            if ($action === 'coverage-audit')$json($audit);
+            require_once __DIR__ . '/curriculum_coverage_xlsx.php';
+            $bytes=cm_audit_xlsx($audit);
+            $filename=trim((string)preg_replace('/[^A-Za-z0-9]+/','-',(string)$department['name']),'-').'-statement-coverage-'.gmdate('Y-m-d').'.xlsx';
+            while(ob_get_level())ob_end_clean();
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="'.$filename.'"');
+            header('Content-Length: '.strlen($bytes));
+            header('Cache-Control: private, no-store');
+            header('X-Content-Type-Options: nosniff');
+            echo $bytes;
+            exit;
+        }
         if ($action === 'statements') {
             $d = $deptFor($_GET['department_id'] ?? 0);
             if (!$d) $json(['ok' => false, 'error' => 'You are not in that department.'], 403);
@@ -247,6 +268,17 @@ try {
         if (!$m || !isset(cm_topic_ids($m['map'])[$tid])) $json(['ok' => false, 'error' => 'That unit is not on the map.'], 404);
         cm_match_mark($pdo, $schoolId, $deptId, $tid, (string)($in['status'] ?? ''), (int)($in['found'] ?? 0), (string)($in['note'] ?? ''));
         $json(['ok' => true]);
+    }
+
+    if ($action === 'coverage-audit-assign') {
+        $saved=cm_load($pdo,$schoolId,$deptId);
+        if (!$saved)$json(['ok'=>false,'error'=>'This subject has no saved curriculum overview.'],404);
+        require_once __DIR__ . '/curriculum_coverage.php';
+        try{
+            $result=cm_audit_add_to_unit($pdo,$schoolId,$deptId,$teacherId,
+                $saved['map'],(string)$dept['name'],(string)($in['statement_id']??''),(string)($in['topic_id']??''));
+        }catch(CsInvalid $e){$json(['ok'=>false,'error'=>$e->getMessage()],422);}
+        $json($result);
     }
 
     if ($action === 'set-statements') {
