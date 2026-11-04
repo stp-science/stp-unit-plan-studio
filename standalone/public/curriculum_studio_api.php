@@ -4,7 +4,7 @@ declare(strict_types=1);
 // GET  ?action=list|catalogue
 // POST ?action=save|delete|save-config|find|generate   (JSON body with the MIS csrf token in "csrf")
 // find and generate stream NDJSON: {"type":"started"} ... {"type":"result","result":...} or {"type":"error","error":...}.
-// Everything is scoped to the signed-in teacher (their own guides only) and gated by cs_enabled() for their school.
+// Guides are scoped to the signed-in account (the shared staff account is a shared workspace) and gated by cs_enabled() for the school.
 
 require_once __DIR__ . '/mis_common.php';
 require_once __DIR__ . '/curriculum_studio_lib.php';
