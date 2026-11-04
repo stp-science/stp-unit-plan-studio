@@ -84,6 +84,23 @@ function cm_audit_specs(string $department, array $map): array
             }
         }
     }
+    // Senior courses use different Ministry documents for Year 11 and
+    // Years 12–13. Match the ACTUAL course subject and published year range;
+    // never invent coverage by treating junior documents as senior ones.
+    $seniorYears=array_values(array_filter(cm_audit_years($map),
+        static fn($year)=>$year>=11&&$year<=13));
+    if($seniorYears){
+        $wanted=$name==='analytical physics'?'physics':$name;
+        foreach(cs_senior_docs() as $doc){
+            $subject=mb_strtolower(trim((string)($doc['subject']??'')));
+            if($subject!==$wanted)continue;
+            foreach($seniorYears as $year){
+                if(!in_array($year,(array)($doc['years']??[]),true))continue;
+                $add((string)$doc['id'],$year,
+                    (string)($doc['subject']??$department),'');
+            }
+        }
+    }
     return array_values($specs);
 }
 function cm_audit_key(string $doc,string $kind,string $text): string
@@ -111,7 +128,11 @@ function cm_audit_source(PDO $pdo,array $spec): array
     $prepared=cm_bank_prepare($doc,$year,(string)$spec['discipline'],$level);
     if(is_string($prepared))return ['ready'=>false,'items'=>[],'reason'=>$prepared];
     $total=count($prepared[1]);
-    if(!$total||!$bank['complete']||$bank['done']<$total||!$bank['items'])
+    if($bank['complete']&&$bank['done']>=$total&&$total>0&&!$bank['items'])
+        return ['ready'=>false,'items'=>[],
+            'reason'=>'The extracted source list is empty. Ask the administrator to review the document.',
+            'total'=>0,'done'=>$bank['done']];
+    if(!$total||!$bank['complete']||$bank['done']<$total)
         return ['ready'=>false,'items'=>[],'reason'=>'Official statement list needs preparing.',
             'total'=>$total,'done'=>$bank['done']];
     return ['ready'=>true,'items'=>$bank['items']];
