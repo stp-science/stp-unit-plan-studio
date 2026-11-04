@@ -32,5 +32,12 @@ foreach ([
 ] as $required) {
  if (!str_contains($map,$required)) throw new RuntimeException('Missing mode routing or homepage guidance: '.$required);
 }
+// Prep and EAL are subjects in the picker, not shortcuts above the planning routes.
+if (str_contains($map,'Switch to Prep curriculum planning') ||
+    str_contains($map,'Switch to EAL curriculum planning'))
+ throw new RuntimeException('Prep/EAL homepage shortcuts should not be present.');
+if (!str_contains($map,"const englishGroup = S.depts.find(") ||
+    !str_contains($map,"const k = isEal ? englishGroup"))
+ throw new RuntimeException('EAL should be grouped with English subjects.');
 if (!str_contains($css,'.cm-knowledge-grid')) throw new RuntimeException('Missing homepage guidance layout.');
 echo "Passed three distinct header modes on both pages, home routing, Ministry link and knowledge-rich curriculum guidance. No API calls.\n";
