@@ -37,7 +37,9 @@ foreach ([
  'const groups=guideGroups()',
  'const plans=[...group.plans].sort',
  'onclick:()=>showSubjectLibrary(group.key)',
- 'onclick:()=>open(g.id)'
+ 'onclick:()=>open(g.id)',
+ "'english as an additional language':'English as an Additional Language'",
+ "for (const name of ['Prep','English as an Additional Language'])"
 ] as $required) {
     if (!str_contains($js, $required))
         throw new RuntimeException('All-subject navigation regression: '.$required);
