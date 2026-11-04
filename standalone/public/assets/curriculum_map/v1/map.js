@@ -1465,7 +1465,6 @@ function startView() {
           if(eal)selectDepartment(eal.id);
         }},'Switch to EAL curriculum planning') :
         h('p',{class:'hint'},'EAL is selected. Build or import the Stage 1–5 sequence and choose statements for each unit.')),
-    dashboardContent(),
     h('div', {class: 'cm-startgrid'},
       card('a', '✎', 'Create a single unit plan', 'No curriculum overview needed. Choose a subject, year and topic, then build a unit plan using the Ministry curriculum.', 'Start a unit plan', {href: CM.guide + (isEalDept()?'?guide=1&new-eal=1':isPrepDepartment()?'?guide=1&new-prep=1':'?guide=1&blank=1')}),
       card('b', '⇪', has ? 'Edit your department’s curriculum overview' : 'Create your department’s curriculum overview with AI', has ? name + ' already has an overview. Open it to update the sequence, units, strands or curriculum statements.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to create a draft sequence of units for your department to review and edit.', has ? 'Edit your overview' : 'Create an overview with AI', {onclick: () => { navigationMode='overview'; S.edit = has; showView('map'); }}),
