@@ -73,7 +73,7 @@ const yearBankLoaded = (guide, year) => (Array.isArray(guide.bankYears) && guide
 const statementsForYear = (guide, key, year) => (guide.statements[key] || []).filter(s =>
   !juniorYearTabs(guide) || statementSourceYear(s,guide) === year);
 let root, listEl, mainEl, shellEl, toastEl;
-let librarySubject = null, libraryQuery = '', directoryQuery = '', libraryShowAll = false;
+let librarySubject = null, libraryQuery = '', directoryQuery = '', libraryShowAll = false, requestedSubject = '';
 
 const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], ealLoaded: [], languageReferences: '', docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
@@ -170,8 +170,9 @@ function guideGroups() {
     if (!groups.has(key)) groups.set(key,{key,name,plans:[]});
     groups.get(key).plans.push(guide);
   }
-  // Prep/EAL are normal subjects, available even before their first unit exists.
-  for (const name of ['Prep','English as an Additional Language']) {
+  // Prep/EAL remain available; a subject passed from the curriculum map
+  // is also offered even when no unit plans have been created for it yet.
+  for (const name of ['Prep','English as an Additional Language',requestedSubject].filter(Boolean)) {
     const key=subjectKey(name);
     if (!groups.has(key)) groups.set(key,{key,name,plans:[]});
   }
@@ -1494,6 +1495,12 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abor
     for (const g of guides) if (g.plan) normalisePlan(g.plan);
     renderList(); renderMain();
     const q = new URLSearchParams(location.search);
+    if (q.get('subject') && !q.get('topic')) {
+      requestedSubject=guideSubject({subject:q.get('subject')});
+      librarySubject=subjectKey(requestedSubject);
+      view='library';
+      renderList(); renderMain(true);
+    }
     if (q.get('new-eal')) { history.replaceState(null, '', location.pathname + '?guide=1'); newEalGuide(); }
     else if (q.get('new-prep')) { history.replaceState(null, '', location.pathname + '?guide=1'); newPrepGuide(); }
     else if (q.get('blank')) { history.replaceState(null, '', location.pathname + '?guide=1'); newGuide(); }
