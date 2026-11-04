@@ -1223,10 +1223,12 @@ function working() {
 // many departments: one picker grouped by faculty instead of a row of tabs
 function deptPicker() {
   const groups = new Map();
-  // EAL is a distinct subject under the same faculty heading as English.
-  // Prep remains a separate subject, selectable in the normal department list.
+  // Prep is its own standalone subject, not a child of "Other" or another faculty.
+  // EAL stays a separate subject alongside English.
+  const prep = S.depts.find(d => d.name.trim().toLowerCase() === 'prep');
   const englishGroup = S.depts.find(d => d.name.trim().toLowerCase() === 'english')?.faculty || 'English';
   for (const d of S.depts) {
+    if (d.name.trim().toLowerCase() === 'prep') continue;
     const isEal = d.name.trim().toLowerCase() === 'english as an additional language';
     const k = isEal ? englishGroup : (d.faculty || 'Other');
     if (!groups.has(k)) groups.set(k, []);
@@ -1239,6 +1241,7 @@ function deptPicker() {
     if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => selectDepartment(id)); else selectDepartment(id);
   }},
   h('option', {value: '', selected: !S.dept, disabled: true}, 'Choose subject'),
+  prep ? h('option', {value: prep.id, selected: prep.id === S.dept?.id}, 'Prep') : null,
   ...[...groups].map(([f, ds]) => h('optgroup', {label: f}, ...ds.map(d => h('option', {value: d.id, selected: d.id === S.dept?.id}, d.scope === 'faculty' ? d.name + ' (whole faculty)' : d.name)))));
   return h('div', {class: 'cm-depts', style: 'align-items:center'}, h('label', {class: 'cm-meta'}, 'Subject', sel));
 }
