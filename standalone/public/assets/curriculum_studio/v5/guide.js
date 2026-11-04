@@ -935,7 +935,7 @@ function reviewChecklist() {
     {label:'Connections to prior and future learning included',done:nonblank(p?.prior)&&nonblank(p?.future)},
     {label:'Each learning focus has objectives and checks for understanding',
       done:focuses.length>0&&focuses.every(x=>nonblank(x.objectives)&&nonblank(x.checks))},
-    {label:'Teacher has checked and approved this draft',done:!!p?.staffReviewed}
+    {label:'Teacher has reviewed this draft',done:!!p?.staffReviewed}
   ];
   const done=checks.filter(x=>x.done).length;
   return h('section',{class:'cg-card cg-review cg-sec',id:'cg-review-checklist','aria-label':'Unit plan completion checklist'},
@@ -1433,13 +1433,13 @@ const backBar = h('div', {class: 'cg-backbar'},
   h('span', {class: 'cg-backhint'}, 'Your department’s year-by-year overview. Open any unit there to build its unit plan.'));
 root.append(backBar);
 root.append(h('div', {class:'cg-shell'},
-  h('aside',{class:'cg-side','aria-label':'My unit plans'},
+  h('aside',{class:'cg-side','aria-label':'Saved unit plans'},
     h('div',{class:'cg-schoolbrand'},
       h('img',{src:'assets/stp-crest.svg',
         alt:"St Peter's Cambridge school crest",class:'cg-school-logo',referrerpolicy:'no-referrer',loading:'lazy'}),
       h('span',{class:'cg-schoolwordmark'},"St. Peter's"),
       h('span',{class:'cg-schoollocation'},'CAMBRIDGE, N.Z.')),
-    h('h2',{},'My unit plans'),
+    h('h2',{},'Saved unit plans'),
     h('button',{class:'cg-new',type:'button',onclick:newGuide},'＋ New unit plan'),
     h('button',{class:'cg-new-prep',type:'button',onclick:newPrepGuide},'＋ New Prep unit'),
     h('button',{class:'cg-new-prep',type:'button',onclick:newEalGuide},'＋ New EAL unit'),
