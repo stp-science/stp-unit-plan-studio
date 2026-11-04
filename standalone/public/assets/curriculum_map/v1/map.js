@@ -1403,6 +1403,16 @@ function render() {
 // ---------------------------------------------------------------- start screen: where do you want to begin?
 // Compact department dashboard. Assignment is not evidence of teaching or approval.
 function dashboardContent() {
+  // A curriculum overview is optional; standalone planning remains a first-class route.
+  if (!S.map) return h('section',{class:'cm-dashboard',id:'cm-dashboard','aria-label':'Department planning dashboard'},
+    h('div',{class:'cm-dashboard-head'},h('div',{},
+      h('h2',{},(S.dept?.name||'Department')+' planning dashboard'),
+      h('p',{class:'cm-meta'},'No department overview is saved yet. That does not stop you creating individual unit plans.'))),
+    h('p',{class:'cm-dashboard-note'},'Choose the route that suits your department: make one unit plan, ask AI to propose an overview, or upload your existing overview. You can also browse other departments above.'),
+    h('div',{class:'cm-dashboard-actions'},
+      h('a',{class:'cm-btn pri sm',href:CM.guide+'?guide=1&blank=1'},'Make an individual plan'),
+      h('button',{type:'button',class:'cm-btn sm',onclick:()=>{navigationMode='overview';showView('map');}},'Create an overview'),
+      h('button',{type:'button',class:'cm-btn sm',onclick:()=>{navigationMode='existing';showView('upload');}},'Upload an overview')));
   const units = S.map ? S.map.years.flatMap(y=>y.blocks.flatMap(b=>b.topics)) : [];
   const assigned = units.filter(t=>(S.stmtCounts[t.id]||0)>0).length;
   const summary = S.dashboardCoverage?.summary;
