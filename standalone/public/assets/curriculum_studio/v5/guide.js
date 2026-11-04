@@ -54,7 +54,7 @@ const SUBJECT_ALIAS = {
 };
 const subjectAlias = name => { const n = String(name || '').trim().toLowerCase(); return Object.keys(SUBJECT_ALIAS).find(k => SUBJECT_ALIAS[k].includes(n)) || ''; };
 
-let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, saveTimer = 0, saveState = 'saved', closed = new Set(), focusDefaultsFor = '', toastTimer = 0;
+let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, pendingSaveTimers = new Map(), saveState = 'saved', closed = new Set(), focusDefaultsFor = '', toastTimer = 0;
 let statementFilter = '';
 let mapSavePromise = Promise.resolve();
 let activeStatementYear = 7;
@@ -112,21 +112,27 @@ async function stream(action, body, signal) {
 }
 
 function save() {
-  G.updated = new Date().toISOString();
-  // Update visual completion indicators without interrupting field editing.
+  if (!G) return;
+  const guide = G; // Keep the correct plan even if staff return to the library.
+  guide.updated = new Date().toISOString();
   const checklist = document.getElementById('cg-review-checklist');
-  if (checklist && G.plan) checklist.replaceWith(reviewChecklist());
+  if (checklist && guide.plan) checklist.replaceWith(reviewChecklist());
   setSave('busy');
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    if (!G) return;
+  clearTimeout(pendingSaveTimers.get(guide.id));
+  pendingSaveTimers.set(guide.id, setTimeout(async () => {
+    pendingSaveTimers.delete(guide.id);
     try {
-      await post('save', {guide: G});
-      syncMap(G);
-      if (!guides.some(x => x.id === G.id)) guides.unshift(G);
-      renderList(); setSave('saved');
-    } catch (e) { setSave('bad', e.message); }
-  }, 700);
+      await post('save', {guide});
+      syncMap(guide);
+      if (!guides.some(x => x.id === guide.id)) guides.unshift(guide);
+      renderList();
+      if (G === guide) setSave('saved');
+      else if (!G && librarySubject === subjectKey(guideSubject(guide))) renderMain();
+    } catch (e) {
+      if (G === guide) setSave('bad', e.message);
+      else toast('A unit plan could not be saved. Reopen the plan and try again.');
+    }
+  }, 700));
 }
 function setSave(state, text) {
   saveState = state;
@@ -1431,6 +1437,8 @@ const resetLink = () => G && (G.plan || hasStatements(G) || guides.some(g => g.i
 
 async function remove() {
   const id = G.id;
+  clearTimeout(pendingSaveTimers.get(id));
+  pendingSaveTimers.delete(id);
   try { if (guides.some(g => g.id === id)) await post('delete', {id}); } catch (e) { banner = {kind: 'err', text: e.message}; return renderMain(); }
   guides = guides.filter(g => g.id !== id); G = null; view=librarySubject?'library':'topic'; renderList(); renderMain(true); toast('Unit plan deleted');
 }
