@@ -3,6 +3,26 @@ const curriculumAi = createCurriculumQueue();
 // Curriculum map front end. A department's year -> term -> topic overview: view it, edit it, build one, or import one.
 const CM = window.CM;
 const PALETTE = ['#a9df82', '#fff176', '#d9cce9', '#ffcc80', '#90caf9', '#f48fb1', '#80deea', '#e6ee9c', '#bcaaa4', '#cfd8dc'];
+// Calculate readable text for ANY saved strand colour, including dark shades
+// from imported curriculum maps. Check WCAG contrast, not just light/dark hue.
+function strandTextColor(value) {
+  const colour = /^#[0-9a-f]{6}$/i.test(String(value||'')) ? value : '#e4e7ec';
+  const rgb = [1,3,5].map(i => parseInt(colour.slice(i,i+2),16) / 255);
+  const linear = rgb.map(x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4);
+  const luminance = .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2];
+  const navyLuminance = .2126 * 0 + .7152 * (((23/255+.055)/1.055)**2.4)
+    + .0722 * (((51/255+.055)/1.055)**2.4);
+  const whiteContrast = 1.05 / (luminance + .05);
+  const navyContrast = (luminance + .05) / (navyLuminance + .05);
+  if (whiteContrast >= 4.5 && whiteContrast >= navyContrast) return '#ffffff';
+  if (navyContrast >= 4.5) return '#001733';
+  // Mid-tone backgrounds need true black rather than dark navy to reach 4.5:1.
+  return '#000000';
+}
+const strandStyle = colour => {
+  const bg = /^#[0-9a-f]{6}$/i.test(String(colour||'')) ? colour : '#e4e7ec';
+  return '--c:' + bg + ';--on-c:' + strandTextColor(bg);
+};
 const uid = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), v => v.toString(16).padStart(2, '0')).join('');
 const h = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag);
@@ -793,7 +813,7 @@ function topicDetails(y, b, t) {
   const st = strandOf(t.strand), ty = typeOf(t.assess);
   openModal(t.title, h('div', {class: 'cm-det'},
     h('div', {}, h('span', {}, stageLabel(y)), h('b', {}, y.label + ' · ' + termName(y, b))),
-    st ? h('div', {}, h('span', {}, 'Strand'), h('span', {class: 'cm-pill', style: '--c:' + st.color}, st.name)) : null,
+    st ? h('div', {}, h('span', {}, 'Strand'), h('span', {class: 'cm-pill', style: strandStyle(st.color)}, st.name)) : null,
     t.assess ? h('div', {}, h('span', {}, 'Assessment'), h('span', {}, h('span', {class: 'cm-code'}, t.assess), ' ', ty?.label || '')) : null,
     t.optional ? h('div', {}, h('span', {}, 'Status'), h('span', {}, 'Optional, if time allows')) : null),
   [h('button', {class: 'cm-btn', type: 'button', onclick: () => { closeModal(); render(); }}, 'Close'),
@@ -913,7 +933,7 @@ function chip(y, b, t) {
       bar.setAttribute('aria-expanded', now ? 'true' : 'false'); body.hidden = !now; paintBar(t.id);
       if (now) fillTopicStatements(body, y, b, t);
     }});
-  const wrap = h('div', {class: 'cm-tw', 'data-t': t.id, style: st ? '--c:' + st.color : ''}, el, bar, body);
+  const wrap = h('div', {class: 'cm-tw', 'data-t': t.id, style: st ? strandStyle(st.color) : ''}, el, bar, body);
   tiles.set(t.id, {y, b, t, bar, body, wrap});
   paintBar(t.id);
   if (open) fillTopicStatements(body, y, b, t);
@@ -1009,7 +1029,7 @@ function mapView() {
       h('button', {class: 'cm-btn', type: 'button', onclick: () => print()}, 'Print'),
       h('button', {class: 'cm-btn ' + (S.edit ? 'pri' : ''), type: 'button', onclick: () => { S.edit = !S.edit; if (!S.edit && S.saveState === 'saving') save(); render(); }}, S.edit ? 'Done editing' : 'Edit map'))));
   el.append(h('div', {class: 'cm-legend'},
-    ...S.map.strands.map(s => h('span', {class: 'cm-pill', style: '--c:' + s.color}, s.name)),
+    ...S.map.strands.map(s => h('span', {class: 'cm-pill', style: strandStyle(s.color)}, s.name)),
     S.edit && !S.map.strands.length ? h('button', {class: 'cm-btn sm', type: 'button', onclick: strandsEditor}, '＋ Add strands (for example Biology, Chemistry, Physics)') : null,
     S.map.assessTypes.length ? h('div', {class: 'cm-key'}, ...S.map.assessTypes.map(a => h('span', {}, h('b', {}, a.code), a.label ? ' = ' + a.label : ''))) : null));
   tiles.clear();
