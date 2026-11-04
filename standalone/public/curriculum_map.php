@@ -51,7 +51,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
           <div class="page-title">
             <p class="eyebrow"><?= $e($schoolName) ?> · Teaching &amp; learning</p>
             <h1>Curriculum map</h1>
-            <p>Your department's year-by-year overview of units, assessments and who teaches what.</p>
+            <p>View and organise your department's units by year level.</p>
           </div>
         </div>
       </header>
