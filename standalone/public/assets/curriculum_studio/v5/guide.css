@@ -436,3 +436,41 @@ body[data-page="curriculum-studio"] .cg-library-subject .cg-subject-arrow{font-s
   .cg-subject-card{min-height:100px;padding:14px 16px}
 }
 @media(prefers-reduced-motion:reduce){.cg-subject-card{transition:none}.cg-subject-card:hover{transform:none}}
+
+/* Subject selection remains on the left. Three compact subjects per row;
+   their saved unit plans open in the right-hand pane. */
+.cg-shell:not(.is-full){grid-template-columns:395px minmax(0,1fr);gap:20px}
+body[data-page="curriculum-studio"] .cg-side{min-width:0}
+.cg-side-search-label{display:block;color:#b9d3df;font-size:12px;font-weight:750;letter-spacing:.05em;margin:14px 4px 6px}
+.cg-side-search{display:block;width:100%;border-radius:9px;border:1px solid #82adbf;background:#fff;color:#001733;
+  font:inherit;font-size:13px;padding:10px 12px;min-width:0}
+.cg-side-search:focus-visible{outline:3px solid #82adbf;outline-offset:2px}
+.cg-side-subjects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start;
+  overflow:auto;min-height:0;flex:1;margin-top:13px;padding:1px 3px 6px 0}
+.cg-side-subject{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;
+  min-width:0;min-height:93px;padding:10px 5px;border:1px solid rgba(130,173,191,.4);
+  background:#14304b;color:#fff;border-radius:9px;text-align:center;line-height:1.3;
+  transition:background .15s,border-color .15s}
+.cg-side-subject:hover{background:#254e6e;border-color:#a9cfdf}
+.cg-side-subject.on{background:#edf5f8;color:#001733;border:2px solid #cf082b;padding:9px 4px}
+.cg-side-subject-name{font-size:11.5px;font-weight:700;max-width:100%;overflow-wrap:anywhere;hyphens:auto}
+.cg-side-subject-count{display:grid;place-items:center;min-width:27px;height:23px;padding:0 6px;
+  background:#82adbf;color:#001733;border-radius:99px;font-size:12px;font-weight:800;line-height:1}
+.cg-side-subject.on .cg-side-subject-count{background:#cf082b;color:#fff}
+.cg-subject-side-empty{grid-column:1/-1;padding:11px 2px;color:#d0e3eb;font-size:13px}
+.cg-library-showall{margin-top:16px}
+.cg-library-showall[hidden]{display:none}
+@media(max-width:1180px){
+  .cg-shell:not(.is-full){grid-template-columns:350px minmax(0,1fr);gap:16px}
+  .cg-side-subject{padding:9px 4px;min-height:94px}
+}
+@media(max-width:900px){
+  .cg-shell:not(.is-full){grid-template-columns:minmax(0,1fr)}
+  body[data-page="curriculum-studio"] .cg-side{max-height:440px;position:static}
+  .cg-side-subjects{min-height:0}
+}
+@media(max-width:470px){
+  .cg-side-subjects{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cg-side-subject{min-height:73px}
+}
+@media(prefers-reduced-motion:reduce){.cg-side-subject{transition:none}}
