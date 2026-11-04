@@ -156,7 +156,8 @@ function guideSubject(g) {
     'physical education':'Health & PE', 'health and physical education':'Health & PE',
     'health & physical education':'Health & PE', 'hpe':'Health & PE',
     'visual art':'Visual Arts','art':'Visual Arts',
-    'social science':'Social Sciences'
+    'social science':'Social Sciences',
+    'english as an additional language':'English as an Additional Language'
   };
   if (canonical[n]) return canonical[n];
   return raw.replace(/\b[a-z]/g,letter=>letter.toUpperCase());
