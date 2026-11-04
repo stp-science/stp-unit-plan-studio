@@ -412,3 +412,27 @@ body[data-page="curriculum-studio"] .cg-library-subject .cg-subject-arrow{font-s
   .cg-library-tile{min-height:155px;padding:17px}
   .cg-library-toolbar{align-items:stretch}.cg-library-search{min-width:0;max-width:none;flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.cg-library-tile{transition:none}.cg-library-tile:hover{transform:none}}
+
+/* Subjects occupy the full available width in rows of three (not a tall sidebar). */
+.cg-subject-directory-page{min-width:0;width:100%}
+.cg-subject-directory-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:15px;margin:6px 0 19px}
+.cg-subject-directory-head h1{font-size:clamp(24px,2.2vw,32px);line-height:1.25;color:#001733;margin:0 0 6px}
+.cg-subject-directory-head p{font-size:14px;line-height:1.5;color:#526879;margin:0}
+.cg-directory-search{width:100%}
+.cg-subject-directory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;align-items:stretch}
+.cg-subject-card{display:flex;flex-direction:column;justify-content:space-between;gap:14px;text-align:left;min-width:0;min-height:116px;
+  border:1px solid #d3e0e7;border-top:4px solid #82adbf;border-radius:13px;padding:17px 18px;background:#fff;color:#001733;
+  box-shadow:0 3px 12px rgba(0,23,51,.06);transition:border-color .15s,box-shadow .15s,transform .15s}
+.cg-subject-card:hover{border-color:#cf082b;box-shadow:0 6px 20px rgba(0,23,51,.12);transform:translateY(-2px)}
+.cg-subject-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.cg-subject-card-head strong{font-size:17px;line-height:1.4;overflow-wrap:anywhere;min-width:0}
+.cg-subject-card .cg-subject-count{flex:none;padding:3px 9px;font-size:13px}
+.cg-subject-card-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;line-height:1.4;color:#526879}
+.cg-subject-card-foot span:last-child{color:#b30829;font-weight:750}
+@media(max-width:1000px){.cg-subject-directory{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){
+  .cg-subject-directory{grid-template-columns:minmax(0,1fr);gap:11px}
+  .cg-subject-directory-head .cg-btn{width:100%;justify-content:center}
+  .cg-subject-card{min-height:100px;padding:14px 16px}
+}
+@media(prefers-reduced-motion:reduce){.cg-subject-card{transition:none}.cg-subject-card:hover{transform:none}}
