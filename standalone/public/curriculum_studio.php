@@ -2,7 +2,7 @@
 declare(strict_types=1);
 // mis/curriculum_studio.php - Unit Plan Studio (simple version, 2026-10-31).
 // A teacher chooses subject, year and topic; the Ministry curriculum is the outline; evidence-informed teaching ideas
-// are added; the draft exports to the school's Word template. Each teacher sees only their own guides.
+// are added; the draft exports to the school's Word template. Guides follow the signed-in account; the shared staff account uses a shared workspace.
 // Front end: assets/curriculum_studio/<CS_ASSET_VER>/guide.js (bump CS_ASSET_VER in the lib when any file there changes).
 
 require_once __DIR__ . '/mis_common.php';
