@@ -1,4 +1,4 @@
-// Topic Guide Studio front end. One teacher, their own guides.
+// Unit Plan Studio front end. Guides are saved in the signed-in workspace.
 // Flow: Topic -> Outline (tick the Ministry statements) -> Guide (edit, export to Word).
 import {createWord} from './export.js';
 import {capabilities, assessmentOptions} from './model.js';
@@ -54,7 +54,7 @@ const SUBJECT_ALIAS = {
 };
 const subjectAlias = name => { const n = String(name || '').trim().toLowerCase(); return Object.keys(SUBJECT_ALIAS).find(k => SUBJECT_ALIAS[k].includes(n)) || ''; };
 
-let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, saveTimer = 0, saveState = 'saved', closed = new Set(), toastTimer = 0;
+let guides = [], G = null, docs = [], view = 'topic', work = null, banner = null, saveTimer = 0, saveState = 'saved', closed = new Set(), focusDefaultsFor = '', toastTimer = 0;
 let statementFilter = '';
 let mapSavePromise = Promise.resolve();
 let activeStatementYear = 7;
@@ -86,7 +86,7 @@ const ago = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new
 async function post(action, body) {
   const r = await fetch(CS.api + '?action=' + action, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({...body, csrf: CS.csrf})});
   const d = await r.json().catch(() => ({}));
-  if (!r.ok || d.ok === false) throw Error(d.error || 'Could not reach Liveweave.');
+  if (!r.ok || d.ok === false) throw Error(d.error || 'Could not reach Unit Plan Studio.');
   return d;
 }
 
@@ -94,7 +94,7 @@ async function stream(action, body, signal) {
   const r = await fetch(CS.api + '?action=' + action, {method: 'POST', credentials: 'same-origin', signal, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({...body, csrf: CS.csrf})});
   if (!(r.headers.get('Content-Type') || '').includes('ndjson')) {
     const d = await r.json().catch(() => ({}));
-    const err = Error(d.error || 'Could not reach Liveweave.'); err.noRetry = r.status < 500; throw err;
+    const err = Error(d.error || 'Could not reach Unit Plan Studio.'); err.noRetry = r.status < 500; throw err;
   }
   const reader = r.body.getReader(), dec = new TextDecoder();
   let buf = '', result = null;
@@ -113,6 +113,9 @@ async function stream(action, body, signal) {
 
 function save() {
   G.updated = new Date().toISOString();
+  // Update visual completion indicators without interrupting field editing.
+  const checklist = document.getElementById('cg-review-checklist');
+  if (checklist && G.plan) checklist.replaceWith(reviewChecklist());
   setSave('busy');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
@@ -321,7 +324,7 @@ function build() {
       h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →'),
       h('button', {class:'cg-ghost',type:'button',onclick:newPrepGuide},'Create a Prep unit  →'),
       h('button', {class:'cg-ghost',type:'button',onclick:newEalGuide},'Create an EAL unit  →')),
-    h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Private to you'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
+    h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Saved in this staff workspace'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
   if (work) return [stepper(), workCard()];
   if (G.mapRef && !isPrepGuide(G) && !isEalGuide(G) && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
   return [stepper(), bannerEl(), view === 'topic' ? topicCard() : view === 'outline' && (hasStatements(G) || isPrepGuide(G) || isEalGuide(G)) ? (isPrepGuide(G) ? prepOutlineCard() : isEalGuide(G) ? ealOutlineCard() : outlineCard()) : G.plan ? guideView() : topicCard()];
@@ -918,6 +921,35 @@ function vocabFields(f) {
     field('Tier 3 vocabulary (subject-specific terms)', area(f.vocabularyTier3 || '', v => set('vocabularyTier3', v), 3))];
 }
 
+// Checks completeness of planning fields, not teaching quality or Ministry compliance.
+// Assessment, reporting and resources deliberately remain optional.
+function reviewChecklist() {
+  const g=G, p=g?.plan;
+  const nonblank=v=>typeof v==='string' ? v.trim().length>0 : Array.isArray(v) ? v.length>0 : !!v;
+  const selected=(g?.selected?.knowledge?.length||0)+(g?.selected?.practices?.length||0);
+  const focuses=Array.isArray(p?.focuses)?p.focuses:[];
+  const checks=[
+    {label:'Official curriculum statements selected',done:selected>0},
+    {label:'Purpose, knowledge and practices summaries included',
+      done:nonblank(p?.purpose)&&nonblank(p?.knowledgeSummary)&&nonblank(p?.practicesSummary)},
+    {label:'Connections to prior and future learning included',done:nonblank(p?.prior)&&nonblank(p?.future)},
+    {label:'Each learning focus has objectives and checks for understanding',
+      done:focuses.length>0&&focuses.every(x=>nonblank(x.objectives)&&nonblank(x.checks))},
+    {label:'Teacher has checked and approved this draft',done:!!p?.staffReviewed}
+  ];
+  const done=checks.filter(x=>x.done).length;
+  return h('section',{class:'cg-card cg-review cg-sec',id:'cg-review-checklist','aria-label':'Unit plan completion checklist'},
+    h('div',{class:'cg-review-heading'},h('div',{},h('h2',{},'Completion checklist'),
+      h('p',{},'See what needs attention before you share or download this plan.')),
+      h('strong',{},done+' of '+checks.length+' checked')),
+    h('ul',{class:'cg-review-list'},...checks.map(item=>
+      h('li',{class:item.done?'done':'todo'},
+        h('span',{'aria-hidden':'true'},item.done?'✓':'○'),h('span',{},item.label)))),
+    h('label',{class:'cg-review-confirm'},
+      h('input',{type:'checkbox',checked:!!p?.staffReviewed,onchange:e=>{p.staffReviewed=e.target.checked;save();}}),
+      h('span',{},'I have reviewed the AI suggestions, curriculum selections and accuracy of this unit plan.')),
+    h('p',{class:'cg-review-hint'},'This is a planning checklist, not proof of teaching or compliance. Assessment, reporting and resources can be completed by staff where relevant.'));
+}
 function guideView() {
   const p = G.plan;
   const set = (k, v) => { p[k] = v; save(); };
@@ -931,6 +963,11 @@ function guideView() {
   const palette = ['#8b2440', '#2563eb', '#0f8a6a', '#b45309', '#7c3aed', '#be185d', '#0e7490'];
 
   ensureCounts(p);
+  // Show the first learning focus initially; others stay available on demand.
+  if (focusDefaultsFor !== G.id) {
+    closed = new Set(p.focuses.slice(1).map((_,i)=>G.id+':'+(i+1)));
+    focusDefaultsFor = G.id;
+  }
   if (p.focuses.some(f => !f.lessons && Number.isFinite(f.lessonCount))) relabel(p);
   const totalIn = h('input', {type: 'number', id: 'cg-ltot', min: String(p.focuses.length), max: '400', value: lessonTotal(p) || '', placeholder: 'Lessons', 'aria-label': 'Anticipated number of lessons',
     onchange: e => { const T = Math.max(p.focuses.length, Math.min(400, parseInt(e.target.value, 10) || 0)); fitTotal(p, T); relabel(p); save(); paintLessons(); }});
@@ -939,22 +976,27 @@ function guideView() {
   const overview = h('section', {class: 'cg-card cg-sec', id: 'sec-overview'}, h('h3', {}, 'Overview'),
     h('div', {class: 'cg-lessonbar'}, field('Anticipated number of lessons', totalIn), field('Anticipated duration of unit', durIn),
       h('small', {}, 'The AI suggests lessons for each learning focus and this total is added up from them. Change any focus below and the total updates, or change the total here and the focuses are adjusted to fit.')),
-    field('Purpose – why this is worth learning', area(p.purpose, v => set('purpose', v), 3)),
+    field('Purpose – why this is worth learning', area(p.purpose, v => set('purpose', v), 3), 'Explain the essential learning, why it matters and how it supports later learning.'),
     h('div', {class: 'cg-grid cg-overview-grid'}, field('Connections to prior learning', area(p.prior, v => set('prior', v), 3), 'Year — Topic: what students already know and how this unit builds on it.'), field('Connections to future learning', area(p.future, v => set('future', v), 3), 'Year — Topic: what students will learn later and how this unit prepares them.'),
-      field('Knowledge summary', area(p.knowledgeSummary, v => set('knowledgeSummary', v), 3)), field('Practices summary', area(p.practicesSummary, v => set('practicesSummary', v), 3))),
+      field('Knowledge summary', area(p.knowledgeSummary, v => set('knowledgeSummary', v), 3), 'The key concepts and subject knowledge students need to remember.'), field('Practices summary', area(p.practicesSummary, v => set('practicesSummary', v), 3), 'The disciplinary practices students will learn and apply.')),
     h('div', {class: 'cg-tickbox', style: 'margin-top:14px'}, h('b', {}, 'Capabilities this unit develops'), h('small', {style: 'display:block;color:var(--mut);margin:2px 0 6px'}, 'Suggested from the unit. Adjust as needed.'), tick('capabilities', capabilities)));
 
   const focuses = p.focuses.map((f, i) => {
     const key = G.id + ':' + i, c = palette[i % palette.length];
+    const toggleFocus=()=>{
+      if(closed.has(key))closed.delete(key);else closed.add(key);
+      el.classList.toggle('closed',closed.has(key));
+      el.querySelector('.cg-chev')?.setAttribute('aria-expanded',String(!closed.has(key)));
+    };
     const el = h('article', {class: 'cg-focus cg-sec' + (closed.has(key) ? ' closed' : ''), id: 'sec-f' + i, style: '--c:' + c},
-      h('div', {class: 'cg-fhead', onclick: e => { if (e.target.tagName === 'INPUT') return; closed.has(key) ? closed.delete(key) : closed.add(key); el.classList.toggle('closed'); }},
+      h('div', {class: 'cg-fhead', onclick: e => { if (e.target.closest('input,button,label')) return; toggleFocus(); }},
         h('span', {class: 'cg-num'}, i + 1), h('label', {class: 'cg-lesn', onclick: e => e.stopPropagation()}, h('input', {type: 'number', min: '1', max: '60', class: 'cg-les', 'data-fi': String(i), value: Number.isFinite(f.lessonCount) ? f.lessonCount : '', 'aria-label': 'Number of lessons for learning focus ' + (i + 1), title: 'Approximate number of lessons. Change it and the total updates.',
           oninput: e => { const n = parseInt(e.target.value, 10); f.lessonCount = n > 0 ? Math.min(60, n) : undefined; relabel(p); save(); paintLessons(); }}), h('span', {}, 'lessons'), h('span', {class: 'cg-lrange', 'data-lrange': String(i)}, f.lessons || '')), h('input', {type: 'text', value: f.title, 'aria-label': 'Learning focus title', oninput: e => { f.title = e.target.value; save(); const a = tocEl.querySelector(`[data-id="sec-f${i}"]`); if (a) a.textContent = (i + 1) + '. ' + (f.title || 'Learning focus'); }}),
-        h('button', {class: 'cg-chev', type: 'button', 'aria-label': 'Collapse or expand'}, '▾')),
-      h('div', {class: 'cg-fbody'},
+        h('button', {class: 'cg-chev', type: 'button', 'aria-expanded':String(!closed.has(key)), 'aria-controls':'cg-focus-body-'+i, 'aria-label':'Expand or collapse learning focus '+(i+1), onclick:e=>{e.stopPropagation();toggleFocus();}}, '▾')),
+      h('div', {class: 'cg-fbody', id:'cg-focus-body-'+i},
         h('div', {class: 'cg-grid'}, field('Curriculum knowledge', area(f.knowledge, v => { f.knowledge = v; save(); }, 3)), field('Curriculum practices', area(f.practices, v => { f.practices = v; save(); }, 3)),
           field('Specific learning objectives', area(f.objectives, v => { f.objectives = v; save(); }, 3)), ...vocabFields(f),
-          field('Common misconceptions', area(f.misconceptions, v => { f.misconceptions = v; save(); }, 3)), field('Check for understanding', area(f.checks, v => { f.checks = v; save(); }, 3))),
+          field('Common misconceptions', area(f.misconceptions, v => { f.misconceptions = v; save(); }, 3), 'Misunderstandings to anticipate and address explicitly.'), field('Check for understanding', area(f.checks, v => { f.checks = v; save(); }, 3), 'Short formative questions or tasks to reveal what students have learned, not end-point assessments.')),
         f.priorities !== undefined && String(f.priorities).trim() ? field('School priorities', area(f.priorities, v => { f.priorities = v; save(); }, 2)) : null));
     return el;
   });
@@ -980,7 +1022,7 @@ function guideView() {
   return h('div', {},
     h('div', {class: 'cg-gtitle'}, h('div', {}, h('h1', {}, G.topic || 'Unit plan'), h('div', {class: 'cg-chips meta'}, h('span', {class: 'cg-chip acc'}, G.subject || 'Subject'), h('span', {class: 'cg-chip'}, guideStageLabel(G)), G.plan && G.plan.duration ? h('span', {class: 'cg-chip', id: 'cg-dchip'}, G.plan.duration) : null, saveBadge())),
       h('div', {class: 'cg-gactions'}, h('button', {class: 'cg-ghost', type: 'button', onclick: () => { view = 'outline'; renderMain(true); }}, '↻ Change statements'), h('button', {class: 'cg-btn', type: 'button', onclick: download}, '⬇ Word'), resetLink())),
-    h('div', {class: 'cg-guide'}, tocEl, h('div', {}, overview, ...focuses, yours, exportCard)));
+    h('div', {class: 'cg-guide'}, tocEl, h('div', {}, reviewChecklist(), overview, ...focuses, yours, exportCard)));
 }
 
 // ---------------------------------------------------------------- actions
@@ -1000,7 +1042,7 @@ async function run(title, stages, fn) {
     else {
       // Statements, notes and timing rules live in the saved guide and a failed run never writes to it, so a retry starts from exactly the same inputs.
       const offline = e instanceof TypeError || /failed to fetch|network/i.test(e.message || '');
-      banner = {kind: 'err', text: offline ? 'Could not reach Liveweave. Check your internet connection. Your statements and notes are saved. Press Try again.' : e.message,
+      banner = {kind: 'err', text: offline ? 'Could not reach Unit Plan Studio. Check your internet connection. Your statements and notes are saved. Press Try again.' : e.message,
         retry: e.noRetry ? null : () => run(title, stages, fn)};
     }
   }
@@ -1243,7 +1285,7 @@ function generate() {
     if (G.mapRef) await mapSavePromise;
     const r = await stream('generate', {guide: {year: G.year, stage: G.stage || '', stages: noviceStages(G), topic: G.topic, subject: G.subject, duration: G.duration, notes: G.notes, languageReferences: G.languageReferences||'', statements: G.statements, selected: G.selected, prep: isPrepGuide(G), existingPlan: G.plan, mapRef: G.mapRef}}, signal);
     const notice = r.statementNotice; delete r.statementNotice;
-    G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear();
+    G.plan = normalisePlan(r); save(); view = 'guide'; closed.clear(); focusDefaultsFor = '';
     banner = notice ? {kind: 'note', text: 'Your draft is ready. ' + notice} : {kind: 'ok', text: 'Your draft is ready. Review it, edit anything, then download it.'};
   });
 }
