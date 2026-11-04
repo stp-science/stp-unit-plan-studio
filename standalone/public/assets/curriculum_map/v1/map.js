@@ -1273,7 +1273,7 @@ function coverageView(){
     el.append(note);
   }
   el.append(h('p',{class:'hint'},
-    'A statement counts as included only when it is ticked in a saved unit. Matches use the official statement wording, not AI guesses. This checks planning, not whether a statement has been taught.'));
+    'This checks statements ticked in units on this saved curriculum overview. Standalone plans must be linked to the overview to count. Matches use exact Ministry wording, not AI guesses; this checks planning, not whether content was taught.'));
   const sel=(items,value,change,label)=>h('select',{'aria-label':label,
     onchange:e=>{change(e.target.value);cov.limit=160;render();}},
     ...items.map(([v,n])=>h('option',{value:v,selected:value===v},n)));
