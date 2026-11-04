@@ -357,8 +357,7 @@ function build() {
 
     h('p', {}, 'Choose a subject on the left to view its unit plans as tiles, or start a new unit plan.'),
     h('div',{class:'cg-actions'},
-      h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →'),
-      h('button', {class:'cg-ghost',type:'button',onclick:returnToSubjects},'Browse saved plans  →')),
+      h('button', {class: 'cg-btn lg', type: 'button', onclick: newGuide}, 'Start a new unit plan  →')),
     h('div', {class: 'cg-pills'}, ['Ministry wording kept exactly', 'Exports to your Word template', 'Saved in this staff workspace'].map(t => h('span', {class: 'cg-pill'}, '✓ ' + t))))];
   if (work) return [stepper(), workCard()];
   if (G.mapRef && !isPrepGuide(G) && !isEalGuide(G) && !hasStatements(G) && !G.plan && view !== 'topic') return [stepper(), bannerEl(), h('section', {class: 'cg-card'}, h('h2', {}, 'No statements ticked on the map yet'), h('p', {class: 'lead'}, 'This unit plan is built from the statements you tick for “' + G.topic + '” on the curriculum map. Open the unit on the map, tick the statements it teaches, then come back.'), h('div', {class: 'cg-actions'}, h('a', {class: 'cg-btn lg', href: mapUrl()}, '← Go to the curriculum map')))];
