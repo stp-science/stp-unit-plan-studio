@@ -18,13 +18,29 @@ foreach ([
     if (!str_contains($js,$required))
         throw new RuntimeException('Subject library regression: '.$required);
 }
+// Validate the intended declarations rather than requiring a CSS rule to end
+// immediately after grid-template-columns (the grid also has a gap property).
 foreach ([
- '.cg-shell.is-full .cg-side{display:none!important}',
- '.cg-library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}',
- '@media(max-width:640px){.cg-library-grid{grid-template-columns:minmax(0,1fr)}'
+ 'sidebar hidden in full-width views' => '/\\.cg-shell\\.is-full\\s+\\.cg-side\\s*\\{[^}]*display\\s*:\\s*none\\s*!important/s',
+ 'three-column desktop tile grid' => '/\\.cg-library-grid\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(3\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
+ 'two-column medium-screen grid' => '/@media\\s*\\(max-width\\s*:\\s*1080px\\)[^{]*\\{\\s*\\.cg-library-grid\\s*\\{[^}]*grid-template-columns\\s*:\\s*repeat\\(2\\s*,\\s*minmax\\(0\\s*,\\s*1fr\\)\\)/s',
+ 'single-column small-screen grid' => '/@media\\s*\\(max-width\\s*:\\s*640px\\)[^{]*\\{\\s*\\.cg-library-grid\\s*\\{[^}]*grid-template-columns\\s*:\\s*minmax\\(0\\s*,\\s*1fr\\)/s',
+] as $label => $pattern) {
+    if (!preg_match($pattern, $css))
+        throw new RuntimeException('Responsive layout regression: '.$label);
+}
+// Every saved subject follows the same path; this must not be hard-coded to French.
+foreach ([
+ 'for (const guide of guides)',
+ 'const name = guideSubject(guide), key = subjectKey(name)',
+ 'groups.get(key).plans.push(guide)',
+ 'const groups=guideGroups()',
+ 'const plans=[...group.plans].sort',
+ 'onclick:()=>showSubjectLibrary(group.key)',
+ 'onclick:()=>open(g.id)'
 ] as $required) {
-    if (!str_contains($css,$required))
-        throw new RuntimeException('Responsive layout regression: '.$required);
+    if (!str_contains($js, $required))
+        throw new RuntimeException('All-subject navigation regression: '.$required);
 }
 if (str_contains($js,"sidebarGroupsOpen") || str_contains($js,"cg-subject-items"))
     throw new RuntimeException('Cramped expand-all sidebar has returned.');
