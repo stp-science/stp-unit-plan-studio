@@ -1241,7 +1241,7 @@ function deptPicker() {
     if (S.draft) confirmModal('Leave this draft?', 'It has not been saved yet, so it will be lost.', 'Leave', () => selectDepartment(id)); else selectDepartment(id);
   }},
   h('option', {value: '', selected: !S.dept, disabled: true}, 'Choose subject'),
-  prep ? h('option', {value: prep.id, selected: prep.id === S.dept?.id}, 'Prep') : null,
+  prep ? h('optgroup', {label: 'Prep'}, h('option', {value: prep.id, selected: prep.id === S.dept?.id}, 'Prep')) : null,
   ...[...groups].map(([f, ds]) => h('optgroup', {label: f}, ...ds.map(d => h('option', {value: d.id, selected: d.id === S.dept?.id}, d.scope === 'faculty' ? d.name + ' (whole faculty)' : d.name)))));
   return h('div', {class: 'cm-depts', style: 'align-items:center'}, h('label', {class: 'cm-meta'}, 'Subject', sel));
 }
