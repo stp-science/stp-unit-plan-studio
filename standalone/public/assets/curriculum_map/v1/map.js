@@ -1120,7 +1120,12 @@ async function mapJob({title, stages, request, source, kind}) {
   }, 500);
   try {
     const r = await request();
-    if (!r.body) throw Error('no stream');
+    // Validation and PHP upload-limit failures return JSON, not an NDJSON stream.
+    if (!r.ok && (r.headers.get('content-type')||'').includes('application/json')) {
+      const error=await r.json().catch(()=>({}));
+      throw Error(error.error || 'The documents could not be uploaded.');
+    }
+    if (!r.body) throw Error('The server did not return a result.');
     const reader = r.body.getReader(), dec = new TextDecoder(); let buf = '', result = null, err = '', note = '';
     for (;;) {
       const {value, done} = await reader.read(); if (done) break;
