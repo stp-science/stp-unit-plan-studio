@@ -1074,16 +1074,14 @@ function mapView() {
 
 // ---------------------------------------------------------------- no map yet: create or import
 function startFromScratch(f) {
-  const novice = isLanguageDept(), prep = S.dept?.name?.toLowerCase()==='prep', eal = isEalDept();
-  const first = eal ? 9 : prep ? 7 : novice ? 7 : parseInt(f.first, 10),
-    last = eal ? 13 : prep ? 8 : novice ? 9 : parseInt(f.last, 10);
-  if (!(first >= 1 && last >= first && last - first < 13)) return 'Check the first and last year.';
+  const groups=Array.from(f.groups.chosen);
+  if (!groups.length) return 'Choose at least one year group or proficiency stage.';
   const per = Math.min(12, Math.max(1, parseInt(f.blocks, 10) || 4));
   let n = 0;
   const strands = f.strands.split(/[,\n]/).map(s => s.trim()).filter(Boolean).slice(0, 12).map((name, i) => ({id: uid(), name, color: PALETTE[i % PALETTE.length]}));
   const assessTypes = f.types.split(/[;\n]/).map(s => { const [code, ...rest] = s.split(/[=:]/); return {code: (code || '').trim().toUpperCase().slice(0, 3), label: rest.join('=').trim()}; }).filter(a => a.code);
   S.map = {v: 1, title: f.title.trim(), notes: '', strands, assessTypes,
-    years: Array.from({length: last - first + 1}, (_, i) => ({id: uid(), label: eal ? 'Stage ' + (i + 1) : novice ? 'Novice ' + (i + 1) : 'Year ' + (first + i), blocks: Array.from({length: per}, () => ({id: uid(), label: '', topics: []}))}))};
+    years: groups.map(label => ({id:uid(),label,blocks:Array.from({length:per},()=>({id:uid(),label:'',topics:[]}))}))};
   S.draft = false; S.review = true; S.edit = true; S.source = ''; S.sourceKind = ''; S.version = 0; S.banner = null;
   render(); saveNew();
   return '';
@@ -1139,68 +1137,164 @@ async function mapJob({title, stages, request, source, kind}) {
   if (S.map && S.review && S.version === 0) await saveNew();
 }
 
-function startImport(file) {
-  return mapJob({title: 'Reading your curriculum map', source: file.name, kind: 'import',
-    stages: [[0, 'Uploading ' + file.name + '…'], [3, 'Reading your map…'], [9, 'Finding the years, terms and units…'], [18, 'Matching colours to strands and assessment types…'], [32, 'Nearly there…']],
-    request: () => { const fd = new FormData(); fd.append('csrf', CM.csrf); fd.append('department_id', S.dept.id); fd.append('file', file); return fetch(CM.api + '?action=import', {method: 'POST', credentials: 'same-origin', body: fd}); }});
+// Year-group selections can be a single group or any combination.
+// Languages use proficiency stages, not an assumed school-year mapping.
+function availablePlanningGroups() {
+  return isEalDept() ? Array.from({length:5},(_,i)=>'Stage '+(i+1)) :
+    isLanguageDept() ? ['Novice 1','Novice 2','Novice 3'] :
+    S.dept?.name?.trim().toLowerCase()==='prep' ? ['Year 7','Year 8'] :
+    Array.from({length:7},(_,i)=>'Year '+(i+7));
 }
-
-function startGenerate(f) {
-  const novice = isLanguageDept(), prep = S.dept?.name?.toLowerCase()==='prep', eal = isEalDept();
-  const first = eal ? 9 : prep ? 7 : novice ? 7 : parseInt(f.first, 10),
-    last = eal ? 13 : prep ? 8 : novice ? 9 : parseInt(f.last, 10), per = parseInt(f.blocks, 10);
-  if (!(first >= 7 && last <= 13 && last >= first)) return 'Choose years between 7 and 13.';
-  if (!(per >= 1 && per <= 8)) return 'Use 1 to 8 planning blocks.';
-  mapJob({title: 'Designing your curriculum sequence', source: 'AI', kind: 'ai',
-    stages: [[0, 'Reading the curriculum for ' + S.dept.name + '…'], [6, eal ? 'Organising learning across Stage 1–5…' : novice ? 'Choosing the units for each Novice stage…' : 'Choosing the units for each year…'], [16, 'Ordering them so each one builds on the last…'], [28, 'Spreading assessments across the terms…'], [45, 'Nearly there…']],
-    request: () => fetch(CM.api + '?action=generate-map', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({csrf: CM.csrf, department_id: S.dept.id, first, last, novice, blocks: per, title: f.title, strands: f.strands, types: f.types, notes: f.notes})})});
+function groupPicker(selection,{allowAll=false}={}) {
+  const choices=availablePlanningGroups();
+  const label=isEalDept()?'Proficiency stages':isLanguageDept()?'Novice levels':'Year groups';
+  const wrap=h('fieldset',{class:'cm-groups', 'aria-label':label},h('legend',{},label));
+  const options=h('div',{class:'cm-group-options'});
+  const renderOptions=()=>{
+    options.replaceChildren(...choices.map(value=>h('label',{
+      class:'cm-group-option'+(selection.chosen.has(value)?' on':'')},
+      h('input',{type:'checkbox',checked:selection.chosen.has(value),
+        disabled:allowAll && selection.all,
+        onchange:e=>{if(e.target.checked)selection.chosen.add(value);else selection.chosen.delete(value);renderOptions();}}),
+      h('span',{},value))));
+  };
+  if(allowAll) {
+    wrap.append(h('label',{class:'cm-group-all'},
+      h('input',{type:'checkbox',checked:selection.all,onchange:e=>{
+        selection.all=e.target.checked;
+        renderOptions();
+      }}),
+      h('span',{},'Include all groups found in the uploaded documents')));
+  }
+  renderOptions();
+  wrap.append(options,
+    h('p',{class:'cm-group-help'},allowAll?
+      'Turn off “Include all” to select one or several groups. Unselected groups will not appear in the imported overview.':
+      'Select one or several groups. Only these groups will be created, so you do not have to plan the full four years.'));
+  return wrap;
+}
+function startImport(files,groups) {
+  const batch=Array.from(files||[]);
+  if(!batch.length)return 'Choose at least one document.';
+  if(batch.length>6)return 'Choose no more than six documents at a time.';
+  const tooLarge=batch.find(file=>file.size>10*1024*1024);
+  if(tooLarge)return '“'+tooLarge.name+'” is over the 10 MB per-file limit.';
+  if(batch.reduce((sum,file)=>sum+file.size,0)>20*1024*1024)
+    return 'The combined files exceed 20 MB. Choose smaller files or import in smaller batches.';
+  if(!groups.all && !groups.chosen.size)return 'Choose at least one year group or proficiency stage.';
+  const chosen=groups.all?[]:Array.from(groups.chosen);
+  const names=batch.map(f=>f.name).join(', ');
+  mapJob({title:'Reading '+batch.length+' curriculum document'+(batch.length===1?'':'s'),
+    source:names,kind:'import',
+    stages:[[0,'Uploading '+batch.length+' document'+(batch.length===1?'':'s')+'…'],
+      [3,'Reading the documents together…'],[9,'Finding year groups, terms and unit titles…'],
+      [18,'Reconciling repeated units and curriculum details…'],[32,'Preparing the combined overview…']],
+    request:()=>{
+      const fd=new FormData();
+      fd.append('csrf',CM.csrf);fd.append('department_id',S.dept.id);
+      fd.append('groups',JSON.stringify(chosen));
+      batch.forEach(file=>fd.append('files[]',file,file.name));
+      return fetch(CM.api+'?action=import',{method:'POST',credentials:'same-origin',body:fd});
+    }});
   return '';
 }
 
-function uploadState() {
-  const fileInput = h('input', {type: 'file', accept: '.docx,.xlsx,.csv,.txt,.pdf,.png,.jpg,.jpeg,.webp', style: 'display:none', onchange: e => { if (e.target.files[0]) startImport(e.target.files[0]); }});
-  const drop = h('div', {class: 'cm-drop', tabindex: '0', role: 'button', 'aria-label': 'Choose a file to upload',
-    onclick: () => fileInput.click(), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } },
-    ondragover: e => { e.preventDefault(); drop.classList.add('over'); }, ondragleave: () => drop.classList.remove('over'),
-    ondrop: e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) startImport(e.dataTransfer.files[0]); }},
-    h('b', {}, 'Drop your file here, or click to choose'), h('small', {}, 'Word, Excel, CSV, PDF or a picture of your overview'));
-  return h('div', {class: 'cm-in'},
-    h('div', {class: 'cm-hero'}, h('h2', {}, 'Upload ' + S.dept.name + '’s curriculum overview'),
-      h('p', {}, 'Use an overview or scheme of work you already have. AI reads the units, years and sequence. Check and edit the imported overview, then choose a unit to create its unit plan.')),
-    S.banner ? h('div', {class: 'cm-banner ' + S.banner.kind}, S.banner.text) : null,
-    h('div', {class: 'cm-setup'}, h('div', {class: 'cm-card'},
-      h('h3', {}, 'Upload an existing overview'), drop, fileInput)));
+function startGenerate(f) {
+  const groups=Array.from(f.groups.chosen);
+  const per=parseInt(f.blocks,10);
+  if(!groups.length)return 'Choose at least one year group or proficiency stage.';
+  if(!(per>=1&&per<=8))return 'Use 1 to 8 planning blocks.';
+  const years=groups.map(g=>Number((g.match(/\d+/)||[])[0])).filter(Number.isFinite);
+  const first=Math.min(...years),last=Math.max(...years);
+  mapJob({title:'Designing your curriculum sequence',source:'AI',kind:'ai',
+    stages:[[0,'Reading the curriculum for '+S.dept.name+'…'],
+      [6,'Planning '+groups.join(', ')+'…'],[16,'Ordering the learning within each group…'],
+      [28,'Balancing units across the terms…'],[45,'Nearly there…']],
+    request:()=>fetch(CM.api+'?action=generate-map',{method:'POST',
+      credentials:'same-origin',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({csrf:CM.csrf,department_id:S.dept.id,
+        first,last,novice:isLanguageDept(),groups,blocks:per,title:f.title,
+        strands:f.strands,types:f.types,notes:f.notes})})});
+  return '';
 }
-
+function uploadState() {
+  const chosen={all:true,chosen:new Set(availablePlanningGroups().filter(g=>/^Year (7|8|9|10)$/.test(g)))};
+  if(!chosen.chosen.size)chosen.chosen=new Set(availablePlanningGroups());
+  let batch=[];
+  const fileInput=h('input',{type:'file',multiple:true,
+    accept:'.docx,.xlsx,.csv,.tsv,.txt,.pdf,.png,.jpg,.jpeg,.webp',
+    style:'display:none',onchange:e=>{setFiles(e.target.files);}});
+  const summary=h('div',{class:'cm-upload-files','aria-live':'polite'});
+  const error=h('p',{class:'cm-upload-error',role:'alert'});
+  const submit=h('button',{type:'button',class:'cm-btn pri',disabled:true,
+    onclick:()=>{const message=startImport(batch,chosen);error.textContent=message||'';}},
+    'Create draft overview');
+  function setFiles(files) {
+    batch=Array.from(files||[]);
+    error.textContent='';
+    if(batch.length>6)error.textContent='Choose no more than six documents.';
+    else if(batch.some(f=>f.size>10*1024*1024))error.textContent='Each file must be no larger than 10 MB.';
+    else if(batch.reduce((sum,f)=>sum+f.size,0)>20*1024*1024)error.textContent='Combined files must be no larger than 20 MB.';
+    submit.disabled=!batch.length||!!error.textContent;
+    summary.replaceChildren(...(batch.length?
+      [h('strong',{},batch.length+' document'+(batch.length===1?'':'s')+' selected'),
+        ...batch.map(file=>h('div',{class:'cm-upload-file'},h('span',{},file.name),
+          h('small',{},Math.max(1,Math.round(file.size/1024))+' KB')))]:
+      [h('p',{},'No documents selected yet.')]));
+  }
+  const drop=h('div',{class:'cm-drop',tabindex:'0',role:'button',
+    'aria-label':'Choose curriculum documents to upload',
+    onclick:()=>fileInput.click(),
+    onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.click();}},
+    ondragover:e=>{e.preventDefault();drop.classList.add('over');},
+    ondragleave:()=>drop.classList.remove('over'),
+    ondrop:e=>{e.preventDefault();drop.classList.remove('over');setFiles(e.dataTransfer.files);}},
+    h('b',{},'Drop your documents here, or click to choose'),
+    h('small',{},'Up to 6 Word, Excel, CSV, PDF or image files. One file is fine too.'));
+  setFiles([]);
+  return h('div',{class:'cm-in'},
+    h('div',{class:'cm-hero'},h('h2',{},'Upload '+S.dept.name+'’s curriculum documents'),
+      h('p',{},'Add an existing overview, separate year-group plans or supporting documents. AI combines the information into one draft without inventing units. Review the draft before using it.')),
+    S.banner?h('div',{class:'cm-banner '+S.banner.kind},S.banner.text):null,
+    h('div',{class:'cm-setup'},h('div',{class:'cm-card'},
+      h('h3',{},'Documents for this subject'),drop,fileInput,summary,
+      groupPicker(chosen,{allowAll:true}),error,submit,
+      h('p',{class:'hint'},'If two files disagree, check the draft carefully. The upload will not automatically replace a saved department overview.'))));
+}
 function emptyState() {
-  if (S.view === 'upload') return uploadState();
-  const novice = isLanguageDept(), eal = isEalDept();
-  const prep = S.dept?.name?.toLowerCase()==='prep';
-  const f = {title: (S.dept.name + ' curriculum overview ' + (new Date().getFullYear() + 1)), first: eal ? '9' : '7', last: eal ? '13' : prep ? '8' : '10',
-    blocks: '4', strands: eal ? 'Language knowledge, Speaking, Listening, Reading, Writing' :
-      prep ? 'English, Social Studies, Maths, Health, Te Reo Māori' : '', notes: '', types: ''};
-  const err = h('div', {class: 'hint', style: 'color:var(--err);min-height:20px'});
-  const inp = (k, o = {}) => h('input', {type: 'text', value: f[k], oninput: e => { f[k] = e.target.value; }, ...o});
-  return h('div', {class: 'cm-in'},
-    h('div', {class: 'cm-hero'}, h('h2', {}, 'Create ' + S.dept.name + '’s curriculum overview with AI'),
-      h('p', {}, eal ? 'Plan a coherent Stage 1–5 English as an Additional Language curriculum, organised by proficiency rather than year group. Teachers may combine knowledge and practices from stages when learners have uneven strengths across speaking, listening, reading and writing.' :
-        prep ? 'Plan a coherent Year 7–8 Prep curriculum drawing from English, Social Studies, Maths, Health and Te Reo Māori. Each unit can combine several subjects, and Te Reo Māori stages remain Novice 1, 2 and 3.' : novice ? 'Organise the language curriculum into Novice 1, Novice 2 and Novice 3, following the Ministry teaching sequence rather than student year levels.' : 'Choose your year groups and terms. AI uses the Ministry curriculum to propose a sequence of units, ordered so learning builds over time. You can review and edit the suggested overview.')),
-    S.banner ? h('div', {class: 'cm-banner ' + S.banner.kind}, S.banner.text) : null,
-    h('div', {class: 'cm-setup'},
-      h('div', {class: 'cm-card'}, h('h3', {}, 'Tell us what to plan'),
-        field('Title', inp('title', {maxlength: '140'})),
-        eal ? h('p',{class:'hint'},'Proficiency groups: Stage 1 · Stage 2 · Stage 3 · Stage 4 · Stage 5 (not aligned to years).') :
-        prep ? h('p',{class:'hint'},'Year groups: Year 7 and Year 8. Te Reo Māori statements can also be chosen from Novice 1, 2 or 3 within each unit.') :
-        novice ? h('p', {class:'hint'}, 'Proficiency groups: Novice 1 · Novice 2 · Novice 3') :
-        h('div', {class: 'cm-row2'}, field('First year', inp('first', {inputmode: 'numeric'}), '7 to 13'), field('Last year', inp('last', {inputmode: 'numeric'}))),
-        field(novice ? 'Planning blocks per novice stage' : 'Terms per year', inp('blocks', {inputmode: 'numeric'}), novice ? 'Units can span several school years. These are sequence blocks, not automatic year allocations.' : 'For example 4 terms, or 6 if you plan in half-terms.'),
-        field('Strands (optional)', inp('strands', {placeholder: 'Enter your subject or learning-area strands'}), prep ? 'These five curriculum subjects are suggested. Edit them if your programme uses broader themes.' : 'Comma separated. Leave blank and the AI suggests them.'),
-        field('Assessment types (optional)', inp('types'), 'Enter your department’s own types as Code = meaning, separated by semicolons. Leave blank to choose later.'),
-        field('Anything the AI should know (optional)', h('textarea', {rows: 3, placeholder: 'For example: Teach introductory units before advanced ones. Keep two units per term. Allow time for revision and assessment.', oninput: e => { f.notes = e.target.value; }})),
-        err, h('div', {style: 'display:flex;gap:10px;flex-wrap:wrap;align-items:center'},
-          h('button', {class: 'cm-btn pri', type: 'button', onclick: () => { err.textContent = startGenerate(f); }}, '✨ Create curriculum overview'),
-          h('button', {class: 'cm-btn', type: 'button', onclick: () => { err.textContent = startFromScratch(f); }}, 'Build a blank overview manually')))));
+  if(S.view==='upload')return uploadState();
+  const novice=isLanguageDept(),eal=isEalDept();
+  const prep=S.dept?.name?.toLowerCase()==='prep';
+  const initial=availablePlanningGroups().filter(label=>/^(Year (7|8|9|10)|Stage [1-5]|Novice [1-3])$/.test(label));
+  const f={title:S.dept.name+' curriculum overview '+(new Date().getFullYear()+1),
+    blocks:'4',strands:eal?'Language knowledge, Speaking, Listening, Reading, Writing':
+      prep?'English, Social Studies, Maths, Health, Te Reo Māori':'',
+    notes:'',types:'',groups:{all:false,chosen:new Set(initial)}};
+  const err=h('div',{class:'hint',style:'color:var(--err);min-height:20px'});
+  const inp=(k,o={})=>h('input',{type:'text',value:f[k],oninput:e=>{f[k]=e.target.value;},...o});
+  return h('div',{class:'cm-in'},
+    h('div',{class:'cm-hero'},h('h2',{},'Create '+S.dept.name+'’s curriculum overview with AI'),
+      h('p',{},eal?'Select the English as an Additional Language proficiency stages to include. These are not school-year equivalents.':
+        novice?'Select the novice levels to include, independently of students’ school year.':
+        prep?'Choose Year 7, Year 8 or both for Prep.':'Choose exactly which year groups you want, whether that is one, several or the full range.')),
+    S.banner?h('div',{class:'cm-banner '+S.banner.kind},S.banner.text):null,
+    h('div',{class:'cm-setup'},h('div',{class:'cm-card'},h('h3',{},'Choose what to plan'),
+      field('Title',inp('title',{maxlength:'140'})),
+      groupPicker(f.groups),
+      field(novice?'Planning blocks per novice stage':eal?'Blocks per proficiency stage':'Terms per year',
+        inp('blocks',{inputmode:'numeric'}),'Usually 4 terms. You can adjust this for your subject.'),
+      field('Strands (optional)',inp('strands',{placeholder:'Your subject or learning-area strands'}),
+        'Comma separated. Leave blank and AI suggests appropriate strands.'),
+      field('Assessment types (optional)',inp('types'),
+        'Use Code = meaning, separated by semicolons, or leave blank to decide later.'),
+      field('Anything the AI should know (optional)',
+        h('textarea',{rows:3,placeholder:'Any sequencing or teaching priorities for this subject…',
+          oninput:e=>{f.notes=e.target.value;}})),
+      err,h('div',{class:'cm-generate-actions'},
+        h('button',{class:'cm-btn pri',type:'button',
+          onclick:()=>{err.textContent=startGenerate(f);}},'Create curriculum overview'),
+        h('button',{class:'cm-btn',type:'button',
+          onclick:()=>{err.textContent=startFromScratch(f);}},'Build a blank overview manually')))));
 }
 
 function noDepartment() {
