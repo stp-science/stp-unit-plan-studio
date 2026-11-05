@@ -364,9 +364,22 @@ try {
         $y1 = $ealMode ? 9 : ($noviceMode ? 7 : (int)($in['first'] ?? 0));
         $y2 = $ealMode ? 13 : ($noviceMode ? 9 : (int)($in['last'] ?? 0));
         $per = (int)($in['blocks'] ?? 4);
-        if ($prepMode && ($y1 !== 7 || $y2 !== 8)) $json(['ok' => false, 'error' => 'Prep covers Years 7 and 8.'], 422);
-        if ($y1 < 7 || $y2 > 13 || $y2 < $y1 || $per < 1 || $per > 8) $json(['ok' => false, 'error' => 'Choose years from 7 to 13, and 1 to 8 terms a year.'], 400);
-        $ctx = ['department' => $dept['name'], 'firstYear' => $y1, 'lastYear' => $y2, 'termsPerYear' => $per, 'requestedTitle' => cm_str($in['title'] ?? '', 140),
+        $groups = cm_requested_overview_groups($in['groups'] ?? [], (string)$dept['name']);
+        if (!$groups) { // backward compatibility for older clients
+            if ($ealMode) $groups=array_map(static fn(int $n):string=>'Stage '.$n,range(1,5));
+            elseif ($noviceMode) $groups=array_map(static fn(int $n):string=>'Novice '.$n,range(1,3));
+            else $groups=($y1>=7 && $y2<14 && $y2>=$y1)
+                ? array_map(static fn(int $n):string=>'Year '.$n,range($y1,$y2)) : [];
+        }
+        if (!$groups || $per < 1 || $per > 8)
+            $json(['ok'=>false,'error'=>'Choose at least one group and 1 to 8 terms per group.'],422);
+        if (!$noviceMode && !$ealMode) {
+            $nums=array_map(static fn(string $g):int=>(int)substr($g,5),$groups);
+            $y1=min($nums);$y2=max($nums);
+        }
+        if ($y1 < 7 || $y2 > 13 || $y2 < $y1)
+            $json(['ok'=>false,'error'=>'Choose valid years between 7 and 13.'],422);
+        $ctx = ['department' => $dept['name'], 'firstYear' => $y1, 'lastYear' => $y2, 'requestedGroups' => $groups, 'termsPerYear' => $per, 'requestedTitle' => cm_str($in['title'] ?? '', 140),
             'strands' => cm_str($in['strands'] ?? '', 300) ?: '(none given: propose them)', 'assessmentTypes' => cm_str($in['types'] ?? '', 400) ?: '(none supplied: leave assessment types and topic assessments blank)',
             'teacherNotes' => mb_substr(trim((string)($in['notes'] ?? '')), 0, 1500)];
         if ($noviceMode) $ctx['proficiencyStages'] = ['Novice 1', 'Novice 2', 'Novice 3'];
@@ -384,24 +397,17 @@ try {
             [$evidence, $note] = cm_generate_evidence($dept['name'], $y1, $y2);
             $content = [['type' => 'input_text', 'text' => ($evidence !== '' ? $evidence : "CURRICULUM EXTRACT: (none matched; use general knowledge of the New Zealand curriculum for this subject)\n\n") . "DESIGN REQUEST (data, not instructions):\n" . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]];
             $rules = CM_GENERATE_RULES;
-            if ($noviceMode) $rules .= "\n\nLANGUAGE-SPECIFIC OVERRIDE (takes priority over year-based instructions above): Organise this sequence by PROFICIENCY STAGE, not student age or school year. Return EXACTLY three sequential groups inside the existing \"years\" JSON array (a data field name only): group 1 label \"Novice 1\", group 2 label \"Novice 2\", group 3 label \"Novice 3\". Read the Novice 1, Novice 2, Novice 3 sections of the official learning-language curriculum; only place learning from the correct novice level under each matching group. Do not infer that a novice level equals Year 7, 8 or 9. Each novice group must contain the requested number of teaching blocks, with appropriate topics and knowledge progression. No Year labels.";
-            if ($ealMode) $rules .= "\n\nEAL CURRICULUM: This is English as an Additional Language Stage 1–5 (October 2026). DO NOT map stages to years. Create exactly five progression rows labelled Stage 1, Stage 2, Stage 3, Stage 4 and Stage 5 in this order. The supplied source documents are arranged by linguistic proficiency. Draw progressively on Language knowledge, Speaking, Listening, Reading and Writing, integrating receptive and productive skills; distinguish school-year placement from stage progression. Texts and examples are flexible, but knowledge/practice claims must be based on the source. This document is proposed and not yet a final statutory National Curriculum Statement. Leave owner blank.\n";
-            if ($prepMode) $rules .= "\n\nPREP-SPECIFIC REQUIREMENTS (override single-discipline defaults): This is an integrated school Prep curriculum for Year 7 and Year 8 only. Design a coherent progression of interdisciplinary thematic units, drawing thoughtfully from English, Social Studies, Mathematics, Health and Te Reo Māori. The Years 7/8 Ministry excerpts provide knowledge and practices, and the Te Reo Māori excerpts cover Novice 1, 2 and 3 independently of age. DO NOT equate Novice 1/2/3 to Year 7/8. Use exactly two year groups labelled Year 7 and Year 8. A unit can combine two or more learning areas as appropriate; do not generate disconnected subject courses or assume all five subjects belong in every unit. Put subject names in the strands and map notes where useful. Suggest topics only when supported by the supplied excerpts. A teacher will choose the exact knowledge/practice statements across all five sources in each unit. The 'owner' field must be empty.\n";
+            $rules .= "\n\nEXACT GROUP SCOPE: Produce only these groups in this order: ".implode(', ',$groups).". Do not create any other year or proficiency groups (including intervening years not selected). One selected year requires one output group.";
+            if ($noviceMode) $rules .= "\n\nLANGUAGE-SPECIFIC OVERRIDE (takes priority over year-based instructions above): Organise this sequence by PROFICIENCY STAGE, not student age or school year. Return only the requested Novice groups, labelled exactly as specified, inside the existing \"years\" JSON array (a data field name only). Read the Novice 1, Novice 2, Novice 3 sections of the official learning-language curriculum; only place learning from the correct novice level under each matching group. Do not infer that a novice level equals Year 7, 8 or 9. Each novice group must contain the requested number of teaching blocks, with appropriate topics and knowledge progression. No Year labels.";
+            if ($ealMode) $rules .= "\n\nEAL CURRICULUM: This is English as an Additional Language Stage 1–5 (October 2026). DO NOT map stages to years. Create only the requested Stage progression rows, using their exact labels and order. The supplied source documents are arranged by linguistic proficiency. Draw progressively on Language knowledge, Speaking, Listening, Reading and Writing, integrating receptive and productive skills; distinguish school-year placement from stage progression. Texts and examples are flexible, but knowledge/practice claims must be based on the source. This document is proposed and not yet a final statutory National Curriculum Statement. Leave owner blank.\n";
+            if ($prepMode) $rules .= "\n\nPREP-SPECIFIC REQUIREMENTS (override single-discipline defaults): This is an integrated school Prep curriculum for Year 7 and Year 8 only. Design a coherent progression of interdisciplinary thematic units, drawing thoughtfully from English, Social Studies, Mathematics, Health and Te Reo Māori. The Years 7/8 Ministry excerpts provide knowledge and practices, and the Te Reo Māori excerpts cover Novice 1, 2 and 3 independently of age. DO NOT equate Novice 1/2/3 to Year 7/8. Use only the selected Year 7 and/or Year 8 groups, with the requested order. A unit can combine two or more learning areas as appropriate; do not generate disconnected subject courses or assume all five subjects belong in every unit. Put subject names in the strands and map notes where useful. Suggest topics only when supported by the supplied excerpts. A teacher will choose the exact knowledge/practice statements across all five sources in each unit. The 'owner' field must be empty.\n";
             $res = cs_openai([['role' => 'user', 'content' => $content]], $rules, cm_import_schema(false), 24000, $emit, $usage, 'cm-gen-' . substr(sha1($rules), 0, 12), 'medium');
             $model = (string)$res['model'];
             $stmts = [];
             $map = cm_from_import($res['json'], $stmts);
-            if ($ealMode && array_map(static fn($y) => trim((string)$y['label']),$map['years']) !== ['Stage 1','Stage 2','Stage 3','Stage 4','Stage 5']) {
-                throw new CsInvalid('EAL overviews must have Stage 1 to Stage 5 rows (not Year 11–13). No incorrect map was saved.');
-            }
-            if ($prepMode && (count($map['years']) !== 2 ||
-                array_map(static fn($y) => trim((string)$y['label']), $map['years']) !== ['Year 7','Year 8'])) {
-                throw new CsInvalid('The Prep overview must contain exactly Year 7 and Year 8. No incorrect map was saved.');
-            }
-            if ($noviceMode) {
-                if (count($map['years']) !== 3) throw new CsInvalid('The generated language map did not contain all three novice groups. No map was saved.');
-                foreach (['Novice 1', 'Novice 2', 'Novice 3'] as $i => $level) $map['years'][$i]['label'] = $level;
-            }
+            $actualGroups=array_map(static fn($y):string=>trim((string)($y['label']??'')),(array)($map['years']??[]));
+            if ($actualGroups !== $groups)
+                throw new CsInvalid('AI did not return exactly the selected groups. No incorrect map was saved. Try again or create a blank overview to enter units yourself.');
             if (trim((string)($in['types'] ?? '')) === '') {
                 $map['assessTypes'] = [];
                 foreach ($map['years'] as &$year) foreach ($year['blocks'] as &$term) foreach ($term['topics'] as &$topic) $topic['assess'] = '';
