@@ -380,3 +380,32 @@ a.cm-txe.cm-txg{display:inline-block;text-decoration:none;background:var(--acc);
 .cm-depts label.cm-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-weight:650;color:var(--ink)}
 .cm-depts label.cm-meta select{min-width:min(340px,100%);border:1px solid #c8d5dc;border-radius:9px;background:#fff;color:#001733;padding:10px 12px;font:inherit}
 .cm-depts label.cm-meta select:focus-visible{outline:3px solid #82adbf;outline-offset:2px}
+
+/* Choose one/many years (or proficiency stages), and review a batch before import. */
+.cm-groups{margin:16px 0;padding:15px 17px;border:1px solid #cbdde5;border-radius:12px;background:#f6f9fb;color:#001733}
+.cm-groups legend{font-size:14px;font-weight:800;padding:0 5px;color:#001733}
+.cm-group-options{display:flex;flex-wrap:wrap;gap:8px;margin:5px 0 8px}
+.cm-group-option{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #cbd6dd;
+  border-radius:9px;background:#fff;font-size:13.5px;font-weight:650;cursor:pointer;color:#001733}
+.cm-group-option.on{border-color:#4783a0;background:#e9f3f8}
+.cm-group-option input{width:16px;height:16px;accent-color:#cf082b;margin:0}
+.cm-group-option:has(input:disabled){opacity:.55;cursor:default}
+.cm-group-all{display:flex;align-items:center;gap:9px;margin:0 0 13px;font-size:13.5px;font-weight:700;color:#001733}
+.cm-group-all input{width:17px;height:17px;accent-color:#cf082b;margin:0}
+.cm-group-help{margin:8px 0 0!important;color:#526879!important;font-size:12.5px!important;line-height:1.5}
+.cm-upload-files{margin:14px 0 5px;padding:10px 12px;background:#f5f8fa;border-radius:10px}
+.cm-upload-files>strong{font-size:13.5px;display:block;color:#001733;margin-bottom:6px}
+.cm-upload-files p{margin:0;color:#526879;font-size:13px}
+.cm-upload-file{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:7px 0;border-bottom:1px solid #dce6eb;font-size:13px;overflow-wrap:anywhere;color:#001733}
+.cm-upload-file:last-child{border-bottom:0}
+.cm-upload-file small{font-size:12px;color:#526879;white-space:nowrap}
+.cm-upload-error{font-size:13px;font-weight:700;color:#9c1830;min-height:0}
+.cm-generate-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.cm-setup .cm-btn:disabled{cursor:not-allowed;opacity:.5}
+@media(max-width:620px){
+  .cm-groups{padding:13px 12px}
+  .cm-group-options{gap:6px}
+  .cm-group-option{font-size:12.5px;padding:9px 10px}
+  .cm-generate-actions .cm-btn{width:100%;justify-content:center}
+}
