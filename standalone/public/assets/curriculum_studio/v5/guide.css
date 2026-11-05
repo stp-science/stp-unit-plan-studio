@@ -474,3 +474,35 @@ body[data-page="curriculum-studio"] .cg-side{min-width:0}
   .cg-side-subject{min-height:73px}
 }
 @media(prefers-reduced-motion:reduce){.cg-side-subject{transition:none}}
+
+/* Learning-focus editing: explicit add/delete actions and consistently aligned fields. */
+.cg-focus-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  margin:18px 0 12px;padding:0 2px}
+.cg-focus-actions h2{margin:0;font-size:19px;line-height:1.35;color:#001733}
+.cg-focus-add{font-size:14px;font-weight:750}
+.cg-focus-bottom{display:flex;justify-content:flex-end;margin:-2px 0 22px}
+.cg-focus-remove{flex:none;align-self:center;border:1px solid #e0b9c1!important;border-radius:8px;
+  background:#fff7f8!important;color:#a01631!important;padding:8px 10px!important;
+  font-size:12.5px!important;font-weight:750!important;line-height:1.3;cursor:pointer}
+.cg-focus-remove:hover:not(:disabled){background:#fde8ed!important;border-color:#b51a37!important}
+.cg-focus-remove:disabled{opacity:.45;cursor:not-allowed}
+.cg-focus .cg-fhead{flex-wrap:wrap;gap:10px}
+.cg-focus .cg-fhead input[type=text]{flex:1 1 210px;min-width:min(210px,100%);text-align:left;text-indent:0}
+.cg-focus .cg-fbody{padding:16px 18px 20px}
+.cg-focus .cg-fbody>.cg-grid{grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+.cg-focus .cg-fbody>.cg-grid>.cg-f{margin:0;min-width:0;width:100%}
+.cg-focus .cg-fbody .cg-f>span{margin:0 0 6px;text-align:left}
+.cg-focus .cg-fbody .cg-f textarea{
+  display:block;width:100%;min-width:0;box-sizing:border-box;
+  margin:0;padding:12px 14px;text-align:left;text-indent:0;
+  white-space:pre-wrap;overflow-wrap:break-word;line-height:1.55;
+  min-height:70px;max-height:560px;overflow-y:auto;vertical-align:top
+}
+@media(max-width:650px){
+  .cg-focus-actions{align-items:stretch;flex-direction:column}
+  .cg-focus-actions .cg-focus-add{justify-content:center}
+  .cg-focus-bottom .cg-focus-add{width:100%;justify-content:center}
+  .cg-focus .cg-fbody{padding:12px}
+  .cg-focus .cg-fhead{padding:12px}
+  .cg-focus .cg-fhead input[type=text]{flex-basis:100%;order:2}
+}
