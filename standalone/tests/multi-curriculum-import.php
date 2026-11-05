@@ -45,7 +45,7 @@ foreach ([
     'foreach ($uploads as $index=>$file)',
     'cm_filter_import_groups((array)$res[\'json\'],$groups)',
     'cm_from_import($filtered,$stmts)',
-    "'requestedGroups' => $groups",
+    "'requestedGroups' => \$groups",
     '$actualGroups !== $groups'
 ] as $required)
     $check(str_contains($api,$required),'server import/generate: '.$required);
