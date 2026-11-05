@@ -991,6 +991,55 @@ function reviewChecklist() {
       h('span',{},'I have reviewed the AI suggestions, curriculum selections and accuracy of this unit plan.')),
     h('p',{class:'cg-review-hint'},'This is a planning checklist, not proof of teaching or compliance. Assessment, reporting and resources can be completed by staff where relevant.'));
 }
+// Staff can adjust the number of learning focuses without redrafting the whole unit.
+function addLearningFocus() {
+  if (!G?.plan || work) return;
+  const p=G.plan;
+  if (!Array.isArray(p.focuses)) p.focuses=[];
+  if (p.focuses.length >= 60) { toast('This unit already has 60 learning focuses.'); return; }
+  const index=p.focuses.length;
+  p.focuses.push({
+    title:'New learning focus',lessonCount:1,lessons:'',
+    knowledge:'',practices:'',objectives:'',
+    vocabularyTier2:'',vocabularyTier3:'',vocabulary:'',
+    misconceptions:'',checks:''
+  });
+  relabel(p);
+  // Expand the new focus while keeping all other long sections compact.
+  closed=new Set(p.focuses.slice(0,-1).map((_,i)=>G.id+':'+i));
+  focusDefaultsFor=G.id;
+  save();
+  renderMain();
+  requestAnimationFrame(()=>document.getElementById('sec-f'+index)?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function deleteLearningFocus(index) {
+  if (!G?.plan || work) return;
+  const guide=G, p=guide.plan, f=p.focuses?.[index];
+  if (!f) return;
+  if (p.focuses.length<=1) {
+    toast('Keep at least one learning focus in each unit plan.');
+    return;
+  }
+  const name=String(f.title||'Learning focus '+(index+1)).trim();
+  const cancel=h('button',{type:'button',class:'cg-ghost',onclick:closeDlg},'Cancel');
+  const remove=h('button',{type:'button',class:'cg-btn cg-danger',onclick:()=>{
+    if (G!==guide || G.plan!==p) { closeDlg(); return; }
+    const at=p.focuses.indexOf(f);
+    if (at<0 || p.focuses.length<=1) { closeDlg(); return; }
+    p.focuses.splice(at,1);
+    relabel(p);
+    closed.clear();
+    focusDefaultsFor='';
+    closeDlg();
+    save();
+    renderMain();
+    const next=Math.min(at,p.focuses.length-1);
+    requestAnimationFrame(()=>document.getElementById('sec-f'+next)?.scrollIntoView({behavior:'smooth',block:'start'}));
+  }},'Delete learning focus');
+  openDlg('Delete learning focus',h('p',{},
+    'Delete “'+name+'” and all its text? This cannot be undone. Other learning focuses and curriculum statements will be kept.'),[cancel,remove]);
+}
+
 function guideView() {
   const p = G.plan;
   const set = (k, v) => { p[k] = v; save(); };
@@ -1033,6 +1082,11 @@ function guideView() {
       h('div', {class: 'cg-fhead', onclick: e => { if (e.target.closest('input,button,label')) return; toggleFocus(); }},
         h('span', {class: 'cg-num'}, i + 1), h('label', {class: 'cg-lesn', onclick: e => e.stopPropagation()}, h('input', {type: 'number', min: '1', max: '60', class: 'cg-les', 'data-fi': String(i), value: Number.isFinite(f.lessonCount) ? f.lessonCount : '', 'aria-label': 'Number of lessons for learning focus ' + (i + 1), title: 'Approximate number of lessons. Change it and the total updates.',
           oninput: e => { const n = parseInt(e.target.value, 10); f.lessonCount = n > 0 ? Math.min(60, n) : undefined; relabel(p); save(); paintLessons(); }}), h('span', {}, 'lessons'), h('span', {class: 'cg-lrange', 'data-lrange': String(i)}, f.lessons || '')), h('input', {type: 'text', value: f.title, 'aria-label': 'Learning focus title', oninput: e => { f.title = e.target.value; save(); const a = tocEl.querySelector(`[data-id="sec-f${i}"]`); if (a) a.textContent = (i + 1) + '. ' + (f.title || 'Learning focus'); }}),
+        h('button', {class:'cg-focus-remove',type:'button',
+          title:'Delete learning focus '+(i+1),
+          'aria-label':'Delete learning focus '+(i+1),
+          disabled:p.focuses.length<=1,
+          onclick:e=>{e.stopPropagation();deleteLearningFocus(i);}},'Delete'),
         h('button', {class: 'cg-chev', type: 'button', 'aria-expanded':String(!closed.has(key)), 'aria-controls':'cg-focus-body-'+i, 'aria-label':'Expand or collapse learning focus '+(i+1), onclick:e=>{e.stopPropagation();toggleFocus();}}, '▾')),
       h('div', {class: 'cg-fbody', id:'cg-focus-body-'+i},
         h('div', {class: 'cg-grid'}, field('Curriculum knowledge', area(f.knowledge, v => { f.knowledge = v; save(); }, 3)), field('Curriculum practices', area(f.practices, v => { f.practices = v; save(); }, 3)),
@@ -1041,6 +1095,12 @@ function guideView() {
         f.priorities !== undefined && String(f.priorities).trim() ? field('School priorities', area(f.priorities, v => { f.priorities = v; save(); }, 2)) : null));
     return el;
   });
+
+  const focusActions = h('div',{class:'cg-focus-actions'},
+    h('h2',{},'Learning focuses'),
+    h('button',{type:'button',class:'cg-btn cg-focus-add',onclick:addLearningFocus},'+ Add learning focus'));
+  const focusBottom = h('div',{class:'cg-focus-bottom'},
+    h('button',{type:'button',class:'cg-ghost cg-focus-add',onclick:addLearningFocus},'+ Add another learning focus'));
 
   const yours = h('section', {class: 'cg-card cg-sec', id: 'sec-yours'}, h('h3', {}, 'Yours to complete'),
     h('p', {class: 'lead', style: 'margin-top:-4px'}, 'The AI leaves these to you, and a redraft never overwrites them.'),
@@ -1063,7 +1123,7 @@ function guideView() {
   return h('div', {},
     h('div', {class: 'cg-gtitle'}, h('div', {}, h('h1', {}, G.topic || 'Unit plan'), h('div', {class: 'cg-chips meta'}, h('span', {class: 'cg-chip acc'}, G.subject || 'Subject'), h('span', {class: 'cg-chip'}, guideStageLabel(G)), G.plan && G.plan.duration ? h('span', {class: 'cg-chip', id: 'cg-dchip'}, G.plan.duration) : null, saveBadge())),
       h('div', {class: 'cg-gactions'}, h('button', {class: 'cg-ghost', type: 'button', onclick: () => { view = 'outline'; renderMain(true); }}, '↻ Change statements'), h('button', {class: 'cg-btn', type: 'button', onclick: download}, '⬇ Word'), resetLink())),
-    h('div', {class: 'cg-guide'}, tocEl, h('div', {}, reviewChecklist(), overview, ...focuses, yours, exportCard)));
+    h('div', {class: 'cg-guide'}, tocEl, h('div', {}, reviewChecklist(), overview, focusActions, ...focuses, focusBottom, yours, exportCard)));
 }
 
 // ---------------------------------------------------------------- actions
