@@ -138,6 +138,13 @@ try {
     if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > ($multipart ? 24 : 3) * 1024 * 1024) $json(['ok' => false, 'error' => 'That request is too large.'], 413);
     if ($multipart) {
         $in = $_POST;
+        // PHP silently empties POST and FILES if post_max_size is exceeded.
+        // Return a useful error instead of incorrectly claiming CSRF expired.
+        if (!$in && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+            $max=trim((string)ini_get('post_max_size'));
+            $json(['ok'=>false,'error'=>'The uploaded documents exceed the server request limit'.
+                ($max!==''?' ('.$max.')':'').'. Choose fewer or smaller files.'],413);
+        }
     } else {
         $in = json_decode((string)file_get_contents('php://input'), true);
         if (!is_array($in)) $json(['ok' => false, 'error' => 'Use JSON.'], 400);
