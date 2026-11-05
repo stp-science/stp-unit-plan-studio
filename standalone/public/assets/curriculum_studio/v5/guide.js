@@ -1004,6 +1004,7 @@ function addLearningFocus() {
     vocabularyTier2:'',vocabularyTier3:'',vocabulary:'',
     misconceptions:'',checks:''
   });
+  p.staffReviewed=false; // A structural change needs a fresh teacher review.
   relabel(p);
   // Expand the new focus while keeping all other long sections compact.
   closed=new Set(p.focuses.slice(0,-1).map((_,i)=>G.id+':'+i));
@@ -1027,6 +1028,7 @@ function deleteLearningFocus(index) {
     const at=p.focuses.indexOf(f);
     if (at<0 || p.focuses.length<=1) { closeDlg(); return; }
     p.focuses.splice(at,1);
+    p.staffReviewed=false;
     relabel(p);
     closed.clear();
     focusDefaultsFor='';
