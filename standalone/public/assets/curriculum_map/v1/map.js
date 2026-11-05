@@ -1074,7 +1074,7 @@ function mapView() {
 
 // ---------------------------------------------------------------- no map yet: create or import
 function startFromScratch(f) {
-  const groups=Array.from(f.groups.chosen);
+  const groups=availablePlanningGroups().filter(g=>f.groups.chosen.has(g));
   if (!groups.length) return 'Choose at least one year group or proficiency stage.';
   const per = Math.min(12, Math.max(1, parseInt(f.blocks, 10) || 4));
   let n = 0;
@@ -1151,6 +1151,7 @@ function groupPicker(selection,{allowAll=false}={}) {
   const wrap=h('fieldset',{class:'cm-groups', 'aria-label':label},h('legend',{},label));
   const options=h('div',{class:'cm-group-options'});
   const renderOptions=()=>{
+    options.hidden=allowAll && selection.all;
     options.replaceChildren(...choices.map(value=>h('label',{
       class:'cm-group-option'+(selection.chosen.has(value)?' on':'')},
       h('input',{type:'checkbox',checked:selection.chosen.has(value),
@@ -1182,7 +1183,7 @@ function startImport(files,groups) {
   if(batch.reduce((sum,file)=>sum+file.size,0)>20*1024*1024)
     return 'The combined files exceed 20 MB. Choose smaller files or import in smaller batches.';
   if(!groups.all && !groups.chosen.size)return 'Choose at least one year group or proficiency stage.';
-  const chosen=groups.all?[]:Array.from(groups.chosen);
+  const chosen=groups.all?[]:availablePlanningGroups().filter(g=>groups.chosen.has(g));
   const names=batch.map(f=>f.name).join(', ');
   mapJob({title:'Reading '+batch.length+' curriculum document'+(batch.length===1?'':'s'),
     source:names,kind:'import',
@@ -1200,7 +1201,7 @@ function startImport(files,groups) {
 }
 
 function startGenerate(f) {
-  const groups=Array.from(f.groups.chosen);
+  const groups=availablePlanningGroups().filter(g=>f.groups.chosen.has(g));
   const per=parseInt(f.blocks,10);
   if(!groups.length)return 'Choose at least one year group or proficiency stage.';
   if(!(per>=1&&per<=8))return 'Use 1 to 8 planning blocks.';
