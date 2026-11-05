@@ -298,7 +298,9 @@ function cm_extract_xlsx(string $path): string
         foreach ($x->query('//s:sheets/s:sheet') as $sh) $names[] = $sh->getAttribute('name');
     }
     $out = [];
-    for ($n = 1; $n <= 4; $n++) {
+    // Read up to twelve worksheets: departments often separate years/topics into tabs.
+    // The importer then checks the combined text-size limit before calling AI.
+    for ($n = 1; $n <= 12; $n++) {
         if (!($d = $load("xl/worksheets/sheet$n.xml"))) break;
         $x = new DOMXPath($d); $x->registerNamespace('s', $S);
         $out[] = 'SHEET ' . ($names[$n - 1] ?? $n);
