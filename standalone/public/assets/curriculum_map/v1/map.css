@@ -385,6 +385,7 @@ a.cm-txe.cm-txg{display:inline-block;text-decoration:none;background:var(--acc);
 .cm-groups{margin:16px 0;padding:15px 17px;border:1px solid #cbdde5;border-radius:12px;background:#f6f9fb;color:#001733}
 .cm-groups legend{font-size:14px;font-weight:800;padding:0 5px;color:#001733}
 .cm-group-options{display:flex;flex-wrap:wrap;gap:8px;margin:5px 0 8px}
+.cm-group-options[hidden]{display:none}
 .cm-group-option{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #cbd6dd;
   border-radius:9px;background:#fff;font-size:13.5px;font-weight:650;cursor:pointer;color:#001733}
 .cm-group-option.on{border-color:#4783a0;background:#e9f3f8}
