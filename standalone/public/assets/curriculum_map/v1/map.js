@@ -184,6 +184,15 @@ const FOOD_TECH_NOTES = [
   'Year 9: four terms, Pasta and Breads known; Terms 3–4 undecided. Practical and portfolio assessment each topic.',
   'Year 10: four terms, Burger competition, Sports nutrition, Desserts (functional ingredients and hospitality), Future food (food systems/future pathways). Practical and portfolio assessment each topic.'
 ].join('\n');
+function makeFoodTechYear(label,fallback=4) {
+  const total=foodTechCount(label) || fallback;
+  const titles=FOOD_TECH_TOPICS[label] || [];
+  const rotation=['Year 7','Year 8'].includes(label);
+  return {id:uid(),label,blocks:Array.from({length:total},(_,i)=>({
+    id:uid(),label:(rotation?'Rotation ':'Term ')+(i+1),
+    topics:titles[i]?[{id:uid(),title:titles[i],strand:'',assess:'',owner:'',optional:false}]:[]
+  }))};
+}
 function foodTechProfile() {
   const rows=[
     ['Year 7','5 rotations','14 weeks per class · 3 × 55-minute lessons weekly','Induction, practical skills, portfolio'],
@@ -1092,7 +1101,10 @@ function mapView() {
   if (!S.draft && !S.review) queueMicrotask(() => paintStrip());
   if (S.edit) el.append(h('button', {class: 'cm-btn cm-addyear', type: 'button', onclick: () => {
     const last = S.map.years.at(-1), n = last ? parseInt(yearNum(last.label), 10) : NaN;
-    S.map.years.push({id: uid(), label: Number.isFinite(n) ? 'Year ' + (n + 1) : 'New year', blocks: Array.from({length: Math.max(1, last?.blocks.length || 4)}, () => ({id: uid(), label: '', topics: []}))});
+    const label=Number.isFinite(n)?'Year '+(n+1):'New year';
+    const fallback=Math.max(1,last?.blocks.length||4);
+    S.map.years.push(isFoodTechDept() && foodTechCount(label) ? makeFoodTechYear(label,fallback) :
+      {id:uid(),label,blocks:Array.from({length:fallback},()=>({id:uid(),label:'',topics:[]}))});
     changed();
   }}, '＋ Add a year'));
   el.append(h('div', {class: 'cm-foot'},
@@ -1113,15 +1125,8 @@ function startFromScratch(f) {
   const assessTypes = f.types.split(/[;\n]/).map(s => { const [code, ...rest] = s.split(/[=:]/); return {code: (code || '').trim().toUpperCase().slice(0, 3), label: rest.join('=').trim()}; }).filter(a => a.code);
   const notes=[foodTech?FOOD_TECH_NOTES:'',String(f.notes||'').trim()].filter(Boolean).join('\n').slice(0,1200);
   S.map = {v: 1, title: f.title.trim(), notes, strands, assessTypes,
-    years: groups.map(label => {
-      const total=foodTech ? (foodTechCount(label) || per) : per;
-      const titles=foodTech ? (FOOD_TECH_TOPICS[label] || []) : [];
-      const rotation=foodTech && ['Year 7','Year 8'].includes(label);
-      return {id:uid(),label,blocks:Array.from({length:total},(_,i)=>({
-        id:uid(),label:foodTech?(rotation?'Rotation ':'Term ')+(i+1):'',
-        topics:titles[i]?[{id:uid(),title:titles[i],strand:'',assess:'',owner:'',optional:false}]:[]
-      }))};
-    })};
+    years: groups.map(label => foodTech && foodTechCount(label) ? makeFoodTechYear(label,per)
+      : {id:uid(),label,blocks:Array.from({length:per},()=>({id:uid(),label:'',topics:[]}))})};
   S.draft = false; S.review = true; S.edit = true; S.source = ''; S.sourceKind = ''; S.version = 0; S.banner = null;
   render(); saveNew();
   return '';
