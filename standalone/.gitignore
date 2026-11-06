@@ -1,0 +1,12 @@
+/config.local.php
+/runtime.local.php
+/staff-login.local.php
+/.env
+/data/*
+!/data/.gitkeep
+/db/mysql/data.sql
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.zip

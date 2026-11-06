@@ -1,0 +1,8 @@
+/* Unit Plan Studio, standalone edition: the school site's sidebar is not here, so the page uses the full width. */
+.app-shell{display:block}
+.workspace{width:100%;margin-left:0;max-width:1500px;margin-right:auto;margin-left:auto}
+.studio-nav{display:flex;gap:6px 18px;flex-wrap:wrap;align-items:center;padding:10px 24px;background:#fff;border-bottom:1px solid #e7e3da;font:600 14px/1.2 system-ui,sans-serif}
+.studio-nav a{color:#5b6475;text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+.studio-nav a:hover,.studio-nav a.on{color:#8a1f3d;border-bottom-color:#8a1f3d}
+.studio-nav .brand{color:#1c2230;font-weight:800;margin-right:10px;border:0}
+.studio-nav .note{margin-left:auto;font-weight:500;color:#8a8f9c;font-size:12.5px}
