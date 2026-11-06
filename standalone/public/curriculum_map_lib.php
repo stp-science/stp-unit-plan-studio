@@ -482,7 +482,7 @@ TXT;
 /** Curriculum text to ground a generated map: [extract, note]. Junior = Ministry document pages for the first and last junior year; senior = the opening structure pages. */
 const CM_SUBJECT_ALIAS = [
     'visual arts' => ['art', 'visual art', 'art: design', 'art: photography', 'art design', 'art photography', 'painting', 'printmaking', 'design'],
-    'technology' => ['design and visual communication', 'digital technology', 'fashion design', 'food', 'product design', 'resistant materials', 'hospitality', 'textiles'],
+    'technology' => ['design and visual communication', 'digital technology', 'fashion design', 'food', 'food technology', 'food tech', 'food & hospitality', 'product design', 'resistant materials', 'hospitality', 'textiles'],
     'social sciences' => ['religious education', 'geography', 'history', 'geospatial technology', 'theology and philosophy', 'tourism studies', 'psychology', 'sociology'],
     'health and physical education' => ['physical education and health', 'health studies', 'human performance', 'outdoor education', 'physical education', 'health'],
 ];
