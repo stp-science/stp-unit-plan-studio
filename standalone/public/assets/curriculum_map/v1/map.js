@@ -169,6 +169,37 @@ const typeOf = code => S.map.assessTypes.find(t => t.code === code);
 const yearNum = label => { if (/^\s*Novice\s*[123]\s*$/i.test(label || '')) return ''; const m = /\d+/.exec(label || ''); return m ? m[0] : ''; };
 const noviceOf = label => { const m = /^\s*Novice\s*([123])\s*$/i.exec(label || ''); return m ? 'Novice ' + m[1] : ''; };
 const isEalDept = () => /^(english as an additional language|eal)$/i.test((S.dept?.name||'').trim());
+const isFoodTechDept = () => /^(food(?:\\s*technology|\\s*tech)?|food\\s*&\\s*hospitality)$/i.test((S.dept?.name||'').trim());
+const FOOD_TECH_BLOCKS = {'Year 7':5,'Year 8':5,'Year 9':4,'Year 10':4};
+const foodTechCount = group => FOOD_TECH_BLOCKS[group] || null;
+const FOOD_TECH_TOPICS = {
+  'Year 9':['Pasta','Breads','',''],
+  'Year 10':['Burger competition','Sports nutrition',
+    'Desserts (functional ingredients and combined hospitality)',
+    'Future food (food systems and future pathways)']
+};
+const FOOD_TECH_NOTES = [
+  'Year 7: five rotations, each class attends a 14-week rotation, three 55-minute lessons weekly. Assessment: induction, practical skills, portfolio.',
+  'Year 8: five technology rotations, approx. 10 lessons each, three lessons in a seven-day cycle; linked project follows students between areas. Stages: brief, make, design, innovate, outcome. Assess outcome and portfolio. Also described: 5 introductory, 10 context and 5 final lessons; check how this fits the rotation allocation.',
+  'Year 9: four terms, Pasta and Breads known; Terms 3–4 undecided. Practical and portfolio assessment each topic.',
+  'Year 10: four terms, Burger competition, Sports nutrition, Desserts (functional ingredients and hospitality), Future food (food systems/future pathways). Practical and portfolio assessment each topic.'
+].join('\\n');
+function foodTechProfile() {
+  const rows=[
+    ['Year 7','5 rotations','14 weeks per class · 3 × 55-minute lessons weekly','Induction, practical skills, portfolio'],
+    ['Year 8','5 rotations','≈10 lessons per technology area · 3 lessons per 7-day cycle','Linked project: brief, make, design, innovate, outcome; outcome and portfolio assessed'],
+    ['Year 9','4 terms','Pasta · Breads · Term 3 undecided · Term 4 undecided','Practical and portfolio at the end of each topic'],
+    ['Year 10','4 terms','Burger competition · Sports nutrition · Desserts · Future food','Practical and portfolio at the end of each topic']
+  ];
+  return h('section',{class:'cm-foodtech-profile','aria-label':'Food Technology planning pattern'},
+    h('h4',{},'Food Technology teaching structure'),
+    h('p',{},'The overview will use different blocks for each year group. These settings apply to AI-generated and manually created plans. Uploaded documents keep their stated unit titles.'),
+    h('div',{class:'cm-foodtech-rows'},...rows.map(([year,blocks,detail,assessment])=>
+      h('div',{class:'cm-foodtech-row'},
+        h('strong',{},year),h('b',{},blocks),
+        h('span',{},detail),h('small',{},assessment)))),
+    h('p',{class:'cm-foodtech-caution'},'Year 8: the 10-lesson rotations and proposed 5 + 10 + 5 project stages need confirming together. They are retained as guidance, not forced into a false lesson total.'));
+}
 const isLanguageDept = () => !isEalDept() && /french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language|german|italian|samoan|korean/i.test(S.dept?.name || '');
 const ealStageOf = label => /^Stage [1-5]$/.test(String(label||'')) ? label : '';
 const yearOf = label => isEalDept() && ealStageOf(label) ? 11 :
@@ -1077,11 +1108,20 @@ function startFromScratch(f) {
   const groups=availablePlanningGroups().filter(g=>f.groups.chosen.has(g));
   if (!groups.length) return 'Choose at least one year group or proficiency stage.';
   const per = Math.min(12, Math.max(1, parseInt(f.blocks, 10) || 4));
-  let n = 0;
+  const foodTech=isFoodTechDept();
   const strands = f.strands.split(/[,\n]/).map(s => s.trim()).filter(Boolean).slice(0, 12).map((name, i) => ({id: uid(), name, color: PALETTE[i % PALETTE.length]}));
   const assessTypes = f.types.split(/[;\n]/).map(s => { const [code, ...rest] = s.split(/[=:]/); return {code: (code || '').trim().toUpperCase().slice(0, 3), label: rest.join('=').trim()}; }).filter(a => a.code);
-  S.map = {v: 1, title: f.title.trim(), notes: '', strands, assessTypes,
-    years: groups.map(label => ({id:uid(),label,blocks:Array.from({length:per},()=>({id:uid(),label:'',topics:[]}))}))};
+  const notes=[foodTech?FOOD_TECH_NOTES:'',String(f.notes||'').trim()].filter(Boolean).join('\n').slice(0,1200);
+  S.map = {v: 1, title: f.title.trim(), notes, strands, assessTypes,
+    years: groups.map(label => {
+      const total=foodTech ? (foodTechCount(label) || per) : per;
+      const titles=foodTech ? (FOOD_TECH_TOPICS[label] || []) : [];
+      const rotation=foodTech && ['Year 7','Year 8'].includes(label);
+      return {id:uid(),label,blocks:Array.from({length:total},(_,i)=>({
+        id:uid(),label:foodTech?(rotation?'Rotation ':'Term ')+(i+1):'',
+        topics:titles[i]?[{id:uid(),title:titles[i],strand:'',assess:'',owner:'',optional:false}]:[]
+      }))};
+    })};
   S.draft = false; S.review = true; S.edit = true; S.source = ''; S.sourceKind = ''; S.version = 0; S.banner = null;
   render(); saveNew();
   return '';
@@ -1209,7 +1249,7 @@ function startGenerate(f) {
   const groups=availablePlanningGroups().filter(g=>f.groups.chosen.has(g));
   const per=parseInt(f.blocks,10);
   if(!groups.length)return 'Choose at least one year group or proficiency stage.';
-  if(!(per>=1&&per<=8))return 'Use 1 to 8 planning blocks.';
+  if(!isFoodTechDept() && !(per>=1&&per<=8))return 'Use 1 to 8 planning blocks.';
   const years=groups.map(g=>Number((g.match(/\d+/)||[])[0])).filter(Number.isFinite);
   const first=Math.min(...years),last=Math.max(...years);
   mapJob({title:'Designing your curriculum sequence',source:'AI',kind:'ai',
@@ -1260,11 +1300,13 @@ function uploadState() {
   setFiles([]);
   return h('div',{class:'cm-in'},
     h('div',{class:'cm-hero'},h('h2',{},'Upload '+S.dept.name+'’s curriculum documents'),
-      h('p',{},'Add an existing overview, separate year-group plans or supporting documents. AI combines the information into one draft without inventing units. Review the draft before using it.')),
+      h('p',{},isFoodTechDept()?
+        'Upload rotation plans, term outlines or supporting documents together. AI will distinguish Year 7–8 rotations from Year 9–10 terms and preserve the connected Year 8 project. Review before using.':
+        'Add an existing overview, separate year-group plans or supporting documents. AI combines the information into one draft without inventing units. Review the draft before using it.')),
     S.banner?h('div',{class:'cm-banner '+S.banner.kind},S.banner.text):null,
     h('div',{class:'cm-setup'},h('div',{class:'cm-card'},
       h('h3',{},'Documents for this subject'),drop,fileInput,summary,
-      groupPicker(chosen,{allowAll:true}),error,submit,
+      groupPicker(chosen,{allowAll:true}),isFoodTechDept()?foodTechProfile():null,error,submit,
       h('p',{class:'hint'},'If two files disagree, check the draft carefully. The upload will not automatically replace a saved department overview.'))));
 }
 function emptyState() {
@@ -1282,13 +1324,16 @@ function emptyState() {
     h('div',{class:'cm-hero'},h('h2',{},'Create '+S.dept.name+'’s curriculum overview with AI'),
       h('p',{},eal?'Select the English as an Additional Language proficiency stages to include. These are not school-year equivalents.':
         novice?'Select the novice levels to include, independently of students’ school year.':
-        prep?'Choose Year 7, Year 8 or both for Prep.':'Choose exactly which year groups you want, whether that is one, several or the full range.')),
+        prep?'Choose Year 7, Year 8 or both for Prep.':isFoodTechDept()?
+        'Choose the year groups. Years 7–8 use five rotations; Years 9–10 use four terms. Known Year 9–10 topics are included, while undecided units remain open.':
+        'Choose exactly which year groups you want, whether that is one, several or the full range.')),
     S.banner?h('div',{class:'cm-banner '+S.banner.kind},S.banner.text):null,
     h('div',{class:'cm-setup'},h('div',{class:'cm-card'},h('h3',{},'Choose what to plan'),
       field('Title',inp('title',{maxlength:'140'})),
       groupPicker(f.groups),
-      field(novice?'Planning blocks per novice stage':eal?'Blocks per proficiency stage':'Terms per year',
-        inp('blocks',{inputmode:'numeric'}),'Usually 4 terms. You can adjust this for your subject.'),
+      isFoodTechDept()?foodTechProfile():
+        field(novice?'Planning blocks per novice stage':eal?'Blocks per proficiency stage':'Terms per year',
+          inp('blocks',{inputmode:'numeric'}),'Usually 4 terms. You can adjust this for your subject.'),
       field('Strands (optional)',inp('strands',{placeholder:'Your subject or learning-area strands'}),
         'Comma separated. Leave blank and AI suggests appropriate strands.'),
       field('Assessment types (optional)',inp('types'),
