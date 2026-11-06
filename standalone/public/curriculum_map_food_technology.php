@@ -46,7 +46,8 @@ function cm_food_technology_normalise_generated(array $data, string $teacherNote
             'Future food (food systems and future pathways)',
         ],
     ];
-    foreach ($data['years'] ?? [] as &$year) {
+    if (!isset($data['years']) || !is_array($data['years'])) return $data;
+    foreach ($data['years'] as &$year) {
         $label=trim((string)($year['label']??''));
         $counts=cm_food_technology_block_counts([$label]);
         if (!isset($counts[$label])) continue;
