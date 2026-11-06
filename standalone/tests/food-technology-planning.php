@@ -61,8 +61,9 @@ $rules=cm_food_technology_rules(false);
 $check(str_contains($rules,'FIVE rotations') && str_contains($rules,'connected project') &&
     str_contains($rules,'TEN lessons') && str_contains($rules,'NOT been decided'),
     'AI instructions include rotations, linked project and uncertainty');
-$check(str_contains(cm_food_technology_notes(),'14-week') &&
-    str_contains(cm_food_technology_notes(),'5-lesson introduction'),
+$check(str_contains(cm_food_technology_notes(),'14 weeks per class') &&
+    str_contains(cm_food_technology_notes(),'5-lesson introduction') &&
+    str_contains(cm_food_technology_notes(),'10 lessons each'),
     'programme notes retain timing and year 8 ambiguity');
 
 $public=dirname(__DIR__).'/public';
