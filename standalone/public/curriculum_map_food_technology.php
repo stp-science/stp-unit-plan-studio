@@ -35,8 +35,17 @@ RULES;
         : "\nFor a new generated overview, use EXACTLY five blocks for each requested Year 7 and Year 8 and four blocks for each requested Year 9 and Year 10. Keep unnamed rotations and undecided Year 9 Term 3/4 units empty rather than fabricating names. Do not insert generic filler topics. Return the above teaching and assessment constraints concisely in the map notes so future unit planning can use them.");
 }
 /** Normalise generated block counts/labels without deleting any genuine topic. */
-function cm_food_technology_normalise_generated(array $data): array
+function cm_food_technology_normalise_generated(array $data, string $teacherNotes = ''): array
 {
+    $knownTitles=[
+        'Year 9'=>['Pasta','Breads'],
+        'Year 10'=>[
+            'Burger competition',
+            'Sports nutrition',
+            'Desserts (functional ingredients and combined hospitality)',
+            'Future food (food systems and future pathways)',
+        ],
+    ];
     foreach ($data['years'] ?? [] as &$year) {
         $label=trim((string)($year['label']??''));
         $counts=cm_food_technology_block_counts([$label]);
@@ -46,7 +55,29 @@ function cm_food_technology_normalise_generated(array $data): array
         if (count($blocks)>$needed)
             throw new CsInvalid($label.' Food Technology must use '.$needed.' rotation/term slots. AI returned extra slots, so no incorrect map was saved.');
         while (count($blocks)<$needed) $blocks[]=['label'=>'','topics'=>[]];
-        foreach ($blocks as $i=>&$block) $block['label']=($label==='Year 7'||$label==='Year 8'?'Rotation ':'Term ').($i+1);
+        foreach ($blocks as $i=>&$block) {
+            $block['label']=($label==='Year 7'||$label==='Year 8'?'Rotation ':'Term ').($i+1);
+            // User-supplied year 9 and 10 topic names are definitive for
+            // these slots. Preserve model-proposed strands and assessments,
+            // but never change the programme's actual unit names.
+            if (isset($knownTitles[$label][$i])) {
+                if (count((array)($block['topics']??[]))>1)
+                    throw new CsInvalid($label.' Term '.($i+1).' must contain one Food Technology topic, not several.');
+                $topic=(array)($block['topics'][0]??[]);
+                $block['topics']=[array_replace([
+                    'title'=>'','strand'=>'','assess'=>'','owner'=>'',
+                    'optional'=>false,
+                ],$topic,['title'=>$knownTitles[$label][$i],'owner'=>''])];
+            }
+            // Staff have NOT agreed Year 9 Term 3/4 titles. Keep them
+            // unassigned unless their own notes specify a corresponding term.
+            if ($label==='Year 9' && $i>=2) {
+                $term=$i+1;
+                $termLabel='/(?:\\bterm\\s*'.$term.'\\b|\\bt'.$term.'\\b|\\b'.($term===3?'third':'fourth').'\\s+term\\b)/iu';
+                if (!preg_match($termLabel,$teacherNotes))
+                    $block['topics']=[];
+            }
+        }
         unset($block);
         $year['blocks']=$blocks;
     }
