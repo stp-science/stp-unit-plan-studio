@@ -83,7 +83,7 @@ foreach ([
     'makeFoodTechYear(label,per)',
     'FOOD_TECH_TOPICS[label]',
     'function makeFoodTechYear(label,fallback=4)',
-    'isFoodTechDept() && foodTechCount(label) ? makeFoodTechYear(label,fallback)'
+    'isFoodTechDept() && foodTechCount(label) ? makeFoodTechYear(label,fallback)',
     'isFoodTechDept()?foodTechProfile()',
 ] as $required)
     $check(str_contains($js,$required),'client integrated: '.$required);
