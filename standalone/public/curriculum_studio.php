@@ -54,7 +54,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
     <a href="curriculum_studio.php?guide=1" aria-current="page">Single unit plan</a>
     <a href="curriculum_studio.php?mode=overview&amp;department=<?= $navDepartment ?>"<?= $navMode === 'overview' ? ' aria-current="page"' : '' ?>>Curriculum overview</a>
     <a href="curriculum_studio.php?mode=existing&amp;department=<?= $navDepartment ?>"<?= $navMode === 'existing' ? ' aria-current="page"' : '' ?>>Existing overview</a>
-    <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?> &middot; <?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
+    <span class="note"><?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
   </nav>
   <div class="app-shell">
     <div class="workspace">
@@ -63,7 +63,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
           <div class="page-title">
             <p class="eyebrow"><?= $e($schoolName) ?> · Teaching &amp; learning</p>
             <h1>Unit Plan Studio</h1>
-            <p><a href="curriculum_studio.php">&larr; Back to start</a> &middot; Choose your subject, year and unit. The Ministry curriculum gives the outline and your department's curriculum map gives the sequence. Maps and unit plans are shared with staff using this site.</p>
+            <p>Choose your subject, year and unit. Build from the Ministry curriculum, then shape the learning for your students.</p>
           </div>
         </div>
       </header>

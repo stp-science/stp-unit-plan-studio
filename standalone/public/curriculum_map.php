@@ -42,7 +42,7 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
     <a href="curriculum_studio.php?guide=1">Single unit plan</a>
     <a href="curriculum_studio.php?mode=overview&amp;department=<?= $navDepartment ?>"<?= $navMode === 'overview' ? ' aria-current="page"' : '' ?>>Curriculum overview</a>
     <a href="curriculum_studio.php?mode=existing&amp;department=<?= $navDepartment ?>"<?= $navMode === 'existing' ? ' aria-current="page"' : '' ?>>Existing overview</a>
-    <span class="note">Private edition &middot; <?= htmlspecialchars(cs_ai_label(), ENT_QUOTES, 'UTF-8') ?> &middot; <?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
+    <span class="note"><?= studio_is_admin() ? 'Administrator' : 'Staff' ?></span>
   </nav>
   <div class="app-shell">
     <div class="workspace">
@@ -50,8 +50,8 @@ $v = static fn(string $f): string => (string)(@filemtime(__DIR__ . '/' . $base .
         <div class="topbar-left">
           <div class="page-title">
             <p class="eyebrow"><?= $e($schoolName) ?> · Teaching &amp; learning</p>
-            <h1>Curriculum map</h1>
-            <p>View and organise your department's units by year level.</p>
+            <h1>Plan with purpose.</h1>
+            <p>Bring your curriculum, teaching sequence and unit plans together in one shared workspace.</p>
           </div>
         </div>
       </header>
