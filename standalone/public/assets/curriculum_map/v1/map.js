@@ -169,7 +169,7 @@ const typeOf = code => S.map.assessTypes.find(t => t.code === code);
 const yearNum = label => { if (/^\s*Novice\s*[123]\s*$/i.test(label || '')) return ''; const m = /\d+/.exec(label || ''); return m ? m[0] : ''; };
 const noviceOf = label => { const m = /^\s*Novice\s*([123])\s*$/i.exec(label || ''); return m ? 'Novice ' + m[1] : ''; };
 const isEalDept = () => /^(english as an additional language|eal)$/i.test((S.dept?.name||'').trim());
-const isFoodTechDept = () => /^(food(?:\\s*technology|\\s*tech)?|food\\s*&\\s*hospitality)$/i.test((S.dept?.name||'').trim());
+const isFoodTechDept = () => /^(food(?:\s*technology|\s*tech)?|food\s*&\s*hospitality)$/i.test((S.dept?.name||'').trim());
 const FOOD_TECH_BLOCKS = {'Year 7':5,'Year 8':5,'Year 9':4,'Year 10':4};
 const foodTechCount = group => FOOD_TECH_BLOCKS[group] || null;
 const FOOD_TECH_TOPICS = {
@@ -183,7 +183,7 @@ const FOOD_TECH_NOTES = [
   'Year 8: five technology rotations, approx. 10 lessons each, three lessons in a seven-day cycle; linked project follows students between areas. Stages: brief, make, design, innovate, outcome. Assess outcome and portfolio. Also described: 5 introductory, 10 context and 5 final lessons; check how this fits the rotation allocation.',
   'Year 9: four terms, Pasta and Breads known; Terms 3–4 undecided. Practical and portfolio assessment each topic.',
   'Year 10: four terms, Burger competition, Sports nutrition, Desserts (functional ingredients and hospitality), Future food (food systems/future pathways). Practical and portfolio assessment each topic.'
-].join('\\n');
+].join('\n');
 function foodTechProfile() {
   const rows=[
     ['Year 7','5 rotations','14 weeks per class · 3 × 55-minute lessons weekly','Induction, practical skills, portfolio'],
