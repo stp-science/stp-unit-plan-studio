@@ -384,7 +384,7 @@ try {
             $res = cs_openai([['role' => 'user', 'content' => $content]], $rules, cm_import_schema(false), 24000, $emit, $usage, 'cm-gen-' . substr(sha1($rules), 0, 12), 'medium');
             $model = (string)$res['model'];
             $stmts = [];
-            $draftData = $foodTechMode ? cm_food_technology_normalise_generated((array)$res['json']) : (array)$res['json'];
+            $draftData = $foodTechMode ? cm_food_technology_normalise_generated((array)$res['json'],(string)($ctx['teacherNotes']??'')) : (array)$res['json'];
             $map = cm_from_import($draftData, $stmts);
             if ($foodTechMode && trim((string)($map['notes']??''))==='') $map['notes']=cm_food_technology_notes();
             $actualGroups=array_map(static fn($y):string=>trim((string)($y['label']??'')),(array)($map['years']??[]));
