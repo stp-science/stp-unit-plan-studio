@@ -15,7 +15,6 @@ foreach ([
     "\$requestPhase = 'reading the linked department curriculum map'",
     "\$requestPhase = 'reading the selected curriculum statements'",
     "\$requestPhase = 'validating selected curriculum statements'",
-    "try {\n                \$senior = cs_senior_future(",
     "optional senior curriculum context",
     "Reference: '.\$requestId",
     "get_class(\$e).': '.\$e->getMessage()",
@@ -23,6 +22,11 @@ foreach ([
     if (!str_contains($api,$required))
         throw new RuntimeException('Mapped-unit drafting safety check missing: '.$required);
 }
+// Match the fallback structurally rather than depending on exact whitespace
+// or indentation in a multi-line PHP statement.
+if (!preg_match('/try\\s*\\{\\s*\\$senior\\s*=\\s*cs_senior_future\\s*\\(/', $api) ||
+    !preg_match('/catch\\s*\\(Throwable\\s+\\$optionalError\\)/', $api))
+    throw new RuntimeException('Senior curriculum lookup must be optional for Year 10 drafting.');
 if (!str_contains($js,"banner = {kind: 'err'") ||
     !str_contains($js,"retry: e.noRetry ? null : () => run(title, stages, fn)") ||
     !str_contains($js,"G.plan = normalisePlan(r); save(); view = 'guide'"))
