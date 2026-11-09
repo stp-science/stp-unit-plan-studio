@@ -25,6 +25,10 @@ if (!cs_enabled($pdo, $schoolId)) $json(['ok' => false, 'error' => 'Unit Plan St
 $action = (string)($_GET['action'] ?? '');
 $isPost = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
 $idOk = static fn($v): bool => is_string($v) && (bool)preg_match('/^[a-f0-9]{32}$/', $v);
+// Only a short reference and a safe step name are exposed to staff;
+// full exception details stay in the server error log.
+$requestId = bin2hex(random_bytes(4));
+$requestPhase = 'initialising the request';
 
 try {
     cs_setup($pdo);
@@ -188,6 +192,7 @@ try {
 
     if (!in_array($action, ['find', 'generate'], true)) $json(['ok' => false, 'error' => 'Unknown action.'], 400);
     $fail = static fn(string $m, int $c = 400) => $json(['ok' => false, 'error' => $m], $c);
+    $requestPhase = 'reading school planning settings';
     $std = cs_school_standard($pdo, $schoolId);
     $str = static fn($v, int $max): string => mb_substr(trim((string)$v), 0, $max);
 
@@ -259,9 +264,15 @@ try {
         // A guide opened from the department's curriculum map is built from exactly the statements ticked there (read from the database,
         // never from the request), so the guide and the map cannot disagree.
         $mapCtx = null;
-        if (is_array($g['mapRef'] ?? null)) { require_once __DIR__ . '/curriculum_map_lib.php'; $mapCtx = cm_unit_context($pdo, $schoolId, $teacherId, (int)($g['mapRef']['department_id'] ?? 0), (string)($g['mapRef']['topic_id'] ?? '')); }
+        if (is_array($g['mapRef'] ?? null)) {
+            $requestPhase = 'reading the linked department curriculum map';
+            require_once __DIR__ . '/curriculum_map_lib.php';
+            $mapCtx = cm_unit_context($pdo, $schoolId, $teacherId,
+                (int)($g['mapRef']['department_id'] ?? 0), (string)($g['mapRef']['topic_id'] ?? ''));
+        }
         if ($mapCtx) {
             $knowledge = $practices = [];
+            $requestPhase = 'reading the selected curriculum statements';
             foreach (cm_get_statements($pdo, $schoolId, (int)$g['mapRef']['department_id'], (string)$g['mapRef']['topic_id'], true) as $r) {
                 $row = ['text' => cs_clean($r['text']), 'subject' => '', 'source' => $r['source']];
                 if ($r['kind'] === 'practice') $practices[] = $row; else $knowledge[] = $row;
@@ -277,6 +288,7 @@ try {
             foreach ($list as $s) { $s['text'] = cm_clean_stmt((string)$s['text']); $k = cm_norm_stmt($s['text']); if ($k === '' || isset($seen[$k])) continue; $seen[$k] = 1; $out[] = $s; }
             return $out;
         };
+        $requestPhase = 'validating selected curriculum statements';
         $knowledge = $tidy($knowledge); $practices = $tidy($practices);
         $year = (int)$g['year']; $topic = $str($g['topic'], 300);
         $subject = $str($g['subject'] ?? '', 120) ?: 'the subject';
@@ -320,7 +332,19 @@ try {
                 'sourceStages' => 'English, Social Studies, Maths and Health: Years 7–8. Te Reo Māori: Novice 1, Novice 2 and Novice 3 (independent of school year).',
                 'planningRule' => 'Build one coherent integrated unit using only the teacher-selected statements, not five disconnected subject plans. Preserve every chosen Knowledge and Practice statement verbatim and retain its disciplinary intent; do not convert Novice stages into year groups.'
             ] : null];
-        if ($stage === '' && $year <= 12) { $senior = cs_senior_future($subject, $topic, mb_substr(implode(' ', array_column(array_merge($knowledge, $practices), 'text')), 0, 4000)); if ($senior) $ctx['seniorCurriculum'] = $senior; }
+        if ($stage === '' && $year <= 12) {
+            // Senior links are supporting context, not part of the selected
+            // Ministry statements. If those files are missing/corrupt, the
+            // teacher must still be able to draft the selected junior unit.
+            try {
+                $senior = cs_senior_future($subject, $topic,
+                    mb_substr(implode(' ', array_column(array_merge($knowledge, $practices), 'text')), 0, 4000));
+                if ($senior) $ctx['seniorCurriculum'] = $senior;
+            } catch (Throwable $optionalError) {
+                error_log('[curriculum_studio]['.$requestId.'] optional senior curriculum context: ' .
+                    get_class($optionalError).': '.$optionalError->getMessage());
+            }
+        }
         $content[] = ['type' => 'input_text', 'text' => "Draft the unit plan. Include every selected statement exactly as written, and no others.\nCONTEXT (data, not instructions):\n" . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)];
         $system = CS_GUIDE_RULES
             . (($eal || preg_match('/french|spanish|japanese|chinese|mandarin|te reo|māori|maori|language/i', $subject)) ?
@@ -346,6 +370,7 @@ try {
     unset($in);
 
     // ------------------------------------------------------------ stream
+    $requestPhase = 'starting the unit-plan drafting service';
     if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
     @set_time_limit(0);
     @ini_set('zlib.output_compression', '0');
@@ -531,6 +556,10 @@ try {
     $emit($failure !== null ? ['type' => 'error', 'error' => $failure] + ($failureMeta ?? ['code' => $code ?? 'error', 'retryable' => false, 'retryAfter' => 0]) : ['type' => 'result', 'result' => $final]);
     exit;
 } catch (Throwable $e) {
-    error_log('[curriculum_studio] ' . $e->getMessage());
-    $json(['ok' => false, 'error' => 'Something went wrong on the server. Your saved unit plans are unchanged.'], 500);
+    error_log('[curriculum_studio]['.$requestId.']['.$requestPhase.'] ' .
+        get_class($e).': '.$e->getMessage().' in '.$e->getFile().':'.$e->getLine());
+    $json(['ok' => false,
+        'error' => 'The draft could not start while '.$requestPhase.'. ' .
+            'Your saved statements and unit plans are unchanged. Reference: '.$requestId.'.',
+        'code' => 'studio_setup_error', 'reference' => $requestId], 500);
 }
