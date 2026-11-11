@@ -875,6 +875,7 @@ function ealOutlineCard(){
         disabled:busy,onclick:()=>openEalStage(s)},s,
         ealCount(G,s)?h('span',{class:'cg-year-count'},String(ealCount(G,s))):null))),
     h('p',{class:'cg-prep-context'},'The selected curriculum is proficiency-based, not Year 11–13 by stage. The stages are not automatically mapped to a school year.'),
+    keywordOrderingHint(['knowledge','practices'].flatMap(key=>ealRows(G,key,stage))),
     busy?h('div',{class:'cg-year-loading',role:'status'},'Loading '+ealLoading+' official curriculum statements. Uncached sections may use Claude credits.'):null,
     ealError?h('div',{class:'cg-prep-error',role:'alert'},
       h('p',{},ealError),
@@ -977,6 +978,7 @@ function prepOutlineCard(){
     h('p',{class:'cg-prep-context'},source.novice?
       'Te Reo Māori is organised by proficiency. Select from Novice 1, 2 and 3 independently of students’ school year.':
       'Showing '+source.label+' Year '+level+'. Both Year 7 and Year 8 can contribute to this Year '+G.year+' Prep unit.'),
+    keywordOrderingHint(['knowledge','practices'].flatMap(key=>prepRows(G,key))),
     busy?h('div',{class:'cg-year-loading',role:'status'},
       'Loading '+prepLoading+' official statements'+(source.novice?' (uncached sections may use Claude credits)':'')+'…'):null,
     prepError?h('div',{class:'cg-prep-error',role:'alert'},
