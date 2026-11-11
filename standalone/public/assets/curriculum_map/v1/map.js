@@ -40,7 +40,7 @@ const h = (tag, attrs = {}, ...kids) => {
 const ago = iso => { if (!iso) return ''; const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(iso).toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'}); };
 
 const S = {review: false, view: 'map', stmtCounts: {}, importStmts: null, importResult: null, match: {}, run: null, lastRun: null, onlyAttn: false, open: new Set(), stmtAll: null, stmtDirty: false, depts: [], isManager: false, dept: null, map: null, version: 0, updatedAt: '', updatedBy: '', edit: false, draft: false, source: '', saveState: 'saved', conflict: false, working: null, banner: null, loading: true, dashboardCoverage: null, dashboardCoverageError: ''};
-let root, toastEl, toastTimer = 0, saveTimer = 0;
+let root, toastEl, toastTimer = 0, saveTimer = 0, mapKeywordQuery = '';
 
 // ---------------------------------------------------------------- api
 async function get(params) {
@@ -1058,6 +1058,49 @@ function yearRow(y, yi) {
   return row;
 }
 
+// Live keyword lookup for units in the current department overview.
+// Never filters or edits the saved map itself; results open the existing unit modal.
+const keywordWords = value => String(value??'').normalize('NFKD').replace(/\p{M}/gu,'')
+  .toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim().split(/\s+/).filter(Boolean);
+function mapKeywordResults(query) {
+  const words=keywordWords(query);
+  if(!words.length || !S.map)return [];
+  return S.map.years.flatMap(y=>y.blocks.flatMap(b=>b.topics.map(t=>{
+    const strand=strandOf(t.strand)?.name||'';
+    const assessment=t.assess?((typeOf(t.assess)?.label)||t.assess):'';
+    const location=y.label+' · '+termName(y,b);
+    const haystack=keywordWords([S.dept?.name,t.title,location,strand,assessment].join(' ')).join(' ');
+    return {y,b,t,strand,assessment,location,match:words.every(word=>haystack.includes(word))};
+  }))).filter(item=>item.match);
+}
+function mapKeywordSearch() {
+  const input=h('input',{type:'search',class:'cm-keyword-input',
+    value:mapKeywordQuery,placeholder:'Search units, strands, years or assessments…',
+    'aria-label':'Search units in this curriculum map'});
+  const results=h('div',{class:'cm-keyword-results'});
+  const count=h('span',{class:'cm-keyword-count',role:'status'});
+  const clear=h('button',{type:'button',class:'cm-btn sm',
+    onclick:()=>{mapKeywordQuery='';input.value='';paint();input.focus();}},'Clear');
+  const paint=()=>{
+    const matches=mapKeywordResults(mapKeywordQuery);
+    const active=!!mapKeywordQuery.trim();
+    results.hidden=!active;
+    clear.hidden=!active;
+    count.textContent=active?matches.length+' matching unit'+(matches.length===1?'':'s'):'';
+    results.replaceChildren(...matches.slice(0,60).map(item=>h('button',{
+      type:'button',class:'cm-keyword-hit',
+      onclick:()=>S.edit?topicEditor(item.y,item.b,item.t,false):topicDetails(item.y,item.b,item.t)},
+      h('strong',{},item.t.title||'Untitled unit'),
+      h('span',{},item.location),
+      item.strand?h('small',{},item.strand):null)),
+      active&&!matches.length?h('p',{class:'cm-keyword-empty'},'No matching units in this subject. Try another keyword.'):null,
+      matches.length>60?h('p',{class:'cm-keyword-empty'},'Showing the first 60 matches. Refine the search to narrow the results.'):null);
+  };
+  input.addEventListener('input',()=>{mapKeywordQuery=input.value.slice(0,120);paint();});
+  paint();
+  return h('section',{class:'cm-keyword-panel','aria-label':'Find units in this curriculum map'},
+    h('div',{class:'cm-keyword-bar'},h('label',{},'Find a unit',input),clear,count),results);
+}
 function mapView() {
   const c = counts();
   const el = h('div', {class: 'cm-in'});
@@ -1097,6 +1140,7 @@ function mapView() {
     S.map.assessTypes.length ? h('div', {class: 'cm-key'}, ...S.map.assessTypes.map(a => h('span', {}, h('b', {}, a.code), a.label ? ' = ' + a.label : ''))) : null));
   tiles.clear();
   if (!S.draft && !S.review) { el.append(h('div', {class: 'cm-mstrip', id: 'cm-mstrip'})); }
+  el.append(mapKeywordSearch());
   el.append(h('div', {class: 'cm-map'}, ...S.map.years.map(yearRow)));
   if (!S.draft && !S.review) queueMicrotask(() => paintStrip());
   if (S.edit) el.append(h('button', {class: 'cm-btn cm-addyear', type: 'button', onclick: () => {
@@ -1630,7 +1674,22 @@ function startView() {
   const has = !!S.map, name = S.dept?.name || 'your department';
   const card = (cls, icon, title, text, tag, attrs) => h(attrs.href ? 'a' : 'button', {class: 'cm-start ' + cls, ...attrs, ...(attrs.href ? {} : {type: 'button'})},
     h('span', {class: 'cm-sico', 'aria-hidden': 'true'}, icon), h('b', {}, title), h('span', {class: 'cm-stext'}, text), tag ? h('span', {class: 'cm-stag'}, tag) : null);
+  let lookup='';
+  const keywordField=h('input',{type:'search',class:'cm-home-keyword',maxlength:'120',
+    placeholder:'e.g. ecosystems, evolution, migration',
+    'aria-label':'Keyword search across saved unit plans',
+    oninput:e=>{lookup=e.target.value;}});
+  const keywordForm=h('form',{class:'cm-home-search',
+    role:'search',onsubmit:e=>{e.preventDefault();
+      const query=lookup.trim();
+      if(!query){keywordField.focus();return;}
+      location.href=CM.guide+'?guide=1&q='+encodeURIComponent(query);
+    }},
+    h('label',{},'Find an existing unit plan'),
+    h('div',{class:'cm-home-search-controls'},keywordField,
+      h('button',{type:'submit',class:'cm-btn pri'},'Search plans')));
   return h('div', {class: 'cm-in cm-home'},
+    keywordForm,
     h('div', {class: 'cm-route-head'}, h('div', {}, h('span', {class: 'cm-knowledge-kicker'}, 'YOUR NEXT STEP'), h('h2', {}, 'What would you like to plan?')), h('p', {}, 'Start with one unit, a new sequence, or the overview you already use.')),
     !S.dept ? h('p', {class: 'cm-choose-hint'}, 'Choose a subject above to create or upload its curriculum overview. You can still create an individual unit plan without an overview.') : null,
     h('div', {class: 'cm-startgrid'},
