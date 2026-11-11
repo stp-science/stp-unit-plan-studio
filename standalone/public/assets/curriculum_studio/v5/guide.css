@@ -516,3 +516,22 @@ body[data-page="curriculum-studio"] .cg-side{min-width:0}
 .cg-search-all,.cg-search-clear{flex:none;font-size:13px}
 .cg-search-clear[hidden]{display:none}
 @media(max-width:720px){.cg-search-all,.cg-search-clear{flex:1 1 auto;justify-content:center}}
+
+/* Keyword Search on unit setup: relevance ranking, not an extra curriculum filter. */
+.cg-planning-keywords{margin:17px 0 19px;padding:16px 18px;background:#f5f9fb;
+  border:1px solid #c9dce5;border-radius:12px;min-width:0}
+.cg-planning-keywords-label{display:block;font-size:18px;line-height:1.35;font-weight:800;
+  color:#001733;margin:0 0 6px}
+.cg-planning-keywords>.cg-mut{margin:0 0 10px;line-height:1.5;color:#4c6576;font-size:13.5px}
+.cg-planning-keywords input{display:block;width:100%;max-width:100%;box-sizing:border-box;
+  padding:12px 14px;border:1px solid #bdced7;background:#fff;color:#001733;
+  border-radius:9px;font:inherit;font-size:14.5px}
+.cg-planning-keywords input:focus-visible{outline:3px solid #82adbf;outline-offset:2px}
+.cg-planning-keywords>small{display:block;color:#526879;margin-top:8px;font-size:12.5px;line-height:1.45}
+.cg-keyword-ordering{padding:10px 14px;margin:12px 0 15px;background:#f1f7fa;
+  border:1px solid #cbdfe8;border-radius:10px;font-size:13px;line-height:1.5;color:#33536a}
+.cg-keyword-ordering b{color:#001733}
+.cg-stmt small.cg-keyword-match{display:inline-block;width:max-content;max-width:100%;
+  margin:0 0 7px;padding:3px 9px;border-radius:6px;border:1px solid #a8ccd9;
+  background:#e4f1f6;color:#124963;font-size:11px;line-height:1.4;font-weight:750}
+@media(max-width:620px){.cg-planning-keywords{padding:13px 12px}.cg-planning-keywords-label{font-size:17px}}
