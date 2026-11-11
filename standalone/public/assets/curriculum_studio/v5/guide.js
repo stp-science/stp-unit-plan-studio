@@ -497,7 +497,7 @@ function planningKeywordField() {
       placeholder:'e.g. sustainability, energy, systems, change',
       'aria-label':'Keywords for sorting curriculum statements',
       value:G.keywords||'',oninput:e=>{G.keywords=e.target.value.slice(0,400);save();}}),
-    h('small',{},'Separate keywords with commas. Optional — no statements are hidden or selected automatically.'));
+    h('small',{},'Separate keywords with commas. This changes the order only; existing selected statements stay selected and nothing is hidden.'));
 }
 function keywordOrderingHint(statements) {
   if(!planningKeywordTerms(G?.keywords).length)return null;
@@ -505,7 +505,7 @@ function keywordOrderingHint(statements) {
   return h('div',{class:'cg-keyword-ordering',role:'status'},
     h('b',{},'Keyword Search: '),
     count+' matching statement'+(count===1?'':'s')+' brought to the top of this list. ',
-    'Review the statements before ticking them; all other statements remain below.');
+    'Review the selected ticks carefully; all other statements remain below.');
 }
 
 function topicCard() {
