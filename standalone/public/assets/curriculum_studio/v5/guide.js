@@ -73,7 +73,7 @@ const yearBankLoaded = (guide, year) => (Array.isArray(guide.bankYears) && guide
 const statementsForYear = (guide, key, year) => (guide.statements[key] || []).filter(s =>
   !juniorYearTabs(guide) || statementSourceYear(s,guide) === year);
 let root, listEl, mainEl, shellEl, toastEl;
-let librarySubject = null, libraryQuery = '', directoryQuery = '', libraryShowAll = false, requestedSubject = '';
+let librarySubject = null, libraryQuery = '', directoryQuery = '', libraryShowAll = false, requestedSubject = '', libraryReturnSubject = null, libraryReturnQuery = '';
 
 const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], ealLoaded: [], languageReferences: '', docId: '', discipline: '', duration: '', notes: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
@@ -211,6 +211,70 @@ function renderList() {
   if (!groups.length) listEl.append(h('p',{class:'cg-subject-side-empty'},
     query?'No matching subjects.':'No subjects available yet.'));
 }
+// Keyword search only uses saved unit data. Unticked statement-bank items
+// are deliberately excluded: they are NOT part of a teacher's unit plan.
+function searchWords(value) {
+  return String(value ?? '').normalize('NFKD').replace(/\p{M}/gu,'')
+    .toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+}
+function guideSearchSegments(guide) {
+  const sections=[];
+  const add=(label,value)=>{
+    if (typeof value==='string' && value.trim()) sections.push({label,text:value.trim()});
+  };
+  add('Unit title',guide.topic);
+  add('Subject',guideSubject(guide));
+  add('Year or stage',guideStageLabel(guide));
+  add('Planning notes',guide.notes);
+  add('Duration',guide.duration);
+  add('Language references',guide.languageReferences);
+  const selected=guide.selected||{}, statements=guide.statements||{};
+  for(const type of ['knowledge','practices']){
+    const ids=new Set(Array.isArray(selected[type])?selected[type]:[]);
+    for(const statement of (Array.isArray(statements[type])?statements[type]:[])){
+      if(ids.has(statement.id))add(type==='knowledge'?'Selected knowledge':'Selected practice',statement.text);
+    }
+  }
+  const plan=guide.plan;
+  if(plan && typeof plan==='object'){
+    const names={knowledgeSummary:'Knowledge summary',practiceSummary:'Practices summary',
+      practicesSummary:'Practices summary',misconceptions:'Misconceptions',
+      prior:'Prior learning',future:'Future learning',assessment:'Assessment',
+      vocabulary:'Vocabulary',vocabularyTier2:'Tier 2 vocabulary',
+      vocabularyTier3:'Tier 3 vocabulary',objectives:'Learning objectives'};
+    for(const [key,value] of Object.entries(plan)){
+      if(key==='focuses')continue;
+      if(typeof value==='string')add(names[key]||key.replace(/([A-Z])/g,' $1'),value);
+    }
+    for(const [index,focus] of (Array.isArray(plan.focuses)?plan.focuses:[]).entries()){
+      if(!focus || typeof focus!=='object')continue;
+      for(const [key,value] of Object.entries(focus)){
+        if(typeof value==='string' && key!=='lessons')
+          add('Learning focus '+(index+1)+' · '+(names[key]||key.replace(/([A-Z])/g,' $1')),value);
+      }
+    }
+  }
+  return sections;
+}
+function searchGuide(guide,query) {
+  const words=searchWords(query).split(/\s+/).filter(Boolean);
+  if(!words.length)return {match:true,preview:null};
+  const sections=guideSearchSegments(guide);
+  const searchable=searchWords(sections.map(section=>section.text).join(' '));
+  if(!words.every(word=>searchable.includes(word)))return {match:false,preview:null};
+  const detail=sections.slice(3).find(section=>{
+    const text=searchWords(section.text);
+    return words.every(word=>text.includes(word));
+  })||sections.slice(3).find(section=>words.some(word=>searchWords(section.text).includes(word)));
+  if(!detail)return {match:true,preview:null};
+  const text=detail.text.replace(/\s+/g,' ').trim();
+  const word=words[0];
+  let at=text.toLocaleLowerCase().indexOf(word);
+  if(at<0)at=0;
+  const from=Math.max(0,at-45);
+  const preview=(from?'…':'')+text.slice(from,from+155)+(from+155<text.length?'…':'');
+  return {match:true,preview:{label:detail.label,text:preview}};
+}
 function libraryView() {
   const group=librarySubject ? guideGroups().find(g=>g.key===librarySubject) : null;
   const selected=!!group;
@@ -232,16 +296,17 @@ function libraryView() {
     onclick:()=>{libraryShowAll=true;paint();}},'Show all saved plans');
   const paint=()=>{
     const q=libraryQuery.trim().toLocaleLowerCase();
-    const filtered=all.filter(g=>!q||[g.topic,g.subject,guideStageLabel(g)].some(v=>String(v||'').toLocaleLowerCase().includes(q)));
+    const filtered=all.map(g=>({guide:g,hit:searchGuide(g,q)})).filter(item=>item.hit.match);
     const visible=!selected&&!q&&!libraryShowAll?filtered.slice(0,12):filtered;
-    count.textContent=visible.length+' of '+filtered.length+' unit plans';
-    grid.replaceChildren(...visible.map(g=>h('button',{type:'button',class:'cg-library-tile',
+    count.textContent=q ? filtered.length+' matching unit plan'+(filtered.length===1?'':'s') : visible.length+' of '+filtered.length+' unit plans';
+    grid.replaceChildren(...visible.map(({guide:g,hit})=>h('button',{type:'button',class:'cg-library-tile',
       onclick:()=>open(g.id),'aria-label':'Open '+(g.topic||'Untitled unit')+', '+guideStageLabel(g)},
       h('span',{class:'cg-library-tile-top'},
         h('span',{class:'cg-library-year'},guideStageLabel(g)),
         h('span',{class:'cg-library-status'+(g.plan?' drafted':'')},
           g.plan?'Draft created':hasStatements(g)?'Curriculum selected':'New')),
       h('strong',{},g.topic||'Untitled unit plan'),
+      hit.preview ? h('span',{class:'cg-library-match'},h('b',{},hit.preview.label+': '),hit.preview.text):null,
       h('span',{class:'cg-library-tile-bottom'},
         h('small',{},(selected?'':guideSubject(g)+' · ')+'Updated '+ago(g.updated)),
         h('span',{},'Open plan →')))));
@@ -252,14 +317,28 @@ function libraryView() {
     if(more)showAll.textContent='Show all '+filtered.length+' saved plans';
   };
   const search=h('input',{class:'cg-library-search',type:'search',value:libraryQuery,
-    placeholder:selected?'Search '+group.name+' unit plans…':'Search all saved unit plans…',
+    placeholder:selected?'Search '+group.name+' by keyword…':'Search all saved plans by keyword…',
     'aria-label':'Search saved unit plans',oninput:e=>{libraryQuery=e.target.value;paint();}});
+  const across=selected?h('button',{type:'button',class:'cg-ghost cg-search-all',
+    onclick:()=>{librarySubject=null;libraryShowAll=false;renderList();renderMain(true);}},
+    'Search all subjects'):null;
+  const clear=h('button',{type:'button',class:'cg-ghost cg-search-clear',
+    onclick:()=>{libraryQuery='';renderMain();}},'Clear search');
+  const toolbar=h('div',{class:'cg-library-toolbar'},search,across,clear,count);
+  const updateClear=()=>{clear.hidden=!libraryQuery.trim();};
+  search.addEventListener('input',updateClear);
+  updateClear();
   paint();
   return h('section',{class:'cg-library-page'},head,
-    h('div',{class:'cg-library-toolbar'},search,count),grid,showAll);
+    h('p',{class:'cg-search-help'},'Search unit titles, curriculum knowledge, practices, learning focuses, vocabulary and notes.'),
+    toolbar,grid,showAll);
 }
 function backToLibrary() {
   if (!G) return returnToSubjects();
+  if (libraryReturnQuery.trim()) {
+    G=null; librarySubject=libraryReturnSubject; libraryQuery=libraryReturnQuery;
+    view='library';banner=null;renderList();renderMain(true);return;
+  }
   const group=guideGroups().find(g=>g.key===subjectKey(guideSubject(G)));
   if (group) showSubjectLibrary(group.key);
   else returnToSubjects();
@@ -270,6 +349,10 @@ function editorLibraryBack() {
 }
 
 function open(id) {
+  if (!G && view==='library') {
+    libraryReturnSubject=librarySubject;
+    libraryReturnQuery=libraryQuery;
+  }
   mapSavePromise = Promise.resolve();
   G = guides.find(g => g.id === id) || null;
   resetPrepView(G); resetEalView(G);
@@ -1557,7 +1640,10 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && work) work.ctl.abor
     for (const g of guides) if (g.plan) normalisePlan(g.plan);
     renderList(); renderMain();
     const q = new URLSearchParams(location.search);
-    if (q.get('subject') && !q.get('topic')) {
+    if (q.get('q') && !q.get('topic')) {
+      librarySubject=null;libraryQuery=q.get('q').slice(0,120);
+      view='library';renderList();renderMain(true);
+    } else if (q.get('subject') && !q.get('topic')) {
       requestedSubject=guideSubject({subject:q.get('subject')});
       librarySubject=subjectKey(requestedSubject);
       view='library';
