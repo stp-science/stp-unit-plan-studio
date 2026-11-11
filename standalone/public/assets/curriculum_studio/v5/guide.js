@@ -330,6 +330,7 @@ function libraryView() {
   updateClear();
   paint();
   return h('section',{class:'cg-library-page'},head,
+    h('h2',{class:'cg-search-title'},'Keyword Search'),
     h('p',{class:'cg-search-help'},'Search unit titles, curriculum knowledge, practices, learning focuses, vocabulary and notes.'),
     toolbar,grid,showAll);
 }
