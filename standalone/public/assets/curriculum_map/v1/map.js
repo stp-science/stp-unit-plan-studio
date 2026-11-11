@@ -1098,8 +1098,9 @@ function mapKeywordSearch() {
   };
   input.addEventListener('input',()=>{mapKeywordQuery=input.value.slice(0,120);paint();});
   paint();
-  return h('section',{class:'cm-keyword-panel','aria-label':'Find units in this curriculum map'},
-    h('div',{class:'cm-keyword-bar'},h('label',{},'Find a unit',input),clear,count),results);
+  return h('section',{class:'cm-keyword-panel','aria-label':'Keyword search within this curriculum map'},
+    h('h3',{class:'cm-keyword-heading'},'Keyword Search'),
+    h('div',{class:'cm-keyword-bar'},h('label',{},'Search this curriculum map',input),clear,count),results);
 }
 function mapView() {
   const c = counts();
@@ -1685,6 +1686,7 @@ function startView() {
       if(!query){keywordField.focus();return;}
       location.href=CM.guide+'?guide=1&q='+encodeURIComponent(query);
     }},
+    h('h2',{class:'cm-keyword-heading'},'Keyword Search'),
     h('label',{},'Find an existing unit plan'),
     h('div',{class:'cm-home-search-controls'},keywordField,
       h('button',{type:'submit',class:'cm-btn pri'},'Search plans')));
