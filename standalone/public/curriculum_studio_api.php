@@ -205,6 +205,7 @@ try {
         $topic = $str($in['topic'] ?? '', 300);
         if ($topic === '') $fail('Enter the topic.');
         $notes = $str($in['notes'] ?? '', 3000);
+        $keywords = $str($in['keywords'] ?? '', 400);
         $stage = $str($in['stage'] ?? '', 40);
         $stages = array_key_exists('stages', $in)
             ? (is_array($in['stages']) ? $in['stages'] : [])
@@ -247,7 +248,10 @@ try {
         $languageRef = $str($in['languageReferences'] ?? '', 9000);
         if ($languageRef !== '') $content[] = ['type' => 'input_text',
             'text' => "TEACHER-VERIFIED LANGUAGE REFERENCE (supporting context only, NOT additional Ministry statements):\n" . $languageRef];
-        $content[] = ['type' => 'input_text', 'text' => "Find the official curriculum statements for this topic.\nLearning stage: " . ($stage ?: 'Year ' . $year) . "\nTopic: $topic\nTeacher's notes: " . ($notes ?: '(none)') . "\nReturn this shape: " . json_encode(cs_find_shape(), JSON_UNESCAPED_UNICODE)];
+        $content[] = ['type' => 'input_text', 'text' => "Find the official curriculum statements for this topic.\nLearning stage: " . ($stage ?: 'Year ' . $year) . "\nTopic: $topic\nTeacher's notes: " . ($notes ?: '(none)') .
+            "\nTeacher's keyword search terms (relevance hints across curriculum strands only, NOT official statements): " . ($keywords ?: '(none)') .
+            "\nConsider source statements from every strand relevant to those keywords. Keep exact official wording, do not invent statements, and do not treat a keyword as evidence in itself." .
+            "\nReturn this shape: " . json_encode(cs_find_shape(), JSON_UNESCAPED_UNICODE)];
         $system = CS_FIND_RULES;
         $schema = cs_schema_from_example(cs_find_shape());
         $maxTokens = 8000;
