@@ -470,8 +470,7 @@ const normaliseKeywordText = text => String(text??'').normalize('NFKD')
 function planningKeywordTerms(value) {
   const str=String(value||'').slice(0,400);
   const groups=str.split(/[,;\n]+/).map(v=>normaliseKeywordText(v)).filter(Boolean);
-  return [...new Set(groups.length===1 && !/[,;\n]/.test(str)
-    ? groups[0].split(/\s+/).filter(Boolean) : groups)].slice(0,18);
+  return [...new Set(groups)].slice(0,18);
 }
 function statementKeywordScore(statement,keywords) {
   const terms=planningKeywordTerms(keywords);
