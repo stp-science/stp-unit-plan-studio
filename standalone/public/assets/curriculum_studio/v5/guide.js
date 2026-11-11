@@ -75,7 +75,7 @@ const statementsForYear = (guide, key, year) => (guide.statements[key] || []).fi
 let root, listEl, mainEl, shellEl, toastEl;
 let librarySubject = null, libraryQuery = '', directoryQuery = '', libraryShowAll = false, requestedSubject = '', libraryReturnSubject = null, libraryReturnQuery = '';
 
-const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], ealLoaded: [], languageReferences: '', docId: '', discipline: '', duration: '', notes: '', pasted: '',
+const blank = () => ({id: uid(), topic: '', subject: '', year: 7, stage: '', stages: [], bankYears: [], prepLoaded: [], ealLoaded: [], languageReferences: '', docId: '', discipline: '', duration: '', notes: '', keywords: '', pasted: '',
   statements: {knowledge: [], practices: []}, selected: {knowledge: [], practices: []}, plan: null, mapRef: null});
 const hasStatements = g => g && g.statements.knowledge.length + g.statements.practices.length > 0;
 const hue = s => { let x = 0; for (const c of String(s || 'x')) x = (x * 31 + c.charCodeAt(0)) % 360; return x; };
@@ -462,6 +462,52 @@ function workCard() {
   return el;
 }
 
+// Teacher-entered search terms only change relevance order. They do not
+// change official Ministry text, statement-bank contents or selected ticks.
+const normaliseKeywordText = text => String(text??'').normalize('NFKD')
+  .replace(/\p{M}/gu,'').toLocaleLowerCase()
+  .replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+function planningKeywordTerms(value) {
+  const str=String(value||'').slice(0,400);
+  const groups=str.split(/[,;\n]+/).map(v=>normaliseKeywordText(v)).filter(Boolean);
+  return [...new Set(groups.length===1 && !/[,;\n]/.test(str)
+    ? groups[0].split(/\s+/).filter(Boolean) : groups)].slice(0,18);
+}
+function statementKeywordScore(statement,keywords) {
+  const terms=planningKeywordTerms(keywords);
+  if(!terms.length)return 0;
+  const text=' '+normaliseKeywordText(statement?.text)+' ';
+  return terms.reduce((total,term)=>{
+    if(text.includes(' '+term+' '))return total+10+term.split(' ').length;
+    const tokens=term.split(' ').filter(x=>x.length>2);
+    return total+tokens.reduce((points,word)=>points+(text.includes(' '+word+' ')?3:0),0);
+  },0);
+}
+function rankCurriculumStatements(statements,keywords) {
+  if(!planningKeywordTerms(keywords).length)return [...statements];
+  return statements.map((statement,index)=>({statement,index,score:statementKeywordScore(statement,keywords)}))
+    .sort((a,b)=>b.score-a.score||a.index-b.index)
+    .map(row=>row.statement);
+}
+function planningKeywordField() {
+  return h('section',{class:'cg-planning-keywords','aria-label':'Keyword Search for curriculum statements'},
+    h('label',{class:'cg-planning-keywords-label',for:'cg-planning-keyword-input'},'Keyword Search'),
+    h('p',{class:'cg-mut'},'Enter keywords linked to this unit, including ideas from different curriculum strands. On the next screen, matching official statements will appear first in Knowledge and Practices.'),
+    h('input',{id:'cg-planning-keyword-input',type:'text',maxlength:'400',
+      placeholder:'e.g. sustainability, energy, systems, change',
+      'aria-label':'Keywords for sorting curriculum statements',
+      value:G.keywords||'',oninput:e=>{G.keywords=e.target.value.slice(0,400);save();}}),
+    h('small',{},'Separate keywords with commas. Optional — no statements are hidden or selected automatically.'));
+}
+function keywordOrderingHint(statements) {
+  if(!planningKeywordTerms(G?.keywords).length)return null;
+  const count=statements.filter(row=>statementKeywordScore(row,G.keywords)>0).length;
+  return h('div',{class:'cg-keyword-ordering',role:'status'},
+    h('b',{},'Keyword Search: '),
+    count+' matching statement'+(count===1?'':'s')+' brought to the top of this list. ',
+    'Review the statements before ticking them; all other statements remain below.');
+}
+
 function topicCard() {
   if (isPrepGuide(G)) return prepTopicCard();
   if (isEalGuide(G)) return ealTopicCard();
@@ -571,6 +617,7 @@ function topicCard() {
         G.discipline=e.target.value;save();renderMain();
       }}, h('option', {value: ''}, 'All'), ...['Dance', 'Drama', 'Music', 'Visual Arts'].map(s => h('option', {value: s, selected: s === G.discipline}, s)))) : null,
       ),
+    planningKeywordField(),
     timingField(),
     h('details', {class: 'cg-more', open: !!(G.notes || G.pasted || G.languageReferences)},
       h('summary', {}, 'Add context, teaching references or curriculum text'),
@@ -780,6 +827,7 @@ function ealTopicCard(){
         [9,10,11,12,13].map(y=>h('button',{type:'button',class:G.year===y?'on':'',
           'aria-pressed':G.year===y?'true':'false',onclick:()=>{G.year=y;save();renderMain();}},'Year '+y))),
       h('p',{class:'cg-mut'},'Stage selection is separate. A student may be at different stages in reading, writing, listening and speaking.')),
+    planningKeywordField(),
     timingField(),
     field('Unit context / teacher notes',area(G.notes,v=>{G.notes=v;save();},3)),
     languageReferencesField(G),
@@ -794,7 +842,8 @@ function ealOutlineCard(){
   const column=(key,title)=>h('div',{class:'cg-prep-column'},
     h('div',{class:'cg-colhead'},h('h3',{},title+' ',
       h('span',{class:'cg-chip'},ealRows(G,key,stage).filter(s=>G.selected[key].includes(s.id)).length+'/'+ealRows(G,key,stage).length))),
-    ...ealRows(G,key,stage).filter(s=>!statementFilter||s.text.toLocaleLowerCase().includes(statementFilter))
+    ...rankCurriculumStatements(ealRows(G,key,stage),G.keywords)
+      .filter(s=>!statementFilter||s.text.toLocaleLowerCase().includes(statementFilter))
       .map(s=>h('label',{class:'cg-stmt'+(G.selected[key].includes(s.id)?' on':'')},
         h('input',{type:'checkbox',checked:G.selected[key].includes(s.id),onchange:e=>{
           G.selected[key]=e.target.checked?[...new Set([...G.selected[key],s.id])]:
@@ -811,7 +860,8 @@ function ealOutlineCard(){
           }
           renderMain();
         }}),
-        h('div',{},h('p',{},s.text),h('small',{},'EAL · '+stage)),
+        h('div',{},statementKeywordScore(s,G.keywords)>0?h('small',{class:'cg-keyword-match'},'Keyword match'):null,
+          h('p',{},s.text),h('small',{},'EAL · '+stage)),
       )));
   return h('section',{class:'cg-prep-outline cg-eal-outline'},
     h('div',{class:'cg-outhead'},
@@ -858,6 +908,7 @@ function prepTopicCard(){
         [7,8].map(year=>h('button',{type:'button',class:G.year===year?'on':'','aria-pressed':G.year===year?'true':'false',
           onclick:()=>{G.year=year;prepActiveYear=year;save();renderMain();}},'Year '+year))),
       h('p',{class:'cg-mut'},'This is the unit’s year. You can choose statements from either Year 7 or Year 8 on the next screen, and any Te Reo Māori Novice level.')),
+    planningKeywordField(),
     timingField(),
     field('Context or special requirements',area(G.notes,v=>{G.notes=v;save();},3),
       'Learner needs, local connections, how the subjects fit together…'),
@@ -877,7 +928,8 @@ function prepOutlineCard(){
     return h('div',{class:'cg-prep-column'},
       h('div',{class:'cg-colhead'},h('h3',{},title+' ',h('span',{class:'cg-chip'},
         rows.filter(s=>G.selected[key].includes(s.id)).length+'/'+rows.length))),
-      ...rows.filter(s=>!statementFilter||[s.text,s.source].join(' ').toLocaleLowerCase().includes(statementFilter))
+      ...rankCurriculumStatements(rows,G.keywords)
+        .filter(s=>!statementFilter||[s.text,s.source].join(' ').toLocaleLowerCase().includes(statementFilter))
         .map(s=>h('label',{class:'cg-stmt'+(G.selected[key].includes(s.id)?' on':'')},
           h('input',{type:'checkbox',checked:G.selected[key].includes(s.id),onchange:e=>{
             G.selected[key]=e.target.checked?
@@ -894,7 +946,8 @@ function prepOutlineCard(){
             }
             renderMain();
           }}),
-          h('div',{},h('p',{},s.text),h('small',{class:'cg-level-tag'},source.label+' · '+(source.novice?level:'Year '+level)),
+          h('div',{},statementKeywordScore(s,G.keywords)>0?h('small',{class:'cg-keyword-match'},'Keyword match'):null,
+            h('p',{},s.text),h('small',{class:'cg-level-tag'},source.label+' · '+(source.novice?level:'Year '+level)),
             h('small',{},s.source)))));
   };
   const switchTo=(s)=>openPrepTab(s.id,s.novice?prepActiveStage:prepActiveYear);
@@ -961,6 +1014,7 @@ function outlineCard() {
   const col = (key, title) => {
     const list = crossYears ? statementsForYear(G,key,currentYear) : G.statements[key];
     if (!list.length) return null;
+    const ordered=rankCurriculumStatements(list,G.keywords);
     // All / None affect only the active year, never ticks from other tabs.
     const setAll = on => {
       const ids = new Set(list.map(s=>s.id));
@@ -971,7 +1025,7 @@ function outlineCard() {
     const editable = !fromMap || noviceStages(G).length > 0 || (crossYears && currentYear !== Number(G.year));
     return h('div', {}, h('div', {class: 'cg-colhead'}, h('h3', {}, title + ' ', h('span', {class: 'cg-chip'}, fromMap && !editable ? String(list.length) : G.selected[key].length + '/' + list.length)),
       fromMap ? null : h('div', {}, h('button', {type: 'button', onclick: () => setAll(true)}, 'All'), h('button', {type: 'button', onclick: () => setAll(false)}, 'None'))),
-      ...list.map(s => { const on = G.selected[key].includes(s.id); const show = !statementFilter || (s.text + ' ' + s.source + ' ' + (s.subject || '')).toLowerCase().includes(statementFilter);
+      ...ordered.map(s => { const on = G.selected[key].includes(s.id); const relevance=statementKeywordScore(s,G.keywords); const show = !statementFilter || (s.text + ' ' + s.source + ' ' + (s.subject || '')).toLowerCase().includes(statementFilter);
         return h('label', {class: 'cg-stmt' + (on ? ' on' : ''), style: show ? '' : 'display:none'}, h('input', {type: 'checkbox', checked: on, disabled: !editable, onchange: e => {
           G.selected[key] = e.target.checked ? [...G.selected[key], s.id] : G.selected[key].filter(x => x !== s.id);
           save();
@@ -986,7 +1040,8 @@ function outlineCard() {
           }
           renderMain();
         }}),
-          h('div', {}, h('p', {}, s.text), s.levels?.length ? h('small', {class:'cg-level-tag'}, s.levels.join(' · ')) : null, (s.why || s.confidence != null) ? h('small', {class: 'cg-why ' + (s.link === 'loose' ? 'loose' : '')}, (s.confidence != null ? s.confidence + '% match' : (s.link === 'loose' ? 'Loose match' : 'Linked')) + (s.why ? ' · ' + s.why : '')) : null, h('small', {}, s.source))); }));
+          h('div', {}, relevance>0 ? h('small',{class:'cg-keyword-match'},'Keyword match') : null,
+            h('p', {}, s.text), s.levels?.length ? h('small', {class:'cg-level-tag'}, s.levels.join(' · ')) : null, (s.why || s.confidence != null) ? h('small', {class: 'cg-why ' + (s.link === 'loose' ? 'loose' : '')}, (s.confidence != null ? s.confidence + '% match' : (s.link === 'loose' ? 'Loose match' : 'Linked')) + (s.why ? ' · ' + s.why : '')) : null, h('small', {}, s.source))); }));
   };
   return h('section', {},
     h('div', {class: 'cg-outhead'}, h('div', {}, h('h2', {style: 'margin:0 0 4px;font-size:21px'}, 'Curriculum outline'), h('p', {class: 'cg-mut', style: 'margin:0;color:var(--mut)'}, crossYears ? (G.mapRef ?
@@ -1013,6 +1068,8 @@ function outlineCard() {
           'Year '+currentYear+' curriculum · select any additional statements. The unit remains Year '+G.year+'.'),
       statementYearLoading ? h('div',{class:'cg-year-loading',role:'status'},'Reading the official Year '+statementYearLoading+' list…') : null
     ) : null,
+    keywordOrderingHint(['knowledge','practices'].flatMap(key=>
+      crossYears?statementsForYear(G,key,currentYear):G.statements[key])),
     (!G.mapRef || noviceStages(G).length || crossYears) ? h('div', {class: 'cg-bank-controls'},
       h('input', {type: 'search', class: 'cg-bank-search', 'aria-label': 'Search year-level curriculum statements', placeholder: 'Search knowledge and practices…', value: statementFilter,
         oninput: e => { statementFilter = e.target.value.toLowerCase().trim(); document.querySelectorAll('.cg-stmt').forEach(label => { label.style.display = !statementFilter || label.textContent.toLowerCase().includes(statementFilter) ? '' : 'none'; }); }}),
@@ -1443,7 +1500,7 @@ function browseOfficialStatements() {
 }
 function find() {
   return run('Finding your curriculum statements', ['Reading the Ministry curriculum…', 'Matching statements to your unit…', 'Checking every word against the source…'], async signal => {
-    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: planStages(G), topic: G.topic, notes: G.notes, languageReferences: G.languageReferences||'', pasted: G.pasted}, signal);
+    const r = await stream('find', {docId: G.docId, discipline: G.discipline, year: G.year, stage: G.stage || '', stages: planStages(G), topic: G.topic, notes: G.notes, keywords: G.keywords||'', languageReferences: G.languageReferences||'', pasted: G.pasted}, signal);
     G.statements = {knowledge: r.knowledge, practices: r.practices};
     G.selected = {knowledge: r.knowledge.filter(s => s.link !== 'loose').map(s => s.id), practices: r.practices.filter(s => s.link !== 'loose').map(s => s.id)};
     G.bankLoaded = false; G.bankYears = [];
@@ -1574,7 +1631,7 @@ function resetDialog() {
     if (o.k === 'delete') return remove();
     G.plan = null; closed.clear();
     if (o.k === 'start') {
-      G.notes = ''; G.duration = ''; G.pasted = ''; G.statements = {knowledge: [], practices: []}; G.selected = {knowledge: [], practices: []};
+      G.notes = ''; G.duration = ''; G.keywords=''; G.pasted = ''; G.statements = {knowledge: [], practices: []}; G.selected = {knowledge: [], practices: []};
       if (G.mapRef) await pullMapStatements(G);
     }
     save(); banner = {kind: 'ok', text: o.k === 'plan' ? 'The drafted unit plan was removed. Your statements and notes are still here.' : 'This unit plan was reset.'};
