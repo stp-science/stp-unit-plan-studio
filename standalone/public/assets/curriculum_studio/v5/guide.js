@@ -477,10 +477,16 @@ function statementKeywordScore(statement,keywords) {
   const terms=planningKeywordTerms(keywords);
   if(!terms.length)return 0;
   const text=' '+normaliseKeywordText(statement?.text)+' ';
+  // A small, transparent singular/plural normalisation helps teachers find
+  // "populations" with "population" without pretending to do semantic AI search.
+  const stem=word=>word.length>5&&word.endsWith('ies')?word.slice(0,-3)+'y':
+    word.length>4&&word.endsWith('s')&&!word.endsWith('ss')?word.slice(0,-1):word;
+  const words=new Set(text.trim().split(/\s+/).map(stem));
   return terms.reduce((total,term)=>{
-    if(text.includes(' '+term+' '))return total+10+term.split(' ').length;
-    const tokens=term.split(' ').filter(x=>x.length>2);
-    return total+tokens.reduce((points,word)=>points+(text.includes(' '+word+' ')?3:0),0);
+    const tokens=term.split(/\s+/).filter(x=>x.length>2);
+    const overlap=tokens.filter(word=>words.has(stem(word))).length;
+    const phraseBonus=tokens.length>1&&text.includes(' '+term+' ')?10:0;
+    return total+overlap*4+phraseBonus;
   },0);
 }
 function rankCurriculumStatements(statements,keywords) {
