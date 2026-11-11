@@ -506,3 +506,12 @@ body[data-page="curriculum-studio"] .cg-side{min-width:0}
   .cg-focus .cg-fhead{padding:12px}
   .cg-focus .cg-fhead input[type=text]{flex-basis:100%;order:2}
 }
+
+/* Saved-plan keyword search: show the matching field without altering content. */
+.cg-search-help{margin:0 0 12px;font-size:13px;line-height:1.5;color:#526879}
+.cg-library-match{display:block;padding:10px 12px;border-radius:9px;background:#f2f7f9;
+  font-size:12.5px;line-height:1.5;color:#375465;overflow-wrap:anywhere}
+.cg-library-match b{color:#092b45}
+.cg-search-all,.cg-search-clear{flex:none;font-size:13px}
+.cg-search-clear[hidden]{display:none}
+@media(max-width:720px){.cg-search-all,.cg-search-clear{flex:1 1 auto;justify-content:center}}
